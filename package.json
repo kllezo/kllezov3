@@ -1,0 +1,10 @@
+{
+  "name": "kllezo-v3",
+  "version": "1.0.0",
+  "description": "KLLEZO — Cinematic Digital Showroom",
+  "scripts": {
+    "dev": "npx -y serve . --listen 3000 --single",
+    "start": "npx -y serve . --listen 3000 --single"
+  },
+  "private": true
+}
