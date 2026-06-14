@@ -46,7 +46,7 @@ body {
 /* ══ Scroll Driver ════════════════════════════════════════════════ */
 #scroll-driver {
   position: relative;
-  height: 1400vh;
+  height: 900vh;
   width: 100%;
   pointer-events: none;
   z-index: 1;
