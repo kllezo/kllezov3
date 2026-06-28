@@ -71,7 +71,7 @@ let ecoTime = 0;
 let currentSectionIdx = 0;
 let targetSectionIdx = 0;
 let sectionTransitionProgress = 1.0; // 1.0 means transition is complete
-let transitionDuration = 2.5; // 2.5s cinematic snap transition duration
+let transitionDuration = 4.2; // 4.2s cinematic snap transition duration
 let transitionTimeElapsed = 0;
 let startScrollProgress = 0;
 let targetScrollProgress = 0;
@@ -4700,8 +4700,6 @@ function updateContent(t, time, dt) {
 
 function updateWebsites(t, time, vpOverride) {
   const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
-  const inZone = vp >= 1.9 && vp <= 3.4;
-
   const envOpacity = getSectionOpacity(2);
 
   if (scene.userData.websitesGroup) {
@@ -4733,21 +4731,15 @@ function updateWebsites(t, time, vpOverride) {
       const targetY = g.userData.targetY;
       const rowIdx = Math.floor(idx / 2);
 
-      // Focus calculations based on websiteScrollProgress
-      const peak = rowIdx * 0.5; // row 0 at 0.0, row 1 at 0.5, row 2 at 1.0
-      const dist = websiteScrollProgress - peak;
-      const t_focus = clamp(1.0 - Math.abs(dist) / 0.5, 0, 1);
-      const easeFocus = 0.5 * (1.0 - Math.cos(t_focus * Math.PI)); // Cosine ease for luxury slide
+      // Distance-based fade
+      const distanceZ = Math.abs(camera.position.z - d.z);
+      const fadeVal = clamp(1.0 - distanceZ / 25.0, 0, 1);
+      const easeFade = 0.5 * (1.0 - Math.cos(fadeVal * Math.PI));
+      const finalOpacity = easeFade * envOpacity;
 
-      // Drift offsets - drift back in depth (Z) and lower in height (Y) when out of focus
-      const z_offset = -25.0 * (1.0 - easeFocus);
-      const y_offset = -6.0 * (1.0 - easeFocus);
-      const slabOpacity = 0.05 + 0.95 * easeFocus;
-      const finalOpacity = slabOpacity * envOpacity;
-
-      // Position the panel
-      g.position.y = targetY + y_offset;
-      g.position.z = d.z + z_offset;
+      // Position the panel - FIXED structures, never translate or slide in scrolling
+      g.position.y = targetY;
+      g.position.z = d.z;
 
       // Add a tiny float breathing effect
       g.position.y += Math.sin(time * 0.2 + g.userData.phase) * 0.04;
@@ -4794,7 +4786,7 @@ function updateWebsites(t, time, vpOverride) {
         const rangeY = d.h * 0.35;
         const targetX1 = d.x + Math.sin(time * sweepSpeed + idx * 1.5) * rangeX;
         const targetY1 = (-12 + d.poleHeight + d.h * 0.5) + Math.cos(time * sweepSpeed * 0.8 + idx * 1.5) * rangeY;
-        spot1.target.position.set(targetX1, targetY1, d.z + z_offset);
+        spot1.target.position.set(targetX1, targetY1, d.z);
 
         if (beam1) {
           const spotPos = spot1.position;
@@ -4816,7 +4808,7 @@ function updateWebsites(t, time, vpOverride) {
         const rangeY = d.h * 0.35;
         const targetX2 = d.x + Math.cos(time * sweepSpeed + idx * 2.2) * rangeX;
         const targetY2 = (-12 + d.poleHeight + d.h * 0.5) + Math.sin(time * sweepSpeed * 0.8 + idx * 2.2) * rangeY;
-        spot2.target.position.set(targetX2, targetY2, d.z + z_offset);
+        spot2.target.position.set(targetX2, targetY2, d.z);
 
         if (beam2) {
           const spotPos = spot2.position;
@@ -5503,21 +5495,25 @@ function animate() {
   //   s 0.89–1.00 → t 0.86–max   ECOSYSTEM                     (132vh)
   // ═══════════════════════════════════════════════════════════════════
   const vp = scrollProgress * 13.0;
+  let activeVp = vp;
+  if (isWebsiteScrollMode()) {
+    activeVp = 2.0 + websiteScrollProgress * 1.4; // maps websiteScrollProgress 0..1 to activeVp 2.0..3.4
+  }
   let t = 0;
-  if (vp < 3.0) {
-    t = (vp / 3.0) * 0.38;
-  } else if (vp < 4.0) {
-    t = 0.38 + (vp - 3.0) * 0.10;
-  } else if (vp < 7.0) {
-    t = 0.48 + ((vp - 4.0) / 3.0) * 0.10;
-  } else if (vp < 7.75) {
-    t = 0.58 + ((vp - 7.0) / 0.75) * 0.10;
-  } else if (vp < 11.25) {
-    t = 0.68 + ((vp - 7.75) / 3.5) * 0.12;
-  } else if (vp < 11.75) {
-    t = 0.80 + ((vp - 11.25) / 0.5) * 0.08;
+  if (activeVp < 3.0) {
+    t = (activeVp / 3.0) * 0.38;
+  } else if (activeVp < 4.0) {
+    t = 0.38 + (activeVp - 3.0) * 0.10;
+  } else if (activeVp < 7.0) {
+    t = 0.48 + ((activeVp - 4.0) / 3.0) * 0.10;
+  } else if (activeVp < 7.75) {
+    t = 0.58 + ((activeVp - 7.0) / 0.75) * 0.10;
+  } else if (activeVp < 11.25) {
+    t = 0.68 + ((activeVp - 7.75) / 3.5) * 0.12;
+  } else if (activeVp < 11.75) {
+    t = 0.80 + ((activeVp - 11.25) / 0.5) * 0.08;
   } else {
-    t = 0.88 + clamp((vp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
+    t = 0.88 + clamp((activeVp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
   }
   t = clamp(t, 0, maxSafeT);
 
@@ -5663,10 +5659,7 @@ function animate() {
 
   // ── WEBSITE EXPERIENCES SCROLL MODE: override vp when user is exploring websites ──
   if (isWebsiteScrollMode()) {
-    // Camera stays parked at the website entry point (t=0.28)
-    // vp fed to updateWebsites advances with the user's scroll
-    const websiteVp = 1.9 + websiteScrollProgress * 1.5; // maps 0..1 → 1.9..3.4
-    updateWebsites(0.28, time, websiteVp);
+    updateWebsites(t, time, activeVp);
   } else {
     // Normal: websites animate based on global scroll vp
     // Reset websiteScrollTick when leaving section 2 going forward
