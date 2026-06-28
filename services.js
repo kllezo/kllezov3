@@ -1,6 +1,6 @@
 /* ═════════════════════════════════════════════════════════════════════
-   KLLEZO Services Page V2 — JavaScript Engine
-   Ambient animations, IntersectionObserver 60fps, ScrollSpy, Accordion
+   KLLEZO Services Page V3 — JavaScript Engine
+   Ambient software demo animations & custom cursor
    ═════════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.querySelectorAll('a, button, .apple-card, .philosophy-card, .chip, .acc-header').forEach(el => {
+  document.querySelectorAll('a, button, .solution-card, .video-placeholder-frame').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
   });
@@ -38,43 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   renderCursor();
 
-  /* ── 2. Common Questions Accordion Toggle ── */
-  document.querySelectorAll('.acc-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const item = header.parentElement;
-      const isOpen = item.classList.contains('open');
-      
-      // Close other accordion items in the same group
-      const parentAcc = item.parentElement;
-      if (parentAcc) {
-        parentAcc.querySelectorAll('.acc-item').forEach(other => {
-          if (other !== item) other.classList.remove('open');
-        });
-      }
-
-      item.classList.toggle('open', !isOpen);
-    });
-  });
-
-  /* ── 3. Sticky Navigation ScrollSpy ── */
-  const navItems = document.querySelectorAll('.sticky-nav .nav-item');
-  const modules = document.querySelectorAll('.category-module');
-
-  const spyObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute('id');
-        navItems.forEach(item => {
-          const href = item.getAttribute('href').replace('#', '');
-          item.classList.toggle('active', href === id);
-        });
-      }
-    });
-  }, { threshold: 0.25 });
-
-  modules.forEach(mod => spyObserver.observe(mod));
-
-  /* ── 4. Ambient Software Demo Counters & Lifecycle ── */
+  /* ── 2. Ambient Software Demo Lifecycle ── */
   const demoObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const windowEl = entry.target;
