@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLLEZO — Cinematic Product Experience V3</title>
+  <meta name="description" content="Cinematic content systems, bespoke web flagships, and autonomous conversational AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../services.css" />
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div id="cur-dot"></div>
+  <div id="cur-ring"></div>
+
+  <!-- Header -->
+  <header>
+    <a href="../index.html" class="brand">KLLEZO</a>
+    <a href="../index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="transform: rotate(180deg);"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Back To Universe</span>
+    </a>
+  </header>
+
+  <!-- 1. HERO -->
+  <section class="hero">
+    <div class="hero-bg-anim">
+      <svg width="600" height="600" viewBox="0 0 200 200" fill="none" style="animation: spin 40s linear infinite;">
+        <circle cx="100" cy="100" r="80" stroke="rgba(212,168,83,0.15)" stroke-width="1.5" stroke-dasharray="6 6" />
+        <circle cx="100" cy="20" r="5" fill="#D4A853" />
+        <circle cx="180" cy="100" r="5" fill="#D4A853" />
+        <circle cx="100" cy="180" r="5" fill="#D4A853" />
+        <circle cx="20" cy="100" r="5" fill="#D4A853" />
+        <path d="M100 20 L180 100 L100 180 L20 100 Z" stroke="rgba(247,243,235,0.08)" stroke-width="1" />
+      </svg>
+      <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+    </div>
+    <div class="hero-content">
+      <div class="hero-subtitle">ENGINEERED FOR COMPANIES THAT INTEND TO DOMINATE</div>
+      <h1 class="hero-title">Most Businesses Don't Need More Marketing.<br>They Need Better Systems.</h1>
+      <p class="hero-desc">Kllezo builds premium content ecosystems, digital experiences, and AI-powered communication systems designed to create sustainable, measurable business growth.</p>
+      <div class="hero-buttons">
+        <a href="#content" class="btn-primary">Explore Solutions</a>
+        <a href="mailto:hello@kllezo.com" class="btn-secondary">Book a Consultation</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CONTENT CREATION CHAPTER -->
+  <section id="content" class="product-chapter">
+    <!-- 01. Large Service Title -->
+    <div class="chapter-header">
+      <h2 class="chapter-title">Content Creation</h2>
+      <p class="chapter-subtitle">Content systems that consistently attract, engage and convert your ideal audience.</p>
+    </div>
+
+    <!-- 02. LIVE PRODUCT DEMO (HERO) -->
+    <div class="hero-demo-container">
+      <div class="demo-window" id="demo-content" data-active="true">
+        <div class="window-header">
+          <div class="window-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+          <div class="window-title">kllezo-content-os.app — Live Analytics</div>
+        </div>
+        <div class="demo-body content-os-ui">
+          <div class="os-stats-row">
+            <div class="os-stat-card"><div class="stat-lbl">Monthly Impressions</div><div class="stat-val">2.4M</div></div>
+            <div class="os-stat-card"><div class="stat-lbl">Engagement Rate</div><div class="stat-val">8.6%</div></div>
+            <div class="os-stat-card"><div class="stat-lbl">Authority Score</div><div class="stat-val">98/100</div></div>
+          </div>
+          <div class="os-graph-box">
+            <div class="graph-bar" style="height: 40%;"></div>
+            <div class="graph-bar" style="height: 65%;"></div>
+            <div class="graph-bar" style="height: 50%;"></div>
+            <div class="graph-bar" style="height: 85%;"></div>
+            <div class="graph-bar" style="height: 70%;"></div>
+            <div class="graph-bar" style="height: 95%;"></div>
+            <div class="graph-bar" style="height: 80%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03. SOLUTIONS CARDS -->
+    <div class="solutions-section-title">Ecosystem Solutions</div>
+    <div class="solutions-grid">
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Content Growth System</h3>
+          <p class="sol-card-desc">Build a complete content engine designed for predictable business growth.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Personal Brand System</h3>
+          <p class="sol-card-desc">Establish founder authority and market presence.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Premium Video Production</h3>
+          <p class="sol-card-desc">Cinematic content engineered to command industry authority.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">UGC &amp; Ad Creatives</h3>
+          <p class="sol-card-desc">High-converting video assets built for performance marketing.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Custom Content Solution</h3>
+          <p class="sol-card-desc">Enterprise-grade content infrastructure built to scale.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+    </div>
+
+    <!-- 04. WATCH IT WORK -->
+    <div class="watch-work-container">
+      <div class="video-placeholder-frame">
+        <div class="play-btn-glow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="video-placeholder-label">Watch System Overview</div>
+      </div>
+    </div>
+
+    <!-- 05. INLINE CTA -->
+    <div class="inline-cta-box">
+      <h4 class="inline-cta-text">Ready to build this system?</h4>
+      <a href="mailto:hello@kllezo.com" class="btn-primary">Book a Consultation &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 3. WEBSITE EXPERIENCES CHAPTER -->
+  <section id="websites" class="product-chapter">
+    <!-- 01. Large Service Title -->
+    <div class="chapter-header">
+      <h2 class="chapter-title">Website Experiences</h2>
+      <p class="chapter-subtitle">Kinetic digital flagships engineered strictly for high conversion and brand perception.</p>
+    </div>
+
+    <!-- 02. LIVE PRODUCT DEMO (HERO) -->
+    <div class="hero-demo-container">
+      <div class="demo-window" id="demo-web" data-active="true">
+        <div class="window-header">
+          <div class="window-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+          <div class="window-title">kllezo-web-builder.app — Live Preview</div>
+        </div>
+        <div class="demo-body web-preview-box">
+          <div class="web-scroll-content">
+            <div class="mock-hero-h1"></div>
+            <div class="mock-hero-p"></div>
+            <div class="mock-hero-p2"></div>
+            <div class="mock-grid-cards">
+              <div class="mock-c"></div>
+              <div class="mock-c"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03. SOLUTIONS CARDS -->
+    <div class="solutions-section-title">Ecosystem Solutions</div>
+    <div class="solutions-grid">
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Business Website</h3>
+          <p class="sol-card-desc">Modern digital flagship tailored for market authority and buyer trust.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">E-commerce Experience</h3>
+          <p class="sol-card-desc">High-converting storefronts engineered for global transaction scale.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Lead Generation Website</h3>
+          <p class="sol-card-desc">Built to convert visitors into qualified customers.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Custom Web Solution</h3>
+          <p class="sol-card-desc">Bespoke web applications and interactive digital platforms.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+    </div>
+
+    <!-- 04. WATCH IT WORK -->
+    <div class="watch-work-container">
+      <div class="video-placeholder-frame">
+        <div class="play-btn-glow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="video-placeholder-label">Watch System Overview</div>
+      </div>
+    </div>
+
+    <!-- 05. INLINE CTA -->
+    <div class="inline-cta-box">
+      <h4 class="inline-cta-text">Ready to build this system?</h4>
+      <a href="mailto:hello@kllezo.com" class="btn-primary">Book a Consultation &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 4. AI TEXTING AGENTS CHAPTER -->
+  <section id="texting" class="product-chapter">
+    <!-- 01. Large Service Title -->
+    <div class="chapter-header">
+      <h2 class="chapter-title">AI Texting Agents</h2>
+      <p class="chapter-subtitle">Autonomous conversational intelligence operating continuously across all messaging channels.</p>
+    </div>
+
+    <!-- 02. LIVE PRODUCT DEMO (HERO) -->
+    <div class="hero-demo-container">
+      <div class="demo-window" id="demo-texting" data-active="true">
+        <div class="window-header">
+          <div class="window-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+          <div class="window-title">kllezo-ai-chat.app — Live Session</div>
+        </div>
+        <div class="demo-body chat-window">
+          <div class="msg-bubble msg-user">Hi, I want to learn more about enterprise growth setup.</div>
+          <div class="msg-bubble msg-ai">Hello! I can walk you through our architectural systems. What is your current monthly inbound lead volume? <div class="typing-dots"><span></span><span></span><span></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03. SOLUTIONS CARDS -->
+    <div class="solutions-section-title">Ecosystem Solutions</div>
+    <div class="solutions-grid">
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Customer Support Agent</h3>
+          <p class="sol-card-desc">24/7 instant resolution across web and native messaging.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Sales Agent</h3>
+          <p class="sol-card-desc">Proactive inbound lead qualification and immediate pipeline generation.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Appointment Booking Agent</h3>
+          <p class="sol-card-desc">Automated calendar scheduling that operates continuously.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Custom AI Texting Solution</h3>
+          <p class="sol-card-desc">Tailored conversational LLM agents integrated directly into your CRM.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+    </div>
+
+    <!-- 04. WATCH IT WORK -->
+    <div class="watch-work-container">
+      <div class="video-placeholder-frame">
+        <div class="play-btn-glow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="video-placeholder-label">Watch System Overview</div>
+      </div>
+    </div>
+
+    <!-- 05. INLINE CTA -->
+    <div class="inline-cta-box">
+      <h4 class="inline-cta-text">Ready to build this system?</h4>
+      <a href="mailto:hello@kllezo.com" class="btn-primary">Book a Consultation &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 5. AI CALLING AGENTS CHAPTER -->
+  <section id="calling" class="product-chapter">
+    <!-- 01. Large Service Title -->
+    <div class="chapter-header">
+      <h2 class="chapter-title">AI Calling Agents</h2>
+      <p class="chapter-subtitle">Human-grade voice AI conducting natural, fluent telephonic conversations.</p>
+    </div>
+
+    <!-- 02. LIVE PRODUCT DEMO (HERO) -->
+    <div class="hero-demo-container">
+      <div class="demo-window" id="demo-calling" data-active="true">
+        <div class="window-header">
+          <div class="window-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+          <div class="window-title">kllezo-voice-engine.app — Live Call Stream</div>
+        </div>
+        <div class="demo-body voice-call-ui">
+          <div class="waveform-box">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+          <div class="transcript-box">
+            [AI Voice]: "Hello, this is the KLLEZO voice assistant following up on your consultation request. Is this a good time for a brief 2-minute sync?"
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03. SOLUTIONS CARDS -->
+    <div class="solutions-section-title">Ecosystem Solutions</div>
+    <div class="solutions-grid">
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Inbound AI Voice Agent</h3>
+          <p class="sol-card-desc">Handle call surges instantly with human-grade voice latency.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Outbound AI Voice Agent</h3>
+          <p class="sol-card-desc">Automated outbound lead follow-up and appointment booking.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+      <a href="mailto:hello@kllezo.com" class="solution-card">
+        <div>
+          <h3 class="sol-card-name">Custom AI Voice Solution</h3>
+          <p class="sol-card-desc">Custom voice synthesis trained directly on your sales workflows.</p>
+        </div>
+        <span class="sol-card-link">Learn More &rarr;</span>
+      </a>
+    </div>
+
+    <!-- 04. WATCH IT WORK -->
+    <div class="watch-work-container">
+      <div class="video-placeholder-frame">
+        <div class="play-btn-glow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="video-placeholder-label">Watch System Overview</div>
+      </div>
+    </div>
+
+    <!-- 05. INLINE CTA -->
+    <div class="inline-cta-box">
+      <h4 class="inline-cta-text">Ready to build this system?</h4>
+      <a href="mailto:hello@kllezo.com" class="btn-primary">Book a Consultation &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 6. FINAL CTA -->
+  <section class="final-cta-section">
+    <h2 class="final-cta-title">Let's build the system your business actually needs.</h2>
+    <p class="final-cta-desc">Transition from isolated tools to a unified growth infrastructure engineered for predictable revenue scale.</p>
+    <div class="final-cta-buttons">
+      <a href="mailto:hello@kllezo.com" class="btn-primary">Book a Consultation</a>
+      <a href="mailto:hello@kllezo.com" class="btn-secondary">Contact Us</a>
+    </div>
+  </section>
+
+  <script src="../services.js"></script>
+</body>
+</html>
