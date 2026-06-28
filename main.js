@@ -1582,14 +1582,14 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     ctx.lastChatUpdateTime = now;
 
     function calculateBubbleLayout(text, maxW) {
-      ctx.font = '500 18px "Inter", -apple-system, sans-serif';
+      ctx.font = '500 14px "Inter", -apple-system, sans-serif';
       const words = text.split(' ');
       const lines = [];
       let currentLine = words[0] || '';
       for (let i = 1; i < words.length; i++) {
         const word = words[i];
         const width = ctx.measureText(currentLine + " " + word).width;
-        if (width < maxW - 36) {
+        if (width < maxW - 28) {
           currentLine += " " + word;
         } else {
           lines.push(currentLine);
@@ -1602,9 +1602,9 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const width = ctx.measureText(line).width;
         if (width > maxLineWidth) maxLineWidth = width;
       });
-      const paddingX = 18;
-      const paddingY = 14;
-      const lineHeight = 25;
+      const paddingX = 14;
+      const paddingY = 10;
+      const lineHeight = 20;
       const height = lines.length * lineHeight + paddingY * 2;
       return { lines, width: Math.ceil(maxLineWidth + paddingX * 2), height };
     }
@@ -1894,7 +1894,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     const chatContentMinY = activeMinY + 16;
     const chatContentMaxY = activeMaxY - 16;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
-    const maxBubbleWidth = 290;
+    const maxBubbleWidth = 250;
 
     let bubblesToDraw = [];
     let totalHeight = 0;
@@ -2015,13 +2015,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
         drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
         
-        ctx.font = '500 18px "Inter", -apple-system, sans-serif';
+        ctx.font = '500 14px "Inter", -apple-system, sans-serif';
         ctx.fillStyle = textColor;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        const lineHeight = 25;
-        const paddingX = 18;
-        const paddingY = 14;
+        const lineHeight = 20;
+        const paddingX = 14;
+        const paddingY = 10;
         b.lines.forEach((line, lineIdx) => {
           ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
         });
@@ -2237,10 +2237,52 @@ window.addEventListener('resize', () => {
 // Strict Section-Based Storyflow Gesture Listeners
 document.body.style.overflow = 'hidden';
 
+// ── WEBSITE EXPERIENCES SCROLL MODE ──
+// When the user is parked at section 2 (Website Experiences), scroll
+// advances the website billboards instead of triggering section transitions.
+let websiteScrollProgress = 0.0; // 0 = entry, 1 = exit
+const WEBSITE_SCROLL_STEPS = 18;  // number of scroll ticks to traverse the zone
+let websiteScrollTick = 0;         // integer 0..WEBSITE_SCROLL_STEPS
+
+function isWebsiteScrollMode() {
+  return currentSectionIdx === 2 && sectionTransitionProgress >= 1.0;
+}
+
+function advanceWebsiteScroll(direction) {
+  // direction: +1 = forward (scroll down), -1 = backward (scroll up)
+  websiteScrollTick = Math.max(0, Math.min(WEBSITE_SCROLL_STEPS, websiteScrollTick + direction));
+  websiteScrollProgress = websiteScrollTick / WEBSITE_SCROLL_STEPS;
+
+  if (direction > 0 && websiteScrollTick >= WEBSITE_SCROLL_STEPS) {
+    // User has scrolled past the end of website section → enter Calling
+    websiteScrollTick = WEBSITE_SCROLL_STEPS;
+    triggerSectionTransition(currentSectionIdx + 1);
+    return;
+  }
+  if (direction < 0 && websiteScrollTick <= 0) {
+    // User scrolled back to start → return to Content Engine
+    websiteScrollTick = 0;
+    triggerSectionTransition(currentSectionIdx - 1);
+  }
+}
+
 function handleWheelGesture(e) {
   const now = performance.now();
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: intercept scroll to drive billboard progress
+  if (isWebsiteScrollMode()) {
+    if (e.deltaY > 5) {
+      advanceWebsiteScroll(+1);
+      lastGestureTime = now;
+    } else if (e.deltaY < -5) {
+      advanceWebsiteScroll(-1);
+      lastGestureTime = now;
+    }
+    return;
+  }
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (e.deltaY > 5) {
@@ -2266,6 +2308,19 @@ window.addEventListener('touchmove', e => {
   const now = performance.now();
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: intercept touch to drive billboard progress
+  if (isWebsiteScrollMode()) {
+    if (deltaY > 30) {
+      advanceWebsiteScroll(+1);
+      lastGestureTime = now;
+    } else if (deltaY < -30) {
+      advanceWebsiteScroll(-1);
+      lastGestureTime = now;
+    }
+    return;
+  }
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (deltaY > 30) {
@@ -2281,6 +2336,19 @@ window.addEventListener('keydown', e => {
   const now = performance.now();
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: intercept key to drive billboard progress
+  if (isWebsiteScrollMode()) {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      advanceWebsiteScroll(+1);
+      lastGestureTime = now;
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      advanceWebsiteScroll(-1);
+      lastGestureTime = now;
+    }
+    return;
+  }
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
@@ -2442,13 +2510,16 @@ function createGoldMaterial(initialOpacity = 0.0) {
         float waves = noise(warpedPos * (0.5 + 0.15 * viscosity) + vec3(0.0, -time * 1.1, 0.0)) * 0.04;
         float shimmer = noise(warpedPos * 1.6 + vec3(0.0, -time * 3.2, 0.0)) * 0.015;
 
-        // 4. Breathing amplitude pulse every few seconds
-        float breathingPulse = 1.0 + 0.28 * sin(time * 0.75);
+        // 4. Breathing amplitude pulse every few seconds — subtle, elegant
+        // Primary slow breath: barely noticeable expansion/contraction
+        float breathingPulse = 1.0 + 0.12 * sin(time * 0.55);
+        // Secondary micro-viscosity variation at a different beat
+        float breathSlow = 1.0 + 0.06 * sin(time * 0.22 + position.z * 0.008);
 
-        // 5. Micro pressure pulses traveling along the tube
-        float pressure = sin(position.y * 2.5 - time * 6.5) * 0.012 * (0.5 + 0.5 * sin(time * 1.8));
+        // 5. Micro pressure pulses traveling along the tube — gentler
+        float pressure = sin(position.y * 2.5 - time * 6.5) * 0.007 * (0.5 + 0.5 * sin(time * 1.2));
         
-        float displacement = (breathing * breathingPulse + waves + shimmer + pressure) * edgeMask * progress;
+        float displacement = (breathing * breathingPulse * breathSlow + waves + shimmer + pressure) * edgeMask * progress;
         vec3 deformedPosition = position + normal * displacement;
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPosition, 1.0);
@@ -4624,8 +4695,8 @@ function updateContent(t, time, dt) {
 }
 
 
-function updateWebsites(t, time) {
-  const vp = scrollProgress * 13.0;
+function updateWebsites(t, time, vpOverride) {
+  const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
   const inZone = vp >= 1.9 && vp <= 3.4;
 
   if (scene.userData.websitesGroup) {
@@ -5512,22 +5583,43 @@ function animate() {
     mainAmbientLight.intensity = 1.8 - 1.2 * suctionStrength;
   }
 
-  // Cinematic follow camera logic where the camera acts as a direct rider ON the spline
+
+  // ── ROLLER COASTER CAMERA: active ONLY during travel between sections ──
+  // Three existing transitions + two new ones for a complete ride.
   let followActive = false;
   let followCurve = null;
   let followProgress = 0.0;
 
-  if (t >= 0.405 && t <= 0.435) {
+  // Segment 1: Hero → Content Engine
+  if (t >= 0.05 && t <= 0.19) {
+    followActive = true;
+    followCurve = curveHeroToContent;
+    const ratio = (t - 0.05) / 0.14;
+    followProgress = ratio * 0.90; // Follow most of the segment
+  }
+  // Segment 2: Content Engine → Website Experiences
+  else if (t >= 0.22 && t <= 0.36) {
+    followActive = true;
+    followCurve = curveContentToWebsites;
+    const ratio = (t - 0.22) / 0.14;
+    followProgress = ratio * 0.92;
+  }
+  // Segment 3: Website Experiences → AI Calling
+  else if (t >= 0.405 && t <= 0.435) {
     followActive = true;
     followCurve = curveWebsitesToCalling;
     const ratio = (t - 0.405) / 0.03;
     followProgress = ratio * 0.33; // Detaches before entering calling card weaves
-  } else if (t >= 0.585 && t <= 0.655) {
+  }
+  // Segment 4: AI Calling → AI Texting (the big helix)
+  else if (t >= 0.585 && t <= 0.655) {
     followActive = true;
     followCurve = curveCallingToTexting;
     const ratio = (t - 0.585) / 0.07;
     followProgress = ratio * 0.60; // Detaches before wrapping texting phone
-  } else if (t >= 0.805 && t <= 0.855) {
+  }
+  // Segment 5: AI Texting → Final Ecosystem
+  else if (t >= 0.805 && t <= 0.855) {
     followActive = true;
     followCurve = curveTextingToEcosystem;
     const ratio = (t - 0.805) / 0.05;
@@ -5546,26 +5638,26 @@ function animate() {
   }
 
   if (followActive && followCurve) {
-    const pTube = followCurve.getPointAt(followProgress);
-    const tangent = followCurve.getTangentAt(followProgress).normalize();
+    const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+    const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
 
     const upVec = new THREE.Vector3(0, 1, 0);
     const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
     const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
 
-    // Subtle Frenet frame banking (2–5° roll)
-    const bankAngle = clamp(rightVec.y * 0.15, -0.05, 0.05); // 0.05 rad ≈ 3 degrees
+    // Premium banking: 4–6° roll into turns (smooth, never aggressive)
+    const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10); // 0.10 rad ≈ 5.7 degrees
     if (Math.abs(bankAngle) > 0.001) {
       actualUp.applyAxisAngle(tangent, bankAngle);
     }
 
-    // Direct rider positioning: +0.20 units vertically above the tube surface
-    const followCamPos = pTube.clone().addScaledVector(actualUp, 0.20);
+    // Rider sits 0.35 units above the tube (slightly elevated for visibility)
+    const followCamPos = pTube.clone().addScaledVector(actualUp, 0.35);
 
-    // Look ahead 4.5 units along the travel path (lookAt target)
+    // Look ahead 6.0 units along the path (strong anticipation feel)
     const followLookTarget = pTube.clone()
-      .addScaledVector(tangent, 4.5)
-      .addScaledVector(actualUp, 0.20);
+      .addScaledVector(tangent, 6.0)
+      .addScaledVector(actualUp, 0.35);
 
     scene.userData.followCamPos = followCamPos;
     scene.userData.followLookTarget = followLookTarget;
@@ -5588,8 +5680,25 @@ function animate() {
 
   /* -- Zone updates -- */
   updateContent(t, time, dt);
-  
-  updateWebsites(t, time);
+
+  // ── WEBSITE EXPERIENCES SCROLL MODE: override vp when user is exploring websites ──
+  if (isWebsiteScrollMode()) {
+    // Camera stays parked at the website entry point (t=0.28)
+    // vp fed to updateWebsites advances with the user's scroll
+    const websiteVp = 1.9 + websiteScrollProgress * 1.5; // maps 0..1 → 1.9..3.4
+    updateWebsites(0.28, time, websiteVp);
+  } else {
+    // Normal: websites animate based on global scroll vp
+    // Reset websiteScrollTick when leaving section 2 going forward
+    if (currentSectionIdx > 2 && websiteScrollTick !== WEBSITE_SCROLL_STEPS) {
+      websiteScrollTick = WEBSITE_SCROLL_STEPS;
+      websiteScrollProgress = 1.0;
+    } else if (currentSectionIdx < 2 && websiteScrollTick !== 0) {
+      websiteScrollTick = 0;
+      websiteScrollProgress = 0.0;
+    }
+    updateWebsites(t, time);
+  }
   updateCalling(t, time);
   updateTexting(t, time);
   updateEcosystem(t, time);
