@@ -93,7 +93,7 @@ function isSectionLocked(idx) {
     return callingAutoplayTime < 2.8;
   }
   if (idx === 4) { // AI Texting Agents
-    return textingAutoplayTime < 4.0;
+    return textingAutoplayTime < 12.0;
   }
   return false;
 }
@@ -1549,43 +1549,15 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
    Single conversation morphs: WhatsApp → Instagram → Messenger → Website Chat
    ═══════════════════════════════════════════ */
 
+// 6-message conversation — User/AI/User/AI/User/AI
+// Platform morphs: WhatsApp (msgs 1-2) → Instagram (msgs 3-4) → Kllezo Bot (msgs 5-6)
 const CONVERSATION_SCRIPT = [
-  { sender: 'customer', text: "Hi! I saw your website and wanted to check your services." },
-  { sender: 'ai', text: "Hello! We design custom AI voice and texting agents that automate lead capture, booking, and support. What kind of business do you run?" },
-  { sender: 'customer', text: "I run a local plumbing and HVAC service in Dallas." },
-  { sender: 'ai', text: "Excellent! We work with many home services. Are you looking to qualify incoming leads or handle after-hours booking?" },
-  { sender: 'customer', text: "After-hours booking is our biggest headache. We miss lots of calls." },
-  { sender: 'ai', text: "Our AI Voice Agents answer 24/7, qualify the emergency level, and book appointments directly into your calendar. Would you like to know about pricing?" },
-  { sender: 'customer', text: "Yes, what is your standard pricing model?" },
-  { sender: 'ai', text: "We have a Starter package at $1,200/month which includes full voice setup, integrations, and 24/7 coverage. Would you like to schedule a quick demo?" },
-  { sender: 'customer', text: "Sounds interesting. Can we schedule a demo next Tuesday?" },
-  { sender: 'ai', text: "Absolutely! I would be happy to set that up. Do you prefer morning or afternoon?" },
-  { sender: 'customer', text: "Tuesday afternoon works best for me, around 2:00 PM." },
-  { sender: 'ai', text: "Perfect. Tuesday at 2:00 PM is secured. What is your email to send the calendar link?" },
-  { sender: 'customer', text: "Sure, it is plumbingdallas@gmail.com" },
-  { sender: 'ai', text: "Got it! And a good phone number for text confirmation updates?" },
-  { sender: 'customer', text: "Yes, it is 214-555-0199." },
-  { sender: 'ai', text: "Awesome. I've sent the meeting invite. Can I help answer any FAQs about how the AI agent works?" },
-  { sender: 'customer', text: "Yes, how does it handle complex questions from clients?" },
-  { sender: 'ai', text: "We train the agent on your specific knowledge base. If a query is too complex, it smoothly transfers the chat or call to a human team member." },
-  { sender: 'customer', text: "That is great. We don't want the AI giving wrong advice." },
-  { sender: 'ai', text: "Precisely! Guardrails are our priority. It only uses approved resources. Would you like to see how we integrate with your CRM?" },
-  { sender: 'customer', text: "Yes, we use ServiceTitan. Do you support that?" },
-  { sender: 'ai', text: "Yes! We support ServiceTitan, HubSpot, Salesforce, and over 4,000 other apps. We log all call summaries directly inside the client profile." },
-  { sender: 'customer', text: "That is perfect. That saves my dispatch team a ton of typing." },
-  { sender: 'ai', text: "Exactly! It reduces administrative work by up to 80%. Would you like me to send a client case study?" },
-  { sender: 'customer', text: "Sure, that would be helpful." },
-  { sender: 'ai', text: "Sending it now... This local team doubled their booking rate in 30 days using our AI booking flow!" },
-  { sender: 'customer', text: "Impressive results. I will read through this before Tuesday." },
-  { sender: 'ai', text: "My pleasure! I will check back with you later if you have any questions." },
-  { sender: 'customer', text: "Actually, I have one more question: does it support SMS too?" },
-  { sender: 'ai', text: "Yes, it supports SMS, WhatsApp, and Instagram DMs! It can automatically text back missed calls to save the lead." },
-  { sender: 'customer', text: "Awesome, missed call text back is exactly what we need." },
-  { sender: 'ai', text: "It's highly effective! Most customers reply within 2 minutes. We will show you this during the demo." },
-  { sender: 'customer', text: "Great. Is there any contract or can we cancel anytime?" },
-  { sender: 'ai', text: "All our plans are month-to-month. No long term contracts, you can cancel or upgrade with a 14-day notice." },
-  { sender: 'customer', text: "Perfect. Looking forward to our call." },
-  { sender: 'ai', text: "Likewise! I'll see you on Tuesday at 2:00 PM. Have a wonderful day!" }
+  { sender: 'customer', text: "Hi! I saw your website." },
+  { sender: 'ai',       text: "Hey! Thanks for reaching out 👋 What kind of business do you run?" },
+  { sender: 'customer', text: "A local restaurant. We miss too many calls." },
+  { sender: 'ai',       text: "We can fix that. Our AI handles every missed call automatically. Want to see how?" },
+  { sender: 'customer', text: "Yes! How fast can you set it up?" },
+  { sender: 'ai',       text: "Usually 24–48 hours 🚀 I'll send you a setup link right now." }
 ];
 
 function easeOutBack(t) {
@@ -1604,42 +1576,28 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
   if (imgW && imgW.complete && imgI && imgI.complete && imgWeb && imgWeb.complete) {
     const phoneSettled = (typeof textingPhoneSettled !== 'undefined') ? textingPhoneSettled : false;
 
-    // Decouple t_text from scroll and drive it via the textingAutoplayTime timer
-    let t_text = 0;
-    if (phoneSettled) {
-      if (textingAutoplayTime < 1.2) {
-        t_text = (textingAutoplayTime / 1.2) * 0.33;
-      } else if (textingAutoplayTime < 1.4) {
-        const p = (textingAutoplayTime - 1.2) / 0.2;
-        t_text = 0.33 + p * 0.04;
-      } else if (textingAutoplayTime < 2.6) {
-        t_text = 0.37 + ((textingAutoplayTime - 1.4) / 1.2) * 0.28;
-      } else if (textingAutoplayTime < 2.8) {
-        const p = (textingAutoplayTime - 2.6) / 0.2;
-        t_text = 0.65 + p * 0.04;
-      } else if (textingAutoplayTime < 4.0) {
-        t_text = 0.69 + ((textingAutoplayTime - 2.8) / 1.2) * 0.31;
-      } else {
-        t_text = 1.0;
-      }
-    }
+    // Platform morphing driven by textingAutoplayTime
+    // WA → Instagram at 3.5–4.5s (after msg 2 AI reply), IG → Kllezo at 7.5–8.5s (after msg 4)
+    const MORPH1_START = 3.5, MORPH1_END = 4.5;
+    const MORPH2_START = 7.5, MORPH2_END = 8.5;
 
     let whatsappOpacity = 0;
     let instagramOpacity = 0;
     let websiteUiOpacity = 0;
 
-    if (t_text < 0.33) {
+    const ta = textingAutoplayTime;
+    if (ta < MORPH1_START) {
       whatsappOpacity = 1.0;
-    } else if (t_text < 0.37) {
-      const p = (t_text - 0.33) / 0.04;
-      whatsappOpacity = clamp(1.0 - p, 0, 1);
-      instagramOpacity = clamp(p, 0, 1);
-    } else if (t_text < 0.65) {
+    } else if (ta < MORPH1_END) {
+      const p = clamp((ta - MORPH1_START) / (MORPH1_END - MORPH1_START), 0, 1);
+      whatsappOpacity = 1.0 - p;
+      instagramOpacity = p;
+    } else if (ta < MORPH2_START) {
       instagramOpacity = 1.0;
-    } else if (t_text < 0.69) {
-      const p = (t_text - 0.65) / 0.04;
-      instagramOpacity = clamp(1.0 - p, 0, 1);
-      websiteUiOpacity = clamp(p, 0, 1);
+    } else if (ta < MORPH2_END) {
+      const p = clamp((ta - MORPH2_START) / (MORPH2_END - MORPH2_START), 0, 1);
+      instagramOpacity = 1.0 - p;
+      websiteUiOpacity = p;
     } else {
       websiteUiOpacity = 1.0;
     }
@@ -1817,12 +1775,9 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     if (!ctx.chatState) {
       ctx.chatState = {
-        messages: [
-          { id: 1, sender: CONVERSATION_SCRIPT[0].sender, text: CONVERSATION_SCRIPT[0].text, opacity: 1.0, yOffset: 0.0, scale: 1.0, popProgress: 1.0 },
-          { id: 2, sender: CONVERSATION_SCRIPT[1].sender, text: CONVERSATION_SCRIPT[1].text, opacity: 1.0, yOffset: 0.0, scale: 1.0, popProgress: 1.0 }
-        ],
-        messageIdCounter: 3,
-        scriptIndex: 2,
+        messages: [], // ← start EMPTY — conversation builds live
+        messageIdCounter: 1,
+        scriptIndex: 0,
         state: 'customer_typing',
         timer: 0,
         charIndex: 0,
@@ -1836,9 +1791,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         scrollAnimDuration: 0.85,
         lastTotalHeight: 0,
         time: 0,
-        thinkingEmoji: '🤔',
-        thinkingText: 'Thinking...',
-        sendReaction: false
+        thinkingEmoji: '💬',
+        thinkingText: 'Typing',
+        sendReaction: false,
+        totalSent: 0 // track total messages delivered
       };
     }
     const state = ctx.chatState;
@@ -1887,18 +1843,20 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         scale: 0.5,
         popProgress: 0.0
       });
+      state.totalSent = (state.totalSent || 0) + 1;
       state.inputText = '';
-      state.state = 'ai_thinking';
+      state.scriptIndex = state.scriptIndex + 1;
+      // Stop after 6 messages (3 user + 3 AI)
+      if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+        state.state = 'done';
+      } else {
+        state.state = 'ai_thinking';
+      }
       state.timer = 0;
-      state.targetDelay = 0.8 + Math.random() * 1.7; // 800 - 2500ms
-      state.scriptIndex = (state.scriptIndex + 1) % CONVERSATION_SCRIPT.length;
-      
-      // 20% chance to send a quick emoji/short reaction bubble before the main AI text
-      state.sendReaction = Math.random() < 0.20;
-
-      const emojis = ['🤔', '👀', '✨', '👍', '😊'];
-      state.thinkingEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-      state.thinkingText = Math.random() > 0.45 ? 'Thinking...' : '';
+      state.targetDelay = 1.0 + Math.random() * 0.8; // 1000–1800ms thinking
+      state.sendReaction = false; // no random reaction emojis — keep it clean
+      state.thinkingEmoji = '';
+      state.thinkingText = 'Kllezo AI is typing';
     }
     else if (state.state === 'ai_thinking') {
       if (state.timer >= state.targetDelay) {
@@ -1966,8 +1924,8 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
             delete tempAiMsg.typedText;
             state.state = 'ai_pause';
             state.timer = 0;
-            state.targetDelay = 0.5 + Math.random() * 1.0; // 500 - 1500ms
-            state.scriptIndex = (state.scriptIndex + 1) % CONVERSATION_SCRIPT.length;
+            state.targetDelay = 0.6 + Math.random() * 0.5;
+            state.scriptIndex = state.scriptIndex + 1; // advance linearly, not modulo
           }
         }
       } else {
@@ -1978,11 +1936,16 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     }
     else if (state.state === 'ai_pause') {
       if (state.timer >= state.targetDelay) {
-        state.state = 'customer_typing';
-        state.timer = 0;
-        state.charIndex = 0;
-        state.inputText = '';
-        state.charDelay = 0.05;
+        // Stop after all 6 messages delivered
+        if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+          state.state = 'done';
+        } else {
+          state.state = 'customer_typing';
+          state.timer = 0;
+          state.charIndex = 0;
+          state.inputText = '';
+          state.charDelay = 0.05;
+        }
       }
     }
 
@@ -1997,17 +1960,18 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       }
     });
 
-    // LAYOUT CALCULATIONS
-    let activeMinY = screenY + 115;
-    let activeMaxY = screenY + screenH - 115;
-    let activeW = screenW - 32;
-    let activeX = screenX + 16;
+    // Chat area: status bar + header ≈ 145px from top; input bar ≈ 82px from bottom
+    let activeMinY = destY + 145;
+    let activeMaxY = destY + destH - 82;
+    let activeW = destW - 32;
+    let activeX = destX + 16;
 
     if (websiteUiOpacity > 0.001) {
-      activeMinY = lerp(screenY + 115, screenY + 180, websiteUiOpacity);
-      activeMaxY = lerp(screenY + screenH - 115, screenY + 700, websiteUiOpacity);
-      activeW = lerp(screenW - 32, screenW - 48, websiteUiOpacity);
-      activeX = lerp(screenX + 16, screenX + 24, websiteUiOpacity);
+      // Kllezo Bot chat widget is positioned slightly differently (header at top, input at bottom)
+      activeMinY = lerp(destY + 145, destY + 185, websiteUiOpacity);
+      activeMaxY = lerp(destY + destH - 82, destY + destH - 100, websiteUiOpacity);
+      activeW = lerp(destW - 32, destW - 48, websiteUiOpacity);
+      activeX = lerp(destX + 16, destX + 24, websiteUiOpacity);
     }
 
     const chatContentMinY = activeMinY + 16;
@@ -2164,7 +2128,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     ctx.save();
     ctx.beginPath();
-    ctx.rect(screenX - 10, activeMinY, screenW + 20, activeMaxY - activeMinY);
+    ctx.rect(destX - 10, activeMinY, destW + 20, activeMaxY - activeMinY);
     ctx.clip();
 
     bubblesToDraw.forEach(b => {
@@ -2222,113 +2186,64 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     ctx.restore();
 
-    // DRAW WIDGET FRAMES & INPUT TEXTS
-    const widgetX = screenX + 16;
-    const widgetY = screenY + 120;
-    const widgetW = screenW - 32;
-    const widgetH = screenH - 180;
-
-    // 1. Kllezo Assistant Box Frame UI
-    if (websiteUiOpacity > 0.001) {
+    // Bottom input bar typing text overlay (unified for WhatsApp, Instagram, and Kllezo Bot)
+    const bottomInputY = destY + destH - 57;
+    const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
+    const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : '';
+    
+    if (textToDraw) {
       ctx.save();
-      ctx.globalAlpha = websiteUiOpacity;
-
-      // Header Bar
-      const headerH = 48;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(widgetX, widgetY, widgetW, headerH, 12);
-      } else {
-        ctx.rect(widgetX, widgetY, widgetW, headerH);
-      }
-      ctx.fillStyle = 'rgba(28, 30, 36, 0.95)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Pulsing Green Status Dot
-      ctx.beginPath();
-      ctx.arc(widgetX + 24, widgetY + 24, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#10B981';
-      ctx.fill();
       
-      const dotPulse = 0.5 + 0.5 * Math.sin(time * 5);
-      ctx.beginPath();
-      ctx.arc(widgetX + 24, widgetY + 24, 4 + dotPulse * 4, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Header Text (Dynamically updates when AI is thinking)
-      ctx.font = 'bold 13px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = '#FFFFFF';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      const headerTitle = (state.state === 'ai_thinking') ? 'Kllezo AI (Thinking...)' : 'Kllezo AI Assistant';
-      ctx.fillText(headerTitle, widgetX + 40, widgetY + 24);
-
-      // Input Bar
-      const inputH = 44;
-      const inputY = widgetY + widgetH - inputH;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(widgetX, inputY, widgetW, inputH, 12);
-      } else {
-        ctx.rect(widgetX, inputY, widgetW, inputH);
-      }
-      ctx.fillStyle = 'rgba(28, 30, 36, 0.95)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Typing or placeholder text in input
-      const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
-      const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : 'Write a message...';
+      // Calculate background color dynamically to cover the baked-in placeholder
+      const wBg = [255, 255, 255];
+      const iBg = [242, 242, 242];
+      const webBg = [255, 255, 255];
+      const bgR = wBg[0] * whatsappOpacity + iBg[0] * instagramOpacity + webBg[0] * websiteUiOpacity;
+      const bgG = wBg[1] * whatsappOpacity + iBg[1] * instagramOpacity + webBg[1] * websiteUiOpacity;
+      const bgB = wBg[2] * whatsappOpacity + iBg[2] * instagramOpacity + webBg[2] * websiteUiOpacity;
+      
+      ctx.fillStyle = `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`;
+      
+      // Cover the placeholder
+      const coverX = destX + 52;
+      const coverW = destW - 150;
+      ctx.fillRect(coverX, bottomInputY - 12, coverW, 24);
+      
+      // Blend text color
+      const wText = [17, 27, 33];
+      const iText = [0, 0, 0];
+      const webText = [55, 65, 81];
+      const txR = wText[0] * whatsappOpacity + iText[0] * instagramOpacity + webText[0] * websiteUiOpacity;
+      const txG = wText[1] * whatsappOpacity + iText[1] * instagramOpacity + webText[1] * websiteUiOpacity;
+      const txB = wText[2] * whatsappOpacity + iText[2] * instagramOpacity + webText[2] * websiteUiOpacity;
+      
       ctx.font = '12px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = (state.state === 'customer_typing' || state.state === 'customer_pause') ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.35)';
+      ctx.fillStyle = `rgb(${Math.round(txR)}, ${Math.round(txG)}, ${Math.round(txB)})`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(textToDraw, widgetX + 20, inputY + 22);
-
-      // Send arrow icon
-      ctx.font = '14px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.textAlign = 'right';
-      ctx.fillText('➔', widgetX + widgetW - 20, inputY + 22);
-
+      ctx.fillText(textToDraw, destX + 52, bottomInputY);
       ctx.restore();
     }
 
-    // 2. WhatsApp/Instagram bottom input bar text overlay
-    if (websiteUiOpacity < 0.99) {
-      const bottomInputY = screenY + screenH - 35;
-      const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
-      const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : '';
-      if (textToDraw) {
-        ctx.save();
-        ctx.globalAlpha = 1.0 - websiteUiOpacity;
-        ctx.font = '12px "Inter", -apple-system, sans-serif';
-        ctx.fillStyle = interpolateRGB('rgb(17, 27, 33)', 'rgb(255, 255, 255)', instagramOpacity);
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(textToDraw, screenX + 52, bottomInputY);
-        ctx.restore();
-      }
-    }
-
-    // 3. AI Status indicator shown just above the input bars during thinking
+    // AI Status indicator shown just above the input bar during thinking
     if (state.state === 'ai_thinking') {
-      const statusY = lerp(screenY + screenH - 70, widgetY + widgetH - 59, websiteUiOpacity);
+      const statusY = destY + destH - 72;
       ctx.save();
       ctx.font = 'italic 11px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = interpolateRGB('rgb(134, 150, 160)', 'rgb(255, 255, 255)', instagramOpacity);
-      if (websiteUiOpacity > 0.5) ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      
+      // Blend status text color
+      const wStat = [134, 150, 160];
+      const iStat = [142, 142, 142];
+      const webStat = [107, 114, 128]; // cool gray
+      const stR = wStat[0] * whatsappOpacity + iStat[0] * instagramOpacity + webStat[0] * websiteUiOpacity;
+      const stG = wStat[1] * whatsappOpacity + iStat[1] * instagramOpacity + webStat[1] * websiteUiOpacity;
+      const stB = wStat[2] * whatsappOpacity + iStat[2] * instagramOpacity + webStat[2] * websiteUiOpacity;
+      
+      ctx.fillStyle = `rgb(${Math.round(stR)}, ${Math.round(stG)}, ${Math.round(stB)})`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      const statusText = state.thinkingText ? (state.thinkingText + ' ' + state.thinkingEmoji) : ('AI is ' + state.thinkingEmoji);
-      ctx.fillText(statusText, screenX + 24, statusY);
+      const statusText = state.thinkingText || 'Kllezo AI is typing';
+      ctx.fillText(statusText + '...', destX + 24, statusY);
       ctx.restore();
     }
 
@@ -5989,12 +5904,22 @@ function animate() {
   // Centralized scroll instruction manager
   const scrollInstruction = document.getElementById('scroll-instruction');
   if (scrollInstruction) {
-    if (currentSectionIdx === 3 && callingAutoplayTime >= 2.8) {
-      scrollInstruction.textContent = "Continue Scrolling";
-      scrollInstruction.style.opacity = '1';
-    } else if (currentSectionIdx === 4 && textingAutoplayTime >= 4.0) {
-      scrollInstruction.textContent = "Continue Scrolling";
-      scrollInstruction.style.opacity = '1';
+    if (currentSectionIdx === 3) {
+      if (callingAutoplayTime < 2.8) {
+        scrollInstruction.textContent = "Scroll resumes automatically after the interaction.";
+        scrollInstruction.style.opacity = '0.5';
+      } else {
+        scrollInstruction.textContent = "Continue Scrolling";
+        scrollInstruction.style.opacity = '1';
+      }
+    } else if (currentSectionIdx === 4) {
+      if (textingAutoplayTime < 12.0) {
+        scrollInstruction.textContent = "Finish exploring this conversation to continue scrolling.";
+        scrollInstruction.style.opacity = '0.5';
+      } else {
+        scrollInstruction.textContent = "Continue Scrolling";
+        scrollInstruction.style.opacity = '1';
+      }
     } else {
       scrollInstruction.style.opacity = '0';
     }
