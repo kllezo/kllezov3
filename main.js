@@ -279,8 +279,8 @@ IMAGES.niche4.src = 'assets/niche 4.png';
 IMAGES.niche5.src = 'assets/niche 5.png';
 IMAGES.niche6.src = 'assets/niche 6.png';
 IMAGES.whatsapp.src = 'assets/whatsapp.png';
-IMAGES.instagram.src = 'assets/w instagram.png';
-IMAGES.websiteUi.src = 'assets/website ui.png';
+IMAGES.instagram.src = 'assets/instagram.png';
+IMAGES.websiteUi.src = 'assets/kllezo bot.png';
 IMAGES.textingAgents.src = 'assets/whatsapp.png'; // Fallback alias
 IMAGES.goldenOrb.src = 'assets/golden-orb.png';
 IMAGES.goldRing.src = 'assets/gold-ring.png';
@@ -1582,14 +1582,14 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     ctx.lastChatUpdateTime = now;
 
     function calculateBubbleLayout(text, maxW) {
-      ctx.font = '13px "Inter", -apple-system, sans-serif';
+      ctx.font = '500 18px "Inter", -apple-system, sans-serif';
       const words = text.split(' ');
       const lines = [];
       let currentLine = words[0] || '';
       for (let i = 1; i < words.length; i++) {
         const word = words[i];
         const width = ctx.measureText(currentLine + " " + word).width;
-        if (width < maxW - 28) {
+        if (width < maxW - 36) {
           currentLine += " " + word;
         } else {
           lines.push(currentLine);
@@ -1602,9 +1602,9 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const width = ctx.measureText(line).width;
         if (width > maxLineWidth) maxLineWidth = width;
       });
-      const paddingX = 14;
-      const paddingY = 10;
-      const lineHeight = 18;
+      const paddingX = 18;
+      const paddingY = 14;
+      const lineHeight = 25;
       const height = lines.length * lineHeight + paddingY * 2;
       return { lines, width: Math.ceil(maxLineWidth + paddingX * 2), height };
     }
@@ -1737,6 +1737,22 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       }
     }
 
+    // ── SCREEN CLIPPING: enforce curved edges of the phone display ──
+    ctx.save();
+    ctx.beginPath();
+    const screenX = destX + 10;
+    const screenY = destY + 88;
+    const screenW = destW - 20;
+    const screenH = destH - 110;
+    const screenR = 38;
+    ctx.moveTo(screenX + screenR, screenY);
+    ctx.arcTo(screenX + screenW, screenY,            screenX + screenW, screenY + screenH, screenR);
+    ctx.arcTo(screenX + screenW, screenY + screenH,  screenX,           screenY + screenH, screenR);
+    ctx.arcTo(screenX,           screenY + screenH,  screenX,           screenY,           screenR);
+    ctx.arcTo(screenX,           screenY,            screenX + screenW, screenY,           screenR);
+    ctx.closePath();
+    ctx.clip();
+
     ctx.save();
     // Solid backdrop behind the transparent frame
     drawRoundRect(ctx, destX + 2, destY + 2, destW - 4, destH - 4, 38, '#08090c');
@@ -1763,13 +1779,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           state.charIndex++;
           state.inputText = activeMsg.text.substring(0, state.charIndex);
 
-          // Typing speed fluctuations (45-85 WPM)
-          const baseSpeed = 0.06 + Math.random() * 0.07;
+          // Fast, natural typing speed (12-24ms per character)
+          const baseSpeed = 0.012 + Math.random() * 0.012;
           const lastChar = state.inputText[state.inputText.length - 1];
           if (lastChar === ' ') {
-            state.charDelay = 0.12 + Math.random() * 0.12;
+            state.charDelay = 0.03 + Math.random() * 0.03;
           } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-            state.charDelay = 0.30 + Math.random() * 0.20;
+            state.charDelay = 0.06 + Math.random() * 0.06;
           } else {
             state.charDelay = baseSpeed;
           }
@@ -1777,7 +1793,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           if (state.charIndex >= activeMsg.text.length) {
             state.state = 'customer_pause';
             state.timer = 0;
-            state.targetDelay = 0.4 + Math.random() * 0.6; // 400 - 1000ms pause
+            state.targetDelay = 0.2 + Math.random() * 0.2; // 200 - 400ms pause
           }
         }
       }
@@ -1806,7 +1822,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         } else {
           state.state = 'ai_thinking';
           state.timer = 0;
-          state.targetDelay = 1.2 + Math.random() * 0.3; // 1.2 to 1.5s typing indicator
+          state.targetDelay = 0.8 + Math.random() * 0.2; // 0.8 to 1.0s typing indicator
           state.thinkingText = 'Kllezo AI is typing';
         }
       }
@@ -1825,7 +1841,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           state.scriptIndex++;
           state.state = 'ai_pause';
           state.timer = 0;
-          state.targetDelay = 1.2; // 1.2s delay before next user message starts
+          state.targetDelay = 0.8; // 0.8s delay before next user message starts
         }
       }
       else if (state.state === 'ai_pause') {
@@ -1845,7 +1861,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
             state.timer = 0;
             state.charIndex = 0;
             state.inputText = '';
-            state.charDelay = 0.05;
+            state.charDelay = 0.02;
           }
         }
       }
@@ -1854,7 +1870,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     // Update message spring pop animations
     state.messages.forEach(msg => {
       if (msg.popProgress !== undefined && msg.popProgress < 1.0) {
-        msg.popProgress = Math.min(1.0, msg.popProgress + chatDt * 4.0);
+        msg.popProgress = Math.min(1.0, msg.popProgress + chatDt * 5.0); // Snap pop in ~0.2s
         const ease = easeOutBack(msg.popProgress);
         msg.opacity = Math.min(1.0, msg.popProgress * 2.0);
         msg.scale = 0.8 + ease * 0.2;
@@ -1864,13 +1880,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     // Chat area dimensions
     let activeMinY = destY + 145;
-    let activeMaxY = destY + destH - 82;
+    let activeMaxY = destY + destH - 102;
     let activeW = destW - 32;
     let activeX = destX + 16;
 
     if (websiteUiOpacity > 0.001) {
       activeMinY = lerp(destY + 145, destY + 185, websiteUiOpacity);
-      activeMaxY = lerp(destY + destH - 82, destY + destH - 100, websiteUiOpacity);
+      activeMaxY = lerp(destY + destH - 102, destY + destH - 120, websiteUiOpacity);
       activeW = lerp(destW - 32, destW - 48, websiteUiOpacity);
       activeX = destX + 16;
     }
@@ -1878,7 +1894,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     const chatContentMinY = activeMinY + 16;
     const chatContentMaxY = activeMaxY - 16;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
-    const maxBubbleWidth = 250;
+    const maxBubbleWidth = 290;
 
     let bubblesToDraw = [];
     let totalHeight = 0;
@@ -1999,13 +2015,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
         drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
         
-        ctx.font = '13px "Inter", -apple-system, sans-serif';
+        ctx.font = '500 18px "Inter", -apple-system, sans-serif';
         ctx.fillStyle = textColor;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        const lineHeight = 18;
-        const paddingX = 14;
-        const paddingY = 10;
+        const lineHeight = 25;
+        const paddingX = 18;
+        const paddingY = 14;
         b.lines.forEach((line, lineIdx) => {
           ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
         });
@@ -2014,10 +2030,50 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       renderY += b.height + spacing;
     });
 
+    // ── ANIMATED TYPING INDICATOR BUBBLE (three bouncing dots) ──
+    if (state.state === 'ai_thinking') {
+      const dotBubbleW = 64;
+      const dotBubbleH = 42;
+      const dotBubbleX = activeX;
+      const dotBubbleY = renderY;
+
+      // Only draw if inside clip region
+      if (dotBubbleY < activeMaxY) {
+        ctx.save();
+        // Draw bubble background
+        drawBubble(dotBubbleX, dotBubbleY, dotBubbleW, dotBubbleH, styleBorderRadius, aiBubbleColor);
+
+        // Animate three dots
+        const dotRadius = 5;
+        const dotSpacing = 16;
+        const totalDotsW = dotRadius * 2 * 3 + dotSpacing * 2;
+        const dotStartX = dotBubbleX + (dotBubbleW - totalDotsW) / 2 + dotRadius;
+        const dotCenterY = dotBubbleY + dotBubbleH / 2;
+        const bounceAmp = 5;
+        const bounceSpeed = 6.0;
+        const phase = state.time * bounceSpeed;
+
+        // Blend dot color (slightly lighter than bubble)
+        const dotColorR = 120 * whatsappOpacity + 120 * instagramOpacity + 120 * websiteUiOpacity;
+        const dotColorG = 130 * whatsappOpacity + 130 * instagramOpacity + 130 * websiteUiOpacity;
+        const dotColorB = 140 * whatsappOpacity + 140 * instagramOpacity + 140 * websiteUiOpacity;
+        ctx.fillStyle = `rgb(${Math.round(dotColorR)}, ${Math.round(dotColorG)}, ${Math.round(dotColorB)})`;
+
+        for (let d = 0; d < 3; d++) {
+          const dotX = dotStartX + d * (dotRadius * 2 + dotSpacing);
+          const dotY = dotCenterY + Math.sin(phase + d * 1.2) * bounceAmp;
+          ctx.beginPath();
+          ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
     ctx.restore();
 
     // Bottom input bar typing text overlay (unified for WhatsApp, Instagram, and Kllezo Bot)
-    const bottomInputY = destY + destH - 57;
+    const bottomInputY = destY + destH - 77;
     const cursorStr = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
     const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursorStr) : '';
     
@@ -2055,27 +2111,9 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       ctx.restore();
     }
 
-    // AI Status indicator shown just above the input bar during thinking
-    if (state.state === 'ai_thinking') {
-      const statusY = destY + destH - 72;
-      ctx.save();
-      ctx.font = 'italic 11px "Inter", -apple-system, sans-serif';
-      
-      // Blend status text color
-      const wStat = [134, 150, 160];
-      const iStat = [142, 142, 142];
-      const webStat = [107, 114, 128]; // cool gray
-      const stR = wStat[0] * whatsappOpacity + iStat[0] * instagramOpacity + webStat[0] * websiteUiOpacity;
-      const stG = wStat[1] * whatsappOpacity + iStat[1] * instagramOpacity + webStat[1] * websiteUiOpacity;
-      const stB = wStat[2] * whatsappOpacity + iStat[2] * instagramOpacity + webStat[2] * websiteUiOpacity;
-      
-      ctx.fillStyle = `rgb(${Math.round(stR)}, ${Math.round(stG)}, ${Math.round(stB)})`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      const statusText = state.thinkingText || 'Kllezo AI is typing';
-      ctx.fillText(statusText + '...', destX + 24, statusY);
-      ctx.restore();
-    }
+    // (Typing indicator is rendered inline as a bouncing-dots bubble above)
+
+    ctx.restore(); // end screen clip
 
   } else {
     ctx.font = '20px "Inter", sans-serif';
@@ -4258,7 +4296,6 @@ const ZONES = [
   { id: 'zt-calling',   from: 4.8,   peak: 5.5,  to: 6.5  },
   { id: 'zt-texting',   from: 8.8,   peak: 9.5,  to: 10.5 },
   { id: 'zt-ecosystem', from: 12.0,  peak: 13.0, to: 13.5 },
-  { id: 'zt-cta',       from: 12.0,  peak: 13.0, to: 13.5 },
 ];
 
 const NAV_CONTEXTS = [
