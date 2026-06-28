@@ -1576,111 +1576,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
   if (imgW && imgW.complete && imgI && imgI.complete && imgWeb && imgWeb.complete) {
     const phoneSettled = (typeof textingPhoneSettled !== 'undefined') ? textingPhoneSettled : false;
 
-    // Platform morphing driven by textingAutoplayTime
-    // WA → Instagram at 3.5–4.5s (after msg 2 AI reply), IG → Kllezo at 7.5–8.5s (after msg 4)
-    const MORPH1_START = 3.5, MORPH1_END = 4.5;
-    const MORPH2_START = 7.5, MORPH2_END = 8.5;
-
-    let whatsappOpacity = 0;
-    let instagramOpacity = 0;
-    let websiteUiOpacity = 0;
-
-    const ta = textingAutoplayTime;
-    if (ta < MORPH1_START) {
-      whatsappOpacity = 1.0;
-    } else if (ta < MORPH1_END) {
-      const p = clamp((ta - MORPH1_START) / (MORPH1_END - MORPH1_START), 0, 1);
-      whatsappOpacity = 1.0 - p;
-      instagramOpacity = p;
-    } else if (ta < MORPH2_START) {
-      instagramOpacity = 1.0;
-    } else if (ta < MORPH2_END) {
-      const p = clamp((ta - MORPH2_START) / (MORPH2_END - MORPH2_START), 0, 1);
-      instagramOpacity = 1.0 - p;
-      websiteUiOpacity = p;
-    } else {
-      websiteUiOpacity = 1.0;
-    }
-
-    const destW = 422;
-    const destH = 912;
-    const destX = (w - destW) / 2;
-    const destY = (h - destH) / 2;
-
-    // Draw the persistent iPhone body frame with crossfade
-    let baseImg = imgW;
-    let fadeImg = null;
-    let fadeOpacity = 0;
-
-    if (instagramOpacity > 0.001) {
-      fadeImg = imgI;
-      fadeOpacity = instagramOpacity;
-    }
-    if (websiteUiOpacity > 0.001) {
-      fadeImg = imgWeb;
-      fadeOpacity = websiteUiOpacity;
-      if (instagramOpacity > 0.001) {
-        baseImg = imgI;
-      }
-    }
-
-    // Draw solid dark background behind the iPhone body frame to make it opaque
-    ctx.save();
-    drawRoundRect(ctx, destX + 2, destY + 2, destW - 4, destH - 4, 38, '#08090c');
-    ctx.restore();
-
-    if (fadeImg) {
-      ctx.globalAlpha = 1.0 - fadeOpacity;
-      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
-      ctx.globalAlpha = fadeOpacity;
-      ctx.drawImage(fadeImg, 0, 0, fadeImg.naturalWidth, fadeImg.naturalHeight, destX, destY, destW, destH);
-    } else {
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
-    }
-
-    // Screen clipping area
-    ctx.save();
-    const screenX = destX + 12;
-    const screenY = destY + 12;
-    const screenW = destW - 24;
-    const screenH = destH - 24;
-    ctx.beginPath();
-    const x = screenX, y = screenY, wScreen = screenW, hScreen = screenH, r = 35;
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + wScreen - r, y);
-    ctx.quadraticCurveTo(x + wScreen, y, x + wScreen, y + r);
-    ctx.lineTo(x + wScreen, y + hScreen - r);
-    ctx.quadraticCurveTo(x + wScreen, y + hScreen, x + wScreen - r, y + hScreen);
-    ctx.lineTo(x + r, y + hScreen);
-    ctx.quadraticCurveTo(x, y + hScreen, x, y + hScreen - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-    ctx.clip();
-
-    // Draw Instagram screen content inside screen area
-    if (instagramOpacity > 0.001) {
-      ctx.globalAlpha = instagramOpacity;
-      ctx.drawImage(imgI, 0, 0, imgI.naturalWidth, imgI.naturalHeight, destX, destY, destW, destH);
-    }
-
-    // Draw Website UI (Kllezo AI Assistant) screen content
-    if (websiteUiOpacity > 0.001) {
-      ctx.globalAlpha = websiteUiOpacity;
-      ctx.drawImage(imgWeb, 0, 0, imgWeb.naturalWidth, imgWeb.naturalHeight, destX, destY, destW, destH);
-    }
-
-    ctx.restore();
-    ctx.globalAlpha = 1.0;
-
-    // MESSAGE BUBBLES
-    if (!phoneSettled) return;
-
-    const sidePadding = 30;
-    const viewportMinY = destY + 115;
-    const viewportMaxY = destY + 835;
-    const maxBubbleWidth = 250;
+    const now = performance.now() / 1000.0;
+    if (!ctx.lastChatUpdateTime) ctx.lastChatUpdateTime = now;
+    const chatDt = Math.min(0.1, now - ctx.lastChatUpdateTime);
+    ctx.lastChatUpdateTime = now;
 
     function calculateBubbleLayout(text, maxW) {
       ctx.font = '13px "Inter", -apple-system, sans-serif';
@@ -1708,19 +1607,6 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       const lineHeight = 18;
       const height = lines.length * lineHeight + paddingY * 2;
       return { lines, width: Math.ceil(maxLineWidth + paddingX * 2), height };
-    }
-
-    function interpolateRGB(rgb1, rgb2, factor) {
-      const parse = (str) => {
-        const matches = str.match(/\d+/g);
-        return matches ? matches.map(Number) : [255, 255, 255];
-      };
-      const c1 = parse(rgb1);
-      const c2 = parse(rgb2);
-      const rr = Math.round(c1[0] + factor * (c2[0] - c1[0]));
-      const g = Math.round(c1[1] + factor * (c2[1] - c1[1]));
-      const b = Math.round(c1[2] + factor * (c2[2] - c1[2]));
-      return `rgb(${rr}, ${g}, ${b})`;
     }
 
     function getPlatformStyle(platform) {
@@ -1767,15 +1653,16 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       ctx.fill();
     }
 
-    // STATE MACHINE UPDATE LOOP
-    const now = performance.now() / 1000.0;
-    if (!ctx.lastChatUpdateTime) ctx.lastChatUpdateTime = now;
-    const chatDt = Math.min(0.1, now - ctx.lastChatUpdateTime);
-    ctx.lastChatUpdateTime = now;
+    // Reset chat state if phone is not settled/active
+    if (!phoneSettled) {
+      ctx.chatState = null;
+      window.textingChatDone = false;
+    }
 
+    // Initialize chatState if null
     if (!ctx.chatState) {
       ctx.chatState = {
-        messages: [], // ← start EMPTY — conversation builds live
+        messages: [], // start empty
         messageIdCounter: 1,
         scriptIndex: 0,
         state: 'customer_typing',
@@ -1791,165 +1678,180 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         scrollAnimDuration: 0.85,
         lastTotalHeight: 0,
         time: 0,
-        thinkingEmoji: '💬',
-        thinkingText: 'Typing',
-        sendReaction: false,
-        totalSent: 0 // track total messages delivered
+        thinkingText: 'Kllezo AI is typing',
+        platform: 'whatsapp',
+        targetPlatform: 'whatsapp',
+        platformProgress: 0.0
       };
     }
+
     const state = ctx.chatState;
     state.time += chatDt;
     state.timer += chatDt;
 
-    const activeMsg = CONVERSATION_SCRIPT[state.scriptIndex];
+    // Platform transition state update
+    if (state.platform !== state.targetPlatform) {
+      state.platformProgress = Math.min(1.0, state.platformProgress + chatDt / 1.0); // 1.0s smooth morph
+      if (state.platformProgress >= 1.0) {
+        state.platform = state.targetPlatform;
+        state.platformProgress = 0.0;
+      }
+    }
 
-    if (state.state === 'customer_typing') {
-      if (state.timer >= state.charDelay) {
-        state.timer = 0;
-        state.charIndex++;
-        state.inputText = activeMsg.text.substring(0, state.charIndex);
-        
-        // Typing speed between 140ms and 260ms naturally fluctuated (45-85 WPM)
-        const baseSpeed = 0.06 + Math.random() * 0.07;
-        const lastChar = state.inputText[state.inputText.length - 1];
-        if (lastChar === ' ') {
-          state.charDelay = 0.12 + Math.random() * 0.12;
-        } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-          state.charDelay = 0.30 + Math.random() * 0.20;
-        } else {
-          state.charDelay = baseSpeed;
-        }
+    // Blend platform opacities based on active state and progress
+    let whatsappOpacity = 0.0;
+    let instagramOpacity = 0.0;
+    let websiteUiOpacity = 0.0;
 
-        if (state.charIndex >= activeMsg.text.length) {
-          state.state = 'customer_pause';
+    if (state.platform === 'whatsapp' && state.targetPlatform === 'instagram') {
+      whatsappOpacity = 1.0 - state.platformProgress;
+      instagramOpacity = state.platformProgress;
+    } else if (state.platform === 'instagram' && state.targetPlatform === 'web') {
+      instagramOpacity = 1.0 - state.platformProgress;
+      websiteUiOpacity = state.platformProgress;
+    } else {
+      if (state.platform === 'whatsapp') whatsappOpacity = 1.0;
+      else if (state.platform === 'instagram') instagramOpacity = 1.0;
+      else if (state.platform === 'web') websiteUiOpacity = 1.0;
+    }
+
+    const destW = 422;
+    const destH = 912;
+    const destX = (w - destW) / 2;
+    const destY = (h - destH) / 2;
+
+    // Draw persistent iPhone background & crossfade
+    let baseImg = imgW;
+    let fadeImg = null;
+    let fadeOpacity = 0;
+
+    if (instagramOpacity > 0.001) {
+      fadeImg = imgI;
+      fadeOpacity = instagramOpacity;
+    }
+    if (websiteUiOpacity > 0.001) {
+      fadeImg = imgWeb;
+      fadeOpacity = websiteUiOpacity;
+      if (instagramOpacity > 0.001) {
+        baseImg = imgI;
+      }
+    }
+
+    ctx.save();
+    // Solid backdrop behind the transparent frame
+    drawRoundRect(ctx, destX + 2, destY + 2, destW - 4, destH - 4, 38, '#08090c');
+    ctx.restore();
+
+    if (fadeImg) {
+      ctx.globalAlpha = 1.0 - fadeOpacity;
+      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
+      ctx.globalAlpha = fadeOpacity;
+      ctx.drawImage(fadeImg, 0, 0, fadeImg.naturalWidth, fadeImg.naturalHeight, destX, destY, destW, destH);
+    } else {
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
+    }
+    ctx.globalAlpha = 1.0;
+
+    // CHAT STATE MACHINE
+    if (phoneSettled) {
+      const activeMsg = CONVERSATION_SCRIPT[state.scriptIndex];
+
+      if (state.state === 'customer_typing') {
+        if (state.timer >= state.charDelay) {
           state.timer = 0;
-          state.targetDelay = 0.3 + Math.random() * 0.9; // 300 - 1200ms
+          state.charIndex++;
+          state.inputText = activeMsg.text.substring(0, state.charIndex);
+
+          // Typing speed fluctuations (45-85 WPM)
+          const baseSpeed = 0.06 + Math.random() * 0.07;
+          const lastChar = state.inputText[state.inputText.length - 1];
+          if (lastChar === ' ') {
+            state.charDelay = 0.12 + Math.random() * 0.12;
+          } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
+            state.charDelay = 0.30 + Math.random() * 0.20;
+          } else {
+            state.charDelay = baseSpeed;
+          }
+
+          if (state.charIndex >= activeMsg.text.length) {
+            state.state = 'customer_pause';
+            state.timer = 0;
+            state.targetDelay = 0.4 + Math.random() * 0.6; // 400 - 1000ms pause
+          }
         }
       }
-    }
-    else if (state.state === 'customer_pause') {
-      if (state.timer >= state.targetDelay) {
-        state.state = 'customer_send';
-        state.timer = 0;
+      else if (state.state === 'customer_pause') {
+        if (state.timer >= state.targetDelay) {
+          state.state = 'customer_send';
+          state.timer = 0;
+        }
       }
-    }
-    else if (state.state === 'customer_send') {
-      state.messages.push({
-        id: state.messageIdCounter++,
-        sender: 'customer',
-        text: activeMsg.text,
-        opacity: 0,
-        yOffset: 25,
-        scale: 0.5,
-        popProgress: 0.0
-      });
-      state.totalSent = (state.totalSent || 0) + 1;
-      state.inputText = '';
-      state.scriptIndex = state.scriptIndex + 1;
-      // Stop after 6 messages (3 user + 3 AI)
-      if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
-        state.state = 'done';
-      } else {
-        state.state = 'ai_thinking';
+      else if (state.state === 'customer_send') {
+        state.messages.push({
+          id: state.messageIdCounter++,
+          sender: 'customer',
+          text: activeMsg.text,
+          opacity: 0,
+          yOffset: 25,
+          scale: 0.5,
+          popProgress: 0.0
+        });
+        state.inputText = '';
+        state.scriptIndex++;
+
+        if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+          state.state = 'done';
+          window.textingChatDone = true;
+        } else {
+          state.state = 'ai_thinking';
+          state.timer = 0;
+          state.targetDelay = 1.2 + Math.random() * 0.3; // 1.2 to 1.5s typing indicator
+          state.thinkingText = 'Kllezo AI is typing';
+        }
       }
-      state.timer = 0;
-      state.targetDelay = 1.0 + Math.random() * 0.8; // 1000–1800ms thinking
-      state.sendReaction = false; // no random reaction emojis — keep it clean
-      state.thinkingEmoji = '';
-      state.thinkingText = 'Kllezo AI is typing';
-    }
-    else if (state.state === 'ai_thinking') {
-      if (state.timer >= state.targetDelay) {
-        if (state.sendReaction) {
-          const reactions = ['👍', '😊', '✨'];
-          const reactText = reactions[Math.floor(Math.random() * reactions.length)];
+      else if (state.state === 'ai_thinking') {
+        if (state.timer >= state.targetDelay) {
+          // Send complete AI reply bubble with spring animations
           state.messages.push({
             id: state.messageIdCounter++,
             sender: 'ai',
-            text: reactText,
+            text: activeMsg.text,
             opacity: 0,
             yOffset: 25,
             scale: 0.5,
             popProgress: 0.0
           });
-          state.sendReaction = false;
-          state.state = 'ai_thinking';
+          state.scriptIndex++;
+          state.state = 'ai_pause';
           state.timer = 0;
-          state.targetDelay = 0.6 + Math.random() * 0.6; // 600 - 1200ms
-          
-          const emojis = ['🤔', '👀', '✨', '👍', '😊'];
-          state.thinkingEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-          state.thinkingText = 'Thinking...';
-        } else {
-          state.state = 'ai_typing';
-          state.timer = 0;
-          state.charIndex = 0;
-          state.messages.push({
-            id: 'temp_ai',
-            sender: 'ai',
-            text: CONVERSATION_SCRIPT[state.scriptIndex].text,
-            typedText: '',
-            opacity: 1,
-            yOffset: 0,
-            scale: 1.0,
-            isTypingTemp: true
-          });
-          state.charDelay = 0.04;
+          state.targetDelay = 1.2; // 1.2s delay before next user message starts
         }
       }
-    }
-    else if (state.state === 'ai_typing') {
-      const tempAiMsg = state.messages.find(m => m.isTypingTemp);
-      const targetText = CONVERSATION_SCRIPT[state.scriptIndex].text;
-      if (tempAiMsg) {
-        if (state.timer >= state.charDelay) {
-          state.timer = 0;
-          state.charIndex++;
-          tempAiMsg.typedText = targetText.substring(0, state.charIndex);
-          
-          // Vary AI typing speed (60-140 WPM)
-          const baseSpeed = 0.03 + Math.random() * 0.04;
-          const lastChar = tempAiMsg.typedText[tempAiMsg.typedText.length - 1];
-          if (lastChar === ' ') {
-            state.charDelay = 0.06 + Math.random() * 0.07;
-          } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-            state.charDelay = 0.18 + Math.random() * 0.12;
+      else if (state.state === 'ai_pause') {
+        // Trigger platform morphs after AI replies are fully displayed
+        if (state.messages.length === 2 && state.targetPlatform === 'whatsapp') {
+          state.targetPlatform = 'instagram';
+        } else if (state.messages.length === 4 && state.targetPlatform === 'instagram') {
+          state.targetPlatform = 'web';
+        }
+
+        if (state.timer >= state.targetDelay) {
+          if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+            state.state = 'done';
+            window.textingChatDone = true;
           } else {
-            state.charDelay = baseSpeed;
-          }
-
-          if (state.charIndex >= targetText.length) {
-            tempAiMsg.isTypingTemp = false;
-            tempAiMsg.text = targetText;
-            delete tempAiMsg.typedText;
-            state.state = 'ai_pause';
+            state.state = 'customer_typing';
             state.timer = 0;
-            state.targetDelay = 0.6 + Math.random() * 0.5;
-            state.scriptIndex = state.scriptIndex + 1; // advance linearly, not modulo
+            state.charIndex = 0;
+            state.inputText = '';
+            state.charDelay = 0.05;
           }
-        }
-      } else {
-        state.state = 'ai_pause';
-        state.timer = 0;
-        state.targetDelay = 1.0;
-      }
-    }
-    else if (state.state === 'ai_pause') {
-      if (state.timer >= state.targetDelay) {
-        // Stop after all 6 messages delivered
-        if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
-          state.state = 'done';
-        } else {
-          state.state = 'customer_typing';
-          state.timer = 0;
-          state.charIndex = 0;
-          state.inputText = '';
-          state.charDelay = 0.05;
         }
       }
     }
 
-    // Update message pop animations
+    // Update message spring pop animations
     state.messages.forEach(msg => {
       if (msg.popProgress !== undefined && msg.popProgress < 1.0) {
         msg.popProgress = Math.min(1.0, msg.popProgress + chatDt * 4.0);
@@ -1960,61 +1862,43 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       }
     });
 
-    // Chat area: status bar + header ≈ 145px from top; input bar ≈ 82px from bottom
+    // Chat area dimensions
     let activeMinY = destY + 145;
     let activeMaxY = destY + destH - 82;
     let activeW = destW - 32;
     let activeX = destX + 16;
 
     if (websiteUiOpacity > 0.001) {
-      // Kllezo Bot chat widget is positioned slightly differently (header at top, input at bottom)
       activeMinY = lerp(destY + 145, destY + 185, websiteUiOpacity);
       activeMaxY = lerp(destY + destH - 82, destY + destH - 100, websiteUiOpacity);
       activeW = lerp(destW - 32, destW - 48, websiteUiOpacity);
-      activeX = lerp(destX + 16, destX + 24, websiteUiOpacity);
+      activeX = destX + 16;
     }
 
     const chatContentMinY = activeMinY + 16;
     const chatContentMaxY = activeMaxY - 16;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
+    const maxBubbleWidth = 250;
 
     let bubblesToDraw = [];
     let totalHeight = 0;
     const spacing = 12;
 
     state.messages.forEach(m => {
-      const textToShow = m.isTypingTemp ? m.typedText : m.text;
-      const layout = calculateBubbleLayout(textToShow, maxBubbleWidth);
+      const layout = calculateBubbleLayout(m.text, maxBubbleWidth);
       bubblesToDraw.push({
         id: m.id,
         sender: m.sender,
-        text: textToShow,
+        text: m.text,
         lines: layout.lines,
         width: layout.width,
         height: layout.height,
         opacity: m.opacity !== undefined ? m.opacity : 1.0,
         yOffset: m.yOffset !== undefined ? m.yOffset : 0,
-        scale: m.scale !== undefined ? m.scale : 1.0,
-        isTyping: false
+        scale: m.scale !== undefined ? m.scale : 1.0
       });
       totalHeight += layout.height + spacing;
     });
-
-    if (state.state === 'ai_thinking') {
-      const typingH = 32;
-      const typingW = 65;
-      bubblesToDraw.push({
-        id: 'thinking',
-        sender: 'ai',
-        width: typingW,
-        height: typingH,
-        opacity: 1.0,
-        yOffset: 0,
-        scale: 1.0,
-        isTyping: true
-      });
-      totalHeight += typingH + spacing;
-    }
 
     const maxScroll = Math.max(0, totalHeight - maxViewportHeight);
 
@@ -2025,12 +1909,12 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       state.scrollTargetOffset = maxScroll;
     }
 
-    // Scroll animation trigger on height increase (arrival of new bubble or new wrapped line)
+    // Scroll animation trigger on height increase
     if (totalHeight > state.lastTotalHeight + 1) {
       state.scrollStartOffset = state.scrollOffset;
       state.scrollTargetOffset = maxScroll;
       state.scrollAnimTime = 0.0;
-      state.scrollAnimDuration = 0.75; // 750ms (between 600ms and 900ms)
+      state.scrollAnimDuration = 0.75;
       state.lastTotalHeight = totalHeight;
     } else if (totalHeight < state.lastTotalHeight - 1) {
       state.lastTotalHeight = totalHeight;
@@ -2039,7 +1923,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     // Gentle scroll drift upward during active typing or thinking states (4 pixels per second)
     let drift = 0;
     if (state.scrollAnimTime >= state.scrollAnimDuration) {
-      if (state.state === 'customer_typing' || state.state === 'ai_typing' || state.state === 'ai_thinking') {
+      if (state.state === 'customer_typing' || state.state === 'ai_thinking') {
         drift = 4.0 * chatDt;
       }
     }
@@ -2048,42 +1932,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     if (state.scrollAnimTime < state.scrollAnimDuration) {
       state.scrollAnimTime = Math.min(state.scrollAnimDuration, state.scrollAnimTime + chatDt);
       const t = state.scrollAnimTime / state.scrollAnimDuration;
-      const ease = 1 - Math.pow(1 - t, 3); // power3.out
+      const ease = 1 - Math.pow(1 - t, 3);
       state.scrollOffset = state.scrollStartOffset + (state.scrollTargetOffset - state.scrollStartOffset) * ease;
     } else {
       state.scrollOffset = Math.min(maxScroll, state.scrollOffset + drift);
-    }
-
-    // Prune off-screen messages to ensure performance remains 60fps
-    let messagesToRemove = 0;
-    let currentY = chatContentMinY - state.scrollOffset;
-    for (let i = 0; i < state.messages.length; i++) {
-      const msg = state.messages[i];
-      if (msg.id === 'temp_ai' || msg.id === 'temp_customer' || (msg.popProgress !== undefined && msg.popProgress < 1.0)) break;
-      
-      const layout = calculateBubbleLayout(msg.text, maxBubbleWidth);
-      const drawY = currentY + (msg.yOffset || 0);
-      
-      // Prune only when it is completely out of the visible screen (above activeMinY)
-      if (drawY + layout.height < activeMinY) {
-        messagesToRemove++;
-      } else {
-        break;
-      }
-      currentY += layout.height + spacing;
-    }
-
-    if (messagesToRemove > 0) {
-      let removedHeight = 0;
-      for (let i = 0; i < messagesToRemove; i++) {
-        const msg = state.messages[i];
-        const layout = calculateBubbleLayout(msg.text, maxBubbleWidth);
-        removedHeight += layout.height + spacing;
-      }
-      state.messages.splice(0, messagesToRemove);
-      state.scrollOffset = Math.max(0, state.scrollOffset - removedHeight);
-      state.scrollTargetOffset = Math.max(0, state.scrollTargetOffset - removedHeight);
-      state.scrollStartOffset = Math.max(0, state.scrollStartOffset - removedHeight);
     }
 
     // BLENDED DYNAMIC MORPHING STYLES
@@ -2139,46 +1991,24 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         ctx.save();
         ctx.globalAlpha = b.opacity;
 
-        // spring scale transformation centered on bubble
         ctx.translate(bubbleX + b.width / 2, y + b.height / 2);
         ctx.scale(b.scale, b.scale);
         ctx.translate(-(bubbleX + b.width / 2), -(y + b.height / 2));
 
-        if (b.isTyping) {
-          const typingY = y + b.height - 32;
-          drawBubble(bubbleX, typingY, 65, 32, styleBorderRadius, aiBubbleColor);
-          ctx.fillStyle = aiTextColor;
-          const dotRadius = 2.5;
-          const dotSpacing = 9;
-          const startDotX = bubbleX + 22.5;
-          for (let d = 0; d < 3; d++) {
-            const dotTime = state.time * 8.0 - d * 1.2;
-            const bounce = Math.sin(dotTime) * 3;
-            const offsetY = Math.min(0, bounce);
-            const dotOpacity = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(dotTime));
-            ctx.save();
-            ctx.globalAlpha = b.opacity * dotOpacity;
-            ctx.beginPath();
-            ctx.arc(startDotX + d * dotSpacing, typingY + 16 + offsetY, dotRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        } else {
-          const bubbleColor = (b.sender === 'customer') ? customerBubbleColor : aiBubbleColor;
-          const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
-          drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
-          
-          ctx.font = '13px "Inter", -apple-system, sans-serif';
-          ctx.fillStyle = textColor;
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'top';
-          const lineHeight = 18;
-          const paddingX = 14;
-          const paddingY = 10;
-          b.lines.forEach((line, lineIdx) => {
-            ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
-          });
-        }
+        const bubbleColor = (b.sender === 'customer') ? customerBubbleColor : aiBubbleColor;
+        const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
+        drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
+        
+        ctx.font = '13px "Inter", -apple-system, sans-serif';
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const lineHeight = 18;
+        const paddingX = 14;
+        const paddingY = 10;
+        b.lines.forEach((line, lineIdx) => {
+          ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
+        });
         ctx.restore();
       }
       renderY += b.height + spacing;
@@ -2188,8 +2018,8 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     // Bottom input bar typing text overlay (unified for WhatsApp, Instagram, and Kllezo Bot)
     const bottomInputY = destY + destH - 57;
-    const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
-    const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : '';
+    const cursorStr = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
+    const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursorStr) : '';
     
     if (textToDraw) {
       ctx.save();
@@ -2558,12 +2388,29 @@ function createGoldMaterial(initialOpacity = 0.0) {
         // Mask to only displace facing center of the tube, tapering at edges
         float edgeMask = abs(vNormal.z);
 
-        // Layered FBM displacement (Low, Medium, High frequencies)
-        float breathing = noise(position * 0.2 + vec3(0.0, -time * 0.4, 0.0)) * 0.08;
-        float waves = noise(position * 0.6 + vec3(0.0, -time * 1.2, 0.0)) * 0.04;
-        float shimmer = noise(position * 1.5 + vec3(0.0, -time * 3.5, 0.0)) * 0.015;
+        // 1. Viscosity changes: slow frequency scaling over time
+        float viscosity = 0.5 + 0.35 * sin(time * 0.4);
+
+        // 2. Organic turbulence: coordinate warping
+        vec3 warp = vec3(
+          noise(position * 0.08 - time * 0.2),
+          noise(position * 0.10 + time * 0.15),
+          noise(position * 0.06 - time * 0.1)
+        ) * 0.45;
+        vec3 warpedPos = position + warp;
+
+        // 3. Layered FBM displacement with viscosity modulation
+        float breathing = noise(warpedPos * (0.16 + 0.04 * viscosity) + vec3(0.0, -time * 0.35, 0.0)) * 0.08;
+        float waves = noise(warpedPos * (0.5 + 0.15 * viscosity) + vec3(0.0, -time * 1.1, 0.0)) * 0.04;
+        float shimmer = noise(warpedPos * 1.6 + vec3(0.0, -time * 3.2, 0.0)) * 0.015;
+
+        // 4. Breathing amplitude pulse every few seconds
+        float breathingPulse = 1.0 + 0.28 * sin(time * 0.75);
+
+        // 5. Micro pressure pulses traveling along the tube
+        float pressure = sin(position.y * 2.5 - time * 6.5) * 0.012 * (0.5 + 0.5 * sin(time * 1.8));
         
-        float displacement = (breathing + waves + shimmer) * edgeMask * progress;
+        float displacement = (breathing * breathingPulse + waves + shimmer + pressure) * edgeMask * progress;
         vec3 deformedPosition = position + normal * displacement;
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPosition, 1.0);
@@ -2616,8 +2463,9 @@ function createGoldMaterial(initialOpacity = 0.0) {
           discard;
         }
 
-        // Domain warping coordinates
-        vec3 p = vec3(vUv.y * 2.5, vUv.x * 10.0 - time * 0.5, time * 0.08);
+        // Domain warping coordinates with local flow speed variations
+        float flowTime = time * 0.42 + 0.16 * sin(time * 0.45 + vUv.x * 2.5) + 0.08 * noise(vec3(vUv.x * 3.5, time * 0.7, 0.0));
+        vec3 p = vec3(vUv.y * 2.5, vUv.x * 10.0 - flowTime, time * 0.08);
         
         vec3 q = vec3(
           fbm(p + vec3(0.0)),
@@ -2626,9 +2474,9 @@ function createGoldMaterial(initialOpacity = 0.0) {
         );
         
         vec3 r = vec3(
-          fbm(p + 3.0 * q + vec3(time * 0.1, 0.0, 0.0)),
-          fbm(p + 3.0 * q + vec3(2.5, time * 0.15, 1.2)),
-          fbm(p + 3.0 * q + vec3(0.0, 3.8, time * 0.05))
+          fbm(p + 3.0 * q + vec3(flowTime * 0.2, 0.0, 0.0)),
+          fbm(p + 3.0 * q + vec3(2.5, flowTime * 0.28, 1.2)),
+          fbm(p + 3.0 * q + vec3(0.0, 3.8, flowTime * 0.12))
         );
         
         float veins = fbm(p + 4.0 * r);
@@ -2649,7 +2497,7 @@ function createGoldMaterial(initialOpacity = 0.0) {
         
         // Faux reflection mapping using noise-warped coordinates
         vec3 reflectDir = reflect(-V, N);
-        float reflPattern = fbm(reflectDir * 3.0 + vec3(0.0, time * 0.2, 0.0));
+        float reflPattern = fbm(reflectDir * 3.0 + vec3(0.0, flowTime * 0.35, 0.0));
         vec3 reflColor = mix(richAmber, highlights, reflPattern);
         
         // Fresnel calculation
@@ -2950,7 +2798,7 @@ function getParkedSegmentProgress(idx, i, callingAutoplayTime, textingAutoplayTi
       return 0.27 + autoplayPct * 0.73;
     }
     if (idx === 4) { // AI Texting Agents: includes travel and phone card weave autoplay
-      const autoplayPct = Math.min(1.0, Math.max(0.0, textingAutoplayTime / 4.0));
+      const autoplayPct = Math.min(1.0, Math.max(0.0, textingAutoplayTime / 12.0));
       return 0.35 + autoplayPct * 0.65;
     }
     return SEGMENT_CUTOFFS[i];
@@ -4474,18 +4322,24 @@ function updateOverlay(t) {
     el.style.opacity = alpha;
   });
 
-  // HTML gallery overlay sync
+  // HTML gallery overlay sync (fades in early from vp = 0.2 to 0.8, stays full to 1.4, fades out to 1.8)
   const galleryOverlay = document.getElementById('content-gallery-overlay');
   if (galleryOverlay) {
-    const contentText = document.getElementById('zt-content');
-    if (contentText) {
-      const op = parseFloat(contentText.style.opacity || '0');
-      galleryOverlay.style.opacity = op;
-      if (op > 0.05) {
-        galleryOverlay.style.pointerEvents = 'auto';
+    let galleryOp = 0.0;
+    if (vp >= 0.2 && vp <= 1.8) {
+      if (vp < 0.8) {
+        galleryOp = (vp - 0.2) / 0.6;
+      } else if (vp > 1.4) {
+        galleryOp = (1.8 - vp) / 0.4;
       } else {
-        galleryOverlay.style.pointerEvents = 'none';
+        galleryOp = 1.0;
       }
+    }
+    galleryOverlay.style.opacity = clamp(galleryOp, 0, 1);
+    if (galleryOp > 0.05) {
+      galleryOverlay.style.pointerEvents = 'auto';
+    } else {
+      galleryOverlay.style.pointerEvents = 'none';
     }
   }
 
@@ -4641,7 +4495,8 @@ function updateCursor() {
    ═══════════════════════════════════════════ */
 function updateContent(t, time, dt) {
   const vp = scrollProgress * 13.0;
-  const inZone = vp >= 0.6 && vp <= 1.6;
+  // Content Engine gallery elements are visible early (from vp = 0.2) to support smooth transition
+  const inZone = vp >= 0.2 && vp <= 1.8;
 
   if (scene.userData.contentGroup) {
     scene.userData.contentGroup.visible = inZone;
@@ -5758,6 +5613,9 @@ function animate() {
             if (A === 0) {
               // From Hero to Content: grow Segment 1 over the full transition
               segmentProgresses[i] = progressRatio * targetCutoff;
+            } else if (i === 3) {
+              // Segment 4 (Calling -> Texting): grow immediately and finish early (at 90% of transition)
+              segmentProgresses[i] = clamp(progressRatio / 0.9, 0, 1) * targetCutoff;
             } else {
               // Other transitions: grow Segment i over the second phase (0.3 to 1.0)
               if (progressRatio < 0.3) {

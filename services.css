@@ -506,3 +506,46 @@ header {
   .hero-demo-container { width: 100%; }
   .solutions-grid { grid-template-columns: 1fr; }
 }
+
+/* ─────────────────────────────────────────────────────────
+   GLOBAL SOLID PURE WHITE TYPOGRAPHY ENFORCEMENT
+   ───────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  text-shadow: none !important;
+}
+
+/* Force pure white, 100% opacity, and no filters or blend modes on all text elements */
+h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, textarea, select,
+.scroll-instruction, .nav-brand, .nav-context, .nav-cta, .zt-num, .zt-title, .zt-body, .zt-sub, .brand, .back-btn {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* Enforce pure white placeholders */
+::placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+::-webkit-input-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+::-moz-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+:-ms-input-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}

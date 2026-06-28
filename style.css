@@ -74,7 +74,7 @@ body {
   font-size: clamp(5rem, 12vw, 11rem);
   font-weight: 300;
   letter-spacing: 0.2em;
-  color: var(--beige);
+  color: #FFFFFF;
   line-height: 1;
   text-shadow: 0 0 120px rgba(247,243,235,0.12);
 }
@@ -85,7 +85,7 @@ body {
   font-weight: 200;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(247,243,235,0.35);
+  color: #FFFFFF;
 }
 
 /* World text — bottom-left */
@@ -115,7 +115,7 @@ body {
   font-weight: 200;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(247,243,235,0.28);
+  color: #FFFFFF;
   margin-bottom: 18px;
 }
 
@@ -123,7 +123,7 @@ body {
   font-family: var(--font-serif);
   font-size: clamp(2.2rem, 5vw, 4.5rem);
   font-weight: 300;
-  color: var(--beige);
+  color: #FFFFFF;
   line-height: 1.1;
   letter-spacing: 0.02em;
   margin-bottom: 20px;
@@ -135,7 +135,7 @@ body {
   font-size: clamp(1rem, 1.8vw, 1.35rem);
   font-weight: 300;
   font-style: italic;
-  color: rgba(247,243,235,0.55);
+  color: #FFFFFF;
   line-height: 1.55;
   letter-spacing: 0.02em;
 }
@@ -152,14 +152,14 @@ body {
   font-family: var(--font-serif);
   font-size: clamp(2.5rem, 6vw, 6rem);
   font-weight: 300;
-  color: var(--beige);
+  color: #FFFFFF;
   letter-spacing: 0.04em;
   line-height: 1.2;
 }
 
 .zt-ecosystem-italic {
   font-style: italic;
-  color: rgba(247,243,235,0.65);
+  color: #FFFFFF;
 }
 
 /* CTA — centered */
@@ -179,7 +179,7 @@ body {
   font-size: clamp(4rem, 11vw, 10rem);
   font-weight: 300;
   letter-spacing: 0.2em;
-  color: var(--beige);
+  color: #FFFFFF;
   line-height: 1;
   margin-bottom: 28px;
 }
@@ -188,7 +188,7 @@ body {
   font-size: 0.78rem;
   font-weight: 200;
   letter-spacing: 0.2em;
-  color: rgba(247,243,235,0.4);
+  color: #FFFFFF;
   margin-bottom: 16px;
 }
 
@@ -197,7 +197,7 @@ body {
   font-size: clamp(1rem, 2vw, 1.6rem);
   font-weight: 300;
   font-style: italic;
-  color: rgba(247,243,235,0.6);
+  color: #FFFFFF;
   margin-bottom: 52px;
 }
 
@@ -212,7 +212,7 @@ body {
   font-weight: 300;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--beige);
+  color: #FFFFFF;
   text-decoration: none;
   cursor: none;
   transition: background 0.45s, border-color 0.45s, color 0.45s;
@@ -302,7 +302,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0.22em;
-  color: var(--beige);
+  color: #FFFFFF;
 }
 
 .nav-context {
@@ -310,7 +310,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-weight: 200;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(247,243,235,0.35);
+  color: #FFFFFF;
   transition: opacity 0.5s;
 }
 
@@ -319,16 +319,16 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-weight: 300;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(247,243,235,0.6);
+  color: #FFFFFF;
   text-decoration: none;
-  border: 1px solid rgba(247,243,235,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 8px 22px;
   border-radius: 100px;
   cursor: none;
   transition: color 0.3s, border-color 0.3s;
 }
 
-.nav-cta:hover { color: var(--beige); border-color: rgba(247,243,235,0.5); }
+.nav-cta:hover { color: #FFFFFF; border-color: rgba(255,255,255,0.6); }
 
 @keyframes logoEntrance {
   0% {
@@ -383,7 +383,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-weight: 300;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--beige);
+  color: #FFFFFF;
   text-decoration: none;
   cursor: none; /* Keep custom cursor */
   background: rgba(247,243,235,0.04);
@@ -408,7 +408,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-weight: 300;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(247,243,235,0.65);
+  color: #FFFFFF;
   opacity: 0;
   transition: opacity 0.8s ease-in-out;
   z-index: 15;
@@ -514,6 +514,8 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   pointer-events: none;
   image-rendering: -webkit-optimize-contrast; /* Webkit crisp rendering */
   image-rendering: crisp-edges;
+  filter: contrast(1.12) brightness(1.05) saturate(1.02);
+  transition: filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Hover styles on inner card container */
@@ -523,14 +525,14 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
 .gallery-card:hover:not(.dragging):not(.returning) .gallery-card-inner {
   /* Enter transition: 350ms cubic-bezier(0.22, 1, 0.36, 1) */
   transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
-              filter 350ms cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
   /* Scale to 1.08x (0.5 * 1.08 = 0.54) and translate Z forward slightly */
   transform: scale(0.54) translateZ(30px);
-  /* 12% brightness increase (+10-15% range) */
-  filter: brightness(1.12);
   /* Subtle soft shadow */
   box-shadow: 0 40px 90px rgba(0,0,0,0.8), 0 0 35px rgba(247,243,235,0.25);
+}
+.gallery-card:hover:not(.dragging):not(.returning) img {
+  filter: contrast(1.18) brightness(1.12) saturate(1.06);
 }
 
 
@@ -787,6 +789,49 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
     font-size: 0.9rem;
     margin-bottom: 12px;
   }
+}
+
+/* ─────────────────────────────────────────────────────────
+   GLOBAL SOLID PURE WHITE TYPOGRAPHY ENFORCEMENT
+   ───────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  text-shadow: none !important;
+}
+
+/* Force pure white, 100% opacity, and no filters or blend modes on all text elements */
+h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, textarea, select,
+.scroll-instruction, .nav-brand, .nav-context, .nav-cta, .zt-num, .zt-title, .zt-body, .zt-sub {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* Enforce pure white placeholders */
+::placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+::-webkit-input-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+::-moz-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+:-ms-input-placeholder {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
 }
 
 
