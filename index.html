@@ -79,7 +79,13 @@
     </div>
 
     <!-- FINAL CTA -->
-    <div class="zone-text" id="zt-cta">
+    <div class="zone-text" id="zt-cta" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+      <a href="services.html" title="Explore KLLEZO Services Architecture" style="display: inline-block; text-decoration: none;">
+        <img src="assets/logo-removebg.png" alt="KLLEZO Services" class="img-logo-cta" style="cursor: pointer; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;" />
+      </a>
+      <div style="margin-top: 28px;">
+        <a href="services.html" class="nav-cta" style="font-size: 0.8rem; letter-spacing: 0.14em; padding: 14px 32px; background: #F7F3EB; color: #08090B; border-color: #F7F3EB; text-decoration: none; border-radius: 100px; font-weight: 500; display: inline-block; text-transform: uppercase;">Explore Services Architecture &rarr;</a>
+      </div>
     </div>
 
   </div>
@@ -96,9 +102,12 @@
 
   <!-- Nav (appears after hero) -->
   <nav id="nav">
-    <span class="nav-brand">KLLEZO</span>
+    <a href="index.html" class="nav-brand" style="text-decoration: none;">KLLEZO</a>
     <span class="nav-context" id="nav-context"></span>
-    <a href="mailto:hello@kllezo.com" class="nav-cta">Strategy Call</a>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="services.html" class="nav-cta" style="background: rgba(212,168,83,0.15); border-color: rgba(212,168,83,0.4); color: #D4A853; text-decoration: none;">Services</a>
+      <a href="mailto:hello@kllezo.com" class="nav-cta">Strategy Call</a>
+    </div>
   </nav>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
