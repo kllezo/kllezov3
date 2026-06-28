@@ -5651,13 +5651,18 @@ function animate() {
       actualUp.applyAxisAngle(tangent, bankAngle);
     }
 
-    // Rider sits 0.35 units above the tube (slightly elevated for visibility)
-    const followCamPos = pTube.clone().addScaledVector(actualUp, 0.35);
+    // ── ROLLER COASTER ABOVE-RAIL POSITIONING ──
+    // Tube radius = 0.42 units. Camera must be ABOVE the tube, not inside it.
+    // 3.5 units above center ≈ 8× radius — clearly outside, like a car on top of a track.
+    const rideHeight = 3.5;
+    const followCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
 
-    // Look ahead 6.0 units along the path (strong anticipation feel)
+    // Look DOWN and AHEAD at the upcoming rail — tube stays visible below the camera.
+    // Look target sits ON the tube itself (center-level) 8 units along the spline.
+    // The -1.0 offset on actualUp tilts the gaze downward so the gold guide is always in frame.
     const followLookTarget = pTube.clone()
-      .addScaledVector(tangent, 6.0)
-      .addScaledVector(actualUp, 0.35);
+      .addScaledVector(tangent, 8.0)
+      .addScaledVector(actualUp, -1.0);
 
     scene.userData.followCamPos = followCamPos;
     scene.userData.followLookTarget = followLookTarget;
