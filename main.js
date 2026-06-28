@@ -71,7 +71,7 @@ let ecoTime = 0;
 let currentSectionIdx = 0;
 let targetSectionIdx = 0;
 let sectionTransitionProgress = 1.0; // 1.0 means transition is complete
-let transitionDuration = 1.2; // 1.2s smooth snap transition duration
+let transitionDuration = 2.5; // 2.5s cinematic snap transition duration
 let transitionTimeElapsed = 0;
 let startScrollProgress = 0;
 let targetScrollProgress = 0;
@@ -100,6 +100,17 @@ function isSectionLocked(idx) {
 
 function triggerSectionTransition(nextIdx) {
   if (nextIdx < 0 || nextIdx >= SECTIONS.length) return;
+
+  // Initialize Website Experiences progress depending on direction
+  if (nextIdx === 2) {
+    if (currentSectionIdx < 2) {
+      websiteScrollTick = 0;
+      websiteScrollProgress = 0.0;
+    } else if (currentSectionIdx > 2) {
+      websiteScrollTick = WEBSITE_SCROLL_STEPS;
+      websiteScrollProgress = 1.0;
+    }
+  }
 
   window.manualServiceState = null; // Reset tab override on scroll transition!
   targetSectionIdx = nextIdx;
@@ -4418,16 +4429,10 @@ function updateDescriptionTyping(idx, activeTime) {
 
 function updateOverlay(t) {
   const vp = scrollProgress * 13.0;
-  ZONES.forEach(z => {
+  ZONES.forEach((z, idx) => {
     const el = zoneEls[z.id];
     if (!el) return;
-    let alpha = 0;
-    if (vp >= z.from && vp <= z.to) {
-      if (vp <= z.peak) alpha = (vp - z.from) / (z.peak - z.from);
-      else              alpha = (z.to - vp)   / (z.to - z.peak);
-      alpha = Math.pow(clamp(alpha, 0, 1), 0.7);
-    }
-    el.style.opacity = alpha;
+    el.style.opacity = getSectionOpacity(idx);
   });
 
   // HTML gallery overlay sync (fades in early from vp = 0.2 to 0.8, stays full to 1.4, fades out to 1.8)
@@ -4443,7 +4448,7 @@ function updateOverlay(t) {
         galleryOp = 1.0;
       }
     }
-    galleryOverlay.style.opacity = clamp(galleryOp, 0, 1);
+    galleryOverlay.style.opacity = clamp(galleryOp * getSectionOpacity(1), 0, 1);
     if (galleryOp > 0.05) {
       galleryOverlay.style.pointerEvents = 'auto';
     } else {
@@ -4603,11 +4608,9 @@ function updateCursor() {
    ═══════════════════════════════════════════ */
 function updateContent(t, time, dt) {
   const vp = scrollProgress * 13.0;
-  // Content Engine gallery elements are visible early (from vp = 0.2) to support smooth transition
-  const inZone = vp >= 0.2 && vp <= 1.8;
 
   if (scene.userData.contentGroup) {
-    scene.userData.contentGroup.visible = inZone;
+    scene.userData.contentGroup.visible = getSectionOpacity(1) > 0.001;
   }
 
   // Update HTML-based sliding gallery marquee
@@ -4699,27 +4702,13 @@ function updateWebsites(t, time, vpOverride) {
   const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
   const inZone = vp >= 1.9 && vp <= 3.4;
 
+  const envOpacity = getSectionOpacity(2);
+
   if (scene.userData.websitesGroup) {
-    scene.userData.websitesGroup.visible = inZone;
+    scene.userData.websitesGroup.visible = envOpacity > 0.001;
   }
 
-  if (inZone && scene.userData.slabs) {
-    if (scene.userData.websiteStartTime === undefined) {
-      scene.userData.websiteStartTime = performance.now() * 0.001;
-    }
-    const elapsed = (performance.now() * 0.001) - scene.userData.websiteStartTime;
-    
-    let fadeOutFactor = 1.0;
-    if (vp < 2.1) {
-      fadeOutFactor = clamp((vp - 1.9) / 0.2, 0, 1);
-    } else if (vp > 3.2) {
-      fadeOutFactor = clamp((3.4 - vp) / 0.2, 0, 1);
-    }
-
-    const envOpacity = fadeOutFactor;
-
-
-
+  if (scene.userData.websitesGroup && scene.userData.websitesGroup.visible && scene.userData.slabs) {
     if (scene.userData.canyonFloor) {
       scene.userData.canyonFloor.material.opacity = 0.9 * envOpacity;
       scene.userData.canyonFloor.material.transparent = true;
@@ -4741,102 +4730,50 @@ function updateWebsites(t, time, vpOverride) {
     scene.userData.slabs.forEach(g => {
       const idx = g.userData.idx;
       const d = g.userData.d;
-      let delay = 0;
-      if (idx === 0 || idx === 1) {
-        delay = 0.0;
-      } else if (idx === 2 || idx === 3) {
-        delay = 0.4;
-      } else {
-        delay = 0.8;
-      }
-
-      const rowTime = elapsed - delay;
-      const duration = 0.55;
-      const rowProgress = clamp(rowTime / duration, 0, 1);
-      const riseEase = rowProgress * rowProgress * (3 - 2 * rowProgress); // smoothstep
-
       const targetY = g.userData.targetY;
-      const lowY = g.userData.loweredY;
+      const rowIdx = Math.floor(idx / 2);
 
-      // Initialize persistent auto-scroll tick on first activation
-      if (g.userData.lastAutoScrollTick === undefined) {
-        g.userData.lastAutoScrollTick = performance.now() * 0.001;
-        g.userData.autoScrollTime = 0;
-      }
+      // Focus calculations based on websiteScrollProgress
+      const peak = rowIdx * 0.5; // row 0 at 0.0, row 1 at 0.5, row 2 at 1.0
+      const dist = websiteScrollProgress - peak;
+      const t_focus = clamp(1.0 - Math.abs(dist) / 0.5, 0, 1);
+      const easeFocus = 0.5 * (1.0 - Math.cos(t_focus * Math.PI)); // Cosine ease for luxury slide
 
-      // Accumulate time only while active (pauses animation when inactive)
-      const nowSec = performance.now() * 0.001;
-      const deltaTime = nowSec - g.userData.lastAutoScrollTick;
-      g.userData.lastAutoScrollTick = nowSec;
-      g.userData.autoScrollTime += deltaTime;
+      // Drift offsets - drift back in depth (Z) and lower in height (Y) when out of focus
+      const z_offset = -25.0 * (1.0 - easeFocus);
+      const y_offset = -6.0 * (1.0 - easeFocus);
+      const slabOpacity = 0.05 + 0.95 * easeFocus;
+      const finalOpacity = slabOpacity * envOpacity;
 
-      const repeatY = g.userData.repeatY !== undefined ? g.userData.repeatY : 1.0;
-      const scrollDelays = [0.0, 1.0, 2.0, 3.0, 1.5, 2.5]; // Staggered delays
-      const scrollDelay = scrollDelays[idx] || 0;
+      // Position the panel
+      g.position.y = targetY + y_offset;
+      g.position.z = d.z + z_offset;
 
-      // Scroll speed: 0.02 units of scrollPct per second (slow, luxurious scroll - 30% faster)
-      // Hidden height fraction to scroll: (1.0 - repeatY)
-      // Calculate scroll duration dynamically so speed remains uniform across different webpage lengths
-      const scrollSpeed = 0.02; // 2% of total height per second
-      const scrollDuration = Math.max(4.0, (1.0 - repeatY) / scrollSpeed); // minimum 4s
-      const pauseDuration = 2.0; // 2 seconds pause at top/bottom
-      const totalCycle = 2.0 * scrollDuration + 2.0 * pauseDuration;
+      // Add a tiny float breathing effect
+      g.position.y += Math.sin(time * 0.2 + g.userData.phase) * 0.04;
 
-      const scrollElapsed = Math.max(0, g.userData.autoScrollTime - scrollDelay);
-      const t = scrollElapsed % totalCycle;
-
-      let scrollPct = 0;
-      if (t < pauseDuration) {
-        // Pause at top
-        scrollPct = 0;
-      } else if (t < pauseDuration + scrollDuration) {
-        // Scroll down
-        const progress = (t - pauseDuration) / scrollDuration;
-        scrollPct = 0.5 * (1.0 - Math.cos(progress * Math.PI)); // easeInOutSine
-      } else if (t < 2.0 * pauseDuration + scrollDuration) {
-        // Pause at bottom
-        scrollPct = 1.0;
-      } else if (t < 2.0 * pauseDuration + 2.0 * scrollDuration) {
-        // Scroll back up
-        const progress = (t - (2.0 * pauseDuration + scrollDuration)) / scrollDuration;
-        scrollPct = 1.0 - 0.5 * (1.0 - Math.cos(progress * Math.PI)); // easeInOutSine
+      // Scroll website texture based on row focal progress
+      let scrollPct = 0.0;
+      if (rowIdx === 0) {
+        scrollPct = clamp(websiteScrollProgress / 0.33, 0, 1);
+      } else if (rowIdx === 1) {
+        scrollPct = clamp((websiteScrollProgress - 0.33) / 0.33, 0, 1);
       } else {
-        // Fallback to top pause
-        scrollPct = 0;
+        scrollPct = clamp((websiteScrollProgress - 0.66) / 0.34, 0, 1);
       }
-
-      g.userData.scrollPct = scrollPct;
-      if (g.userData.webTexture && g.userData.repeatY !== undefined) {
-        // offset.y goes from (1.0 - repeatY) [top] to 0.0 [bottom]
-        g.userData.webTexture.offset.y = (1.0 - repeatY) * (1.0 - scrollPct);
-      }
-
-      let yPos;
-      if (rowTime < 0) {
-        yPos = lowY;
-      } else {
-        if (idx === 0 || idx === 1) {
-          // Row 1: physically emerge from below platform to target position (no fade)
-          yPos = lerp(lowY, targetY, riseEase);
-        } else {
-          yPos = lerp(targetY - 4.0, targetY, riseEase);
-        }
-      }
-
-      g.position.y = yPos;
-      g.position.y += Math.sin(time * 0.2 + g.userData.phase) * 0.04 * riseEase;
       
+      const easeScrollPct = 0.5 * (1.0 - Math.cos(scrollPct * Math.PI));
+      g.userData.scrollPct = easeScrollPct;
+      if (g.userData.webTexture && g.userData.repeatY !== undefined) {
+        g.userData.webTexture.offset.y = (1.0 - g.userData.repeatY) * (1.0 - easeScrollPct);
+      }
+
       // Animate opacity of all meshes in the group
       g.traverse(child => {
         if (child.isMesh && child.material) {
           child.material.transparent = true;
           const baseOpacity = child.userData.baseOpacity !== undefined ? child.userData.baseOpacity : 1.0;
-          if (idx === 0 || idx === 1) {
-            // Row 1: physical emergence, no fading/spawning
-            child.material.opacity = baseOpacity * fadeOutFactor;
-          } else {
-            child.material.opacity = baseOpacity * rowProgress * fadeOutFactor;
-          }
+          child.material.opacity = baseOpacity * finalOpacity;
         }
       });
 
@@ -4857,7 +4794,7 @@ function updateWebsites(t, time, vpOverride) {
         const rangeY = d.h * 0.35;
         const targetX1 = d.x + Math.sin(time * sweepSpeed + idx * 1.5) * rangeX;
         const targetY1 = (-12 + d.poleHeight + d.h * 0.5) + Math.cos(time * sweepSpeed * 0.8 + idx * 1.5) * rangeY;
-        spot1.target.position.set(targetX1, targetY1, d.z);
+        spot1.target.position.set(targetX1, targetY1, d.z + z_offset);
 
         if (beam1) {
           const spotPos = spot1.position;
@@ -4879,7 +4816,7 @@ function updateWebsites(t, time, vpOverride) {
         const rangeY = d.h * 0.35;
         const targetX2 = d.x + Math.cos(time * sweepSpeed + idx * 2.2) * rangeX;
         const targetY2 = (-12 + d.poleHeight + d.h * 0.5) + Math.sin(time * sweepSpeed * 0.8 + idx * 2.2) * rangeY;
-        spot2.target.position.set(targetX2, targetY2, d.z);
+        spot2.target.position.set(targetX2, targetY2, d.z + z_offset);
 
         if (beam2) {
           const spotPos = spot2.position;
@@ -4895,21 +4832,20 @@ function updateWebsites(t, time, vpOverride) {
         }
       }
 
-      if (spot1) spot1.intensity = 3.0 * rowProgress * fadeOutFactor; // Brighter luxury spotlights
-      if (spot2) spot2.intensity = 3.0 * rowProgress * fadeOutFactor;
-      if (beam1) beam1.material.opacity = 0.35 * rowProgress * fadeOutFactor;
-      if (beam2) beam2.material.opacity = 0.35 * rowProgress * fadeOutFactor;
-      if (lens1) lens1.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (lens2) lens2.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (fixture1) fixture1.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (fixture2) fixture2.material.opacity = 1.0 * rowProgress * fadeOutFactor;
+      if (spot1) spot1.intensity = 3.0 * finalOpacity;
+      if (spot2) spot2.intensity = 3.0 * finalOpacity;
+      if (beam1) beam1.material.opacity = 0.35 * finalOpacity;
+      if (beam2) beam2.material.opacity = 0.35 * finalOpacity;
+      if (lens1) lens1.material.opacity = 1.0 * finalOpacity;
+      if (lens2) lens2.material.opacity = 1.0 * finalOpacity;
+      if (fixture1) fixture1.material.opacity = 1.0 * finalOpacity;
+      if (fixture2) fixture2.material.opacity = 1.0 * finalOpacity;
 
       // Mild billboard tracking toward camera (±12° max = ±0.21 rad)
       const dx = camera.position.x - g.position.x;
-      const dz = camera.position.z - g.userData.d.z;
+      const dz = camera.position.z - g.position.z;
       const trackAngle = Math.atan2(dx, -dz);
       g.rotation.y = clamp(trackAngle, -0.21, 0.21);
-
     });
 
     // Canyon light pulse
@@ -4917,11 +4853,9 @@ function updateWebsites(t, time, vpOverride) {
       scene.userData.canyonLight.intensity = (0.5 + Math.sin(time * 1.5) * 0.2) * envOpacity;
     }
   } else {
-    scene.userData.websiteStartTime = undefined;
     if (scene.userData.slabs) {
       scene.userData.slabs.forEach(g => {
         g.position.y = g.userData.loweredY;
-        g.userData.lastAutoScrollTick = undefined;
         g.traverse(child => {
           if (child.isMesh && child.material) {
             child.material.opacity = 0;
@@ -4949,13 +4883,12 @@ function updateWebsites(t, time, vpOverride) {
         f.material.opacity = 0;
       });
     }
-    if (scene.userData.canyonFloor) scene.userData.canyonFloor.material.opacity = 0.9;
-    if (scene.userData.canyonFloorWire) scene.userData.canyonFloorWire.material.opacity = 0.04;
+    if (scene.userData.canyonFloor) scene.userData.canyonFloor.material.opacity = 0.0;
+    if (scene.userData.canyonFloorWire) scene.userData.canyonFloorWire.material.opacity = 0.0;
     if (scene.userData.canyonWalls) {
       scene.userData.canyonWalls.forEach((wall, wi) => {
         if (wall.material) {
-          const isWire = wall.material.wireframe;
-          wall.material.opacity = isWire ? (wi === 1 ? 0.03 : 0.02) : 0.9;
+          wall.material.opacity = 0.0;
         }
       });
     }
@@ -4978,10 +4911,10 @@ function updateCalling(t, time) {
   lastCallingTimeUpdate = now;
 
   const vp = scrollProgress * 13.0;
-  // Calling Zone is active strictly between vp = 4.8 and vp = 6.5
   const inZone = vp >= 4.8 && vp <= 6.5;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(3) > 0.001);
 
-  if (inZone) {
+  if (isTransitioningInOrActive) {
     callingZoneTime += dt;
     callingAutoplayTime += dt;
   } else {
@@ -4991,10 +4924,10 @@ function updateCalling(t, time) {
   }
 
   if (scene.userData.callingGroup) {
-    scene.userData.callingGroup.visible = inZone;
+    scene.userData.callingGroup.visible = getSectionOpacity(3) > 0.001;
   }
 
-  if (inZone && scene.userData.callingScreens) {
+  if (isTransitioningInOrActive && scene.userData.callingScreens) {
     const Z = -290;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
@@ -5097,7 +5030,7 @@ function updateCalling(t, time) {
       // Note: NO scroll-driven movement. No parallax card movement.
       mesh.position.set(posX, posY + floatY, posZ);
       mesh.rotation.y = rotY;
-      const finalOpacity = opacity * entryFade * exitFade;
+      const finalOpacity = opacity * entryFade * exitFade * getSectionOpacity(3);
       mesh.material.opacity = finalOpacity;
       mesh.visible = finalOpacity > 0.001;
 
@@ -5140,8 +5073,13 @@ function updateCalling(t, time) {
 function updateEcosystem(t, time) {
   const vp = scrollProgress * 13.0;
   const inZone = vp >= 12.0;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(5) > 0.001);
 
-  if (inZone) {
+  if (scene.userData.ecosystemGroup) {
+    scene.userData.ecosystemGroup.visible = getSectionOpacity(5) > 0.001;
+  }
+
+  if (isTransitioningInOrActive) {
     // 1. Centerpiece logo fades in first between vp = 12.0 and 12.15
     const logoOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
     
@@ -5150,7 +5088,7 @@ function updateEcosystem(t, time) {
 
     // Update centerpiece logo (junctionMesh) opacity and keep its scale completely stable (increased to 1.75)
     if (scene.userData.junctionMesh && scene.userData.junctionMesh.material) {
-      scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95;
+      scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95 * getSectionOpacity(5);
       scene.userData.junctionMesh.renderOrder = 8; // Render behind orbs, above conduits
       scene.userData.junctionMesh.scale.set(1.75, 1.75, 1.75); // Enlarged to 1.75
     }
@@ -5235,7 +5173,7 @@ function updateEcosystem(t, time) {
         const coreMesh = node.children[0];
         if (coreMesh.material) {
           const baseOp = coreMesh.material.userData.baseOpacity !== undefined ? coreMesh.material.userData.baseOpacity : 1.0;
-          const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
+          const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5);
           coreMesh.material.opacity = baseOp * orbZoneOpacity;
           
           // Balanced highlight on hover
@@ -5274,7 +5212,7 @@ function updateEcosystem(t, time) {
       pts.rotation.z = ecoTime * 0.01;
       if (pts.material) {
         const baseOp = pts.material.userData.baseOpacity !== undefined ? pts.material.userData.baseOpacity : 0.25;
-        const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1); // Fades in with centerpiece logo
+        const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5); // Fades in with centerpiece logo
         pts.material.opacity = baseOp * ptsOpacity;
         pts.material.size = 0.08 * payoff; // scale particle size by payoff
       }
@@ -5314,12 +5252,14 @@ function updateTexting(t, time) {
   // Texting zone: active strictly from vp = 8.8 to 10.5
   const inZone = vp >= 8.8 && vp <= 10.5;
 
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(4) > 0.001);
+
   if (scene.userData.textingGroup) {
-    scene.userData.textingGroup.visible = inZone;
+    scene.userData.textingGroup.visible = getSectionOpacity(4) > 0.001;
   }
 
   // Phone enters after camera settles at Section 5 (AI Texting Agents)
-  const startEnteringPhone = inZone && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
+  const startEnteringPhone = isTransitioningInOrActive && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
   let phoneOpacity = 1.0;
   if (vp < 9.1) {
     phoneOpacity = clamp((vp - 8.8) / 0.3, 0, 1);
@@ -5347,7 +5287,7 @@ function updateTexting(t, time) {
 
 
 
-  if (inZone) {
+  if (isTransitioningInOrActive) {
     
     // Main river tube (disabled for visual cleanup)
     if (scene.userData.riverTube) {
@@ -5404,7 +5344,7 @@ function updateTexting(t, time) {
         const floatScale = 1.0 + Math.sin(time * 0.2 + b.userData.phase) * 0.015;
         b.scale.set(entryScale * floatScale, entryScale * floatScale, 1.0);
         
-        const finalOpacity = phoneOpacity * 0.98;
+        const finalOpacity = phoneOpacity * 0.98 * getSectionOpacity(4);
         b.material.opacity = finalOpacity;
         b.visible = finalOpacity > 0.001;
 
@@ -5463,9 +5403,41 @@ function updateTexting(t, time) {
 
 
 
-/* ═══════════════════════════════════════════
-   18. MAIN ANIMATION LOOP
-   ═══════════════════════════════════════════ */
+const goldCurves = [
+  curveHeroToContent,
+  curveContentToWebsites,
+  curveWebsitesToCalling,
+  curveCallingToTexting,
+  curveTextingToEcosystem
+];
+
+const goldCurveTravelLimits = [
+  0.90, // Hero -> Content
+  0.92, // Content -> Website
+  0.33, // Website -> Calling
+  0.60, // Calling -> Texting
+  0.45  // Texting -> Ecosystem
+];
+
+function getSectionOpacity(idx) {
+  if (sectionTransitionProgress >= 1.0) {
+    return (idx === currentSectionIdx) ? 1.0 : 0.0;
+  }
+  const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+  if (idx === currentSectionIdx) {
+    if (progress < 0.2) {
+      return 1.0 - (progress / 0.2);
+    }
+    return 0.0;
+  }
+  if (idx === targetSectionIdx) {
+    if (progress < 0.5) {
+      return 0.0;
+    }
+    return (progress - 0.5) / 0.5;
+  }
+  return 0.0;
+}
 
 const camTarget  = new THREE.Vector3();
 const lookTarget = new THREE.Vector3();
@@ -5480,14 +5452,30 @@ function animate() {
   const dt = nowAnimate - lastAnimateTime;
   lastAnimateTime = nowAnimate;
 
+  let progressVal = 1.0;
   if (sectionTransitionProgress < 1.0) {
     transitionTimeElapsed += dt;
-    const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-    const ease = progress * progress * (3 - 2 * progress); // smoothstep
-    scrollProgress = lerp(startScrollProgress, targetScrollProgress, ease);
-    if (progress >= 1.0) {
+    progressVal = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+    
+    // Phase 1 (0.0 to 0.2): Fade out departure. Camera does not move yet.
+    if (progressVal < 0.2) {
+      scrollProgress = startScrollProgress;
+    }
+    // Phase 2 (0.2 to 0.8): Travel. Camera moves along spline using t_travel.
+    else if (progressVal <= 0.8) {
+      const t_travel = (progressVal - 0.2) / 0.6;
+      const ease = t_travel * t_travel * (3 - 2 * t_travel); // smoothstep
+      scrollProgress = lerp(startScrollProgress, targetScrollProgress, ease);
+    }
+    // Phase 3 (0.8 to 1.0): Settle. Camera is at destination.
+    else {
+      scrollProgress = targetScrollProgress;
+    }
+
+    if (progressVal >= 1.0) {
       sectionTransitionProgress = 1.0;
       currentSectionIdx = targetSectionIdx;
+      scrollProgress = targetScrollProgress;
     }
   }
 
@@ -5584,46 +5572,37 @@ function animate() {
   }
 
 
-  // ── ROLLER COASTER CAMERA: active ONLY during travel between sections ──
-  // Three existing transitions + two new ones for a complete ride.
+  // ── ROLLER COASTER CAMERA: active ONLY during travel between sections (Phase 2) ──
   let followActive = false;
   let followCurve = null;
   let followProgress = 0.0;
+  let targetFollowBlend = 0.0;
 
-  // Segment 1: Hero → Content Engine
-  if (t >= 0.05 && t <= 0.19) {
-    followActive = true;
-    followCurve = curveHeroToContent;
-    const ratio = (t - 0.05) / 0.14;
-    followProgress = ratio * 0.90; // Follow most of the segment
-  }
-  // Segment 2: Content Engine → Website Experiences
-  else if (t >= 0.22 && t <= 0.36) {
-    followActive = true;
-    followCurve = curveContentToWebsites;
-    const ratio = (t - 0.22) / 0.14;
-    followProgress = ratio * 0.92;
-  }
-  // Segment 3: Website Experiences → AI Calling
-  else if (t >= 0.405 && t <= 0.435) {
-    followActive = true;
-    followCurve = curveWebsitesToCalling;
-    const ratio = (t - 0.405) / 0.03;
-    followProgress = ratio * 0.33; // Detaches before entering calling card weaves
-  }
-  // Segment 4: AI Calling → AI Texting (the big helix)
-  else if (t >= 0.585 && t <= 0.655) {
-    followActive = true;
-    followCurve = curveCallingToTexting;
-    const ratio = (t - 0.585) / 0.07;
-    followProgress = ratio * 0.60; // Detaches before wrapping texting phone
-  }
-  // Segment 5: AI Texting → Final Ecosystem
-  else if (t >= 0.805 && t <= 0.855) {
-    followActive = true;
-    followCurve = curveTextingToEcosystem;
-    const ratio = (t - 0.805) / 0.05;
-    followProgress = ratio * 0.45; // Detaches before entering ecosystem showcase
+  if (sectionTransitionProgress < 1.0) {
+    if (progressVal >= 0.2 && progressVal <= 0.8) {
+      followActive = true;
+      const fromIdx = currentSectionIdx;
+      const toIdx = targetSectionIdx;
+      const minIdx = Math.min(fromIdx, toIdx);
+      followCurve = goldCurves[minIdx];
+      const limit = goldCurveTravelLimits[minIdx];
+      const t_travel = (progressVal - 0.2) / 0.6;
+      
+      if (toIdx > fromIdx) {
+        followProgress = t_travel * limit;
+      } else {
+        followProgress = (1.0 - t_travel) * limit;
+      }
+
+      // Blend envelope: smooth transition in/out of roller coaster ride
+      if (progressVal < 0.32) {
+        targetFollowBlend = (progressVal - 0.2) / 0.12;
+      } else if (progressVal > 0.68) {
+        targetFollowBlend = (0.8 - progressVal) / 0.12;
+      } else {
+        targetFollowBlend = 1.0;
+      }
+    }
   }
 
   if (scene.userData.followBlend === undefined) {
@@ -5631,11 +5610,7 @@ function animate() {
   }
 
   const dtSafe = Math.min(dt, 0.1);
-  if (followActive) {
-    scene.userData.followBlend = Math.min(1.0, scene.userData.followBlend + dtSafe / 0.6);
-  } else {
-    scene.userData.followBlend = Math.max(0.0, scene.userData.followBlend - dtSafe / 0.6);
-  }
+  scene.userData.followBlend = lerp(scene.userData.followBlend, targetFollowBlend, 0.12);
 
   if (followActive && followCurve) {
     const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
@@ -5716,8 +5691,7 @@ function animate() {
   // ═══════════════════════════════════════════
   // vp is already defined above in animate() scope
 
-  // 1. Dual-Mesh Gold Stream Progression (completed permanent road + active growing road)
-  // 1. Dual-Mesh Gold Stream Progression (completed permanent road + active growing road using independent segment meshes)
+  // ── PROGRESSIVE LIQUID GOLD GUIDE STREAMS GENERATION (SECTION-OWNED STREAMS) ──
   if (goldMeshes && goldMeshes.length === 5) {
     let fromIdx = currentSectionIdx;
     let toIdx = targetSectionIdx;
@@ -5739,63 +5713,74 @@ function animate() {
       }
     } else {
       // Transitioning
-      const transProgress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-      const progressRatio = (toIdx > fromIdx) ? transProgress : (1.0 - transProgress);
-
-      const A = minIdx; // Lower section index in transition
-
-      for (let i = 0; i < 5; i++) {
-        if (i < A - 1) {
-          segmentProgresses[i] = 1.0;
-        } else if (i > A) {
-          segmentProgresses[i] = 0.0;
-        } else {
-          // Zone of active transition: Segment A-1 and Segment A
-          if (i === A - 1) {
-            // Segment A-1 grows from its cutoff up to 1.0
-            if (progressRatio < 0.3) {
-              segmentProgresses[i] = SEGMENT_CUTOFFS[i] + (progressRatio / 0.3) * (1.0 - SEGMENT_CUTOFFS[i]);
+      const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+      if (progress < 0.2) {
+        // Phase 1: departure fades out. Tube is still at departure parked state
+        for (let i = 0; i < 5; i++) {
+          segmentProgresses[i] = getParkedSegmentProgress(fromIdx, i, callingAutoplayTime, textingAutoplayTime);
+        }
+      } else if (progress > 0.8) {
+        // Phase 3: destination fades in. Tube is at destination parked state
+        for (let i = 0; i < 5; i++) {
+          segmentProgresses[i] = getParkedSegmentProgress(toIdx, i, callingAutoplayTime, textingAutoplayTime);
+        }
+      } else {
+        // Phase 2: active travel along curveIdx
+        const curveIdx = minIdx;
+        const t_travel = (progress - 0.2) / 0.6;
+        for (let i = 0; i < 5; i++) {
+          if (i < curveIdx) {
+            segmentProgresses[i] = 1.0;
+          } else if (i > curveIdx) {
+            segmentProgresses[i] = 0.0;
+          } else {
+            // Active segment grows with t_travel
+            const limit = goldCurveTravelLimits[curveIdx];
+            if (toIdx > fromIdx) {
+              segmentProgresses[i] = t_travel * limit;
             } else {
-              segmentProgresses[i] = 1.0;
-            }
-          } else if (i === A) {
-            // Segment A grows from 0.0 to its target cutoff/weave progress
-            const targetCutoff = getParkedSegmentProgress(A + 1, i, callingAutoplayTime, textingAutoplayTime);
-            if (A === 0) {
-              // From Hero to Content: grow Segment 1 over the full transition
-              segmentProgresses[i] = progressRatio * targetCutoff;
-            } else if (i === 3) {
-              // Segment 4 (Calling -> Texting): grow immediately and finish early (at 90% of transition)
-              segmentProgresses[i] = clamp(progressRatio / 0.9, 0, 1) * targetCutoff;
-            } else {
-              // Other transitions: grow Segment i over the second phase (0.3 to 1.0)
-              if (progressRatio < 0.3) {
-                segmentProgresses[i] = 0.0;
-              } else {
-                segmentProgresses[i] = ((progressRatio - 0.3) / 0.7) * targetCutoff;
-              }
+              segmentProgresses[i] = (1.0 - t_travel) * limit;
             }
           }
         }
       }
     }
 
-    // Master opacity envelope matching the main scroll journey
-    let masterOpacity = clamp(vp / 0.5, 0.0, 1.0);
-    if (vp > 12.8) {
-      masterOpacity *= clamp((13.5 - vp) / 0.7, 0.0, 1.0);
+    // Master opacity envelope matching the snap transition phases
+    let goldTubeMasterOpacity = 0.0;
+    if (sectionTransitionProgress >= 1.0) {
+      // Parked: guide tube is visible ONLY for Website Experiences
+      goldTubeMasterOpacity = (currentSectionIdx === 2) ? 1.0 : 0.0;
+    } else {
+      // Transitioning
+      const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+      if (progress < 0.2) {
+        goldTubeMasterOpacity = 0.0;
+      } else if (progress >= 0.2 && progress < 0.35) {
+        goldTubeMasterOpacity = (progress - 0.2) / 0.15; // Fade in
+      } else if (progress >= 0.35 && progress <= 0.65) {
+        goldTubeMasterOpacity = 1.0;
+      } else if (progress > 0.65 && progress <= 0.8) {
+        if (targetSectionIdx === 2) {
+          goldTubeMasterOpacity = 1.0; // Stays visible for Website Experiences
+        } else {
+          goldTubeMasterOpacity = (0.8 - progress) / 0.15; // Fade out
+        }
+      } else {
+        goldTubeMasterOpacity = (targetSectionIdx === 2) ? 1.0 : 0.0;
+      }
     }
 
     // Update each of the 5 segment meshes
     for (let i = 0; i < 5; i++) {
       const mesh = goldMeshes[i];
       mesh.material.uniforms.time.value = time;
-      mesh.material.uniforms.opacity.value = masterOpacity;
+      mesh.material.uniforms.opacity.value = goldTubeMasterOpacity;
 
-      const progress = segmentProgresses[i];
-      mesh.material.uniforms.progress.value = progress;
+      const progressVal = segmentProgresses[i];
+      mesh.material.uniforms.progress.value = progressVal;
 
-      if (progress > 0.001) {
+      if (progressVal > 0.001) {
         mesh.visible = true;
       } else {
         mesh.visible = false;
@@ -5838,6 +5823,8 @@ function animate() {
         // Disappear once ecosystem section ends (CTA phase)
         branchOpacity *= clamp((13.5 - vp) / 0.7, 0.0, 1.0);
       }
+      branchOpacity *= getSectionOpacity(5); // Apply transition fade
+      
       branchTLMesh.material.uniforms.opacity.value = branchOpacity;
       branchTRMesh.material.uniforms.opacity.value = branchOpacity;
       branchBLMesh.material.uniforms.opacity.value = branchOpacity;
@@ -5856,7 +5843,18 @@ function animate() {
   }
 
   /* -- Void particles drift -- */
-  scene.userData.heroRing && (scene.userData.heroRing.rotation.z = time * 0.03);
+  const heroOpacityVal = getSectionOpacity(0);
+  if (scene.userData.heroRing) {
+    scene.userData.heroRing.visible = heroOpacityVal > 0.001;
+    if (scene.userData.heroRing.visible && scene.userData.heroRing.material) {
+      scene.userData.heroRing.rotation.z = time * 0.03;
+      scene.userData.heroRing.material.transparent = true;
+      if (scene.userData.heroRing.material.userData.baseOpacity === undefined) {
+        scene.userData.heroRing.material.userData.baseOpacity = scene.userData.heroRing.material.opacity;
+      }
+      scene.userData.heroRing.material.opacity = scene.userData.heroRing.material.userData.baseOpacity * heroOpacityVal;
+    }
+  }
 
   if (voidGeo) {
     const posAttr = voidGeo.getAttribute('position');
