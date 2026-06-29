@@ -2286,11 +2286,9 @@ function tickWebsiteScroll(dt) {
 
   // Forward exit: only when user has fully walked through the entire exhibition
   if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.95) {
-    // Keep state at 1.0 — do NOT reset to 0 here.
-    // The transition system will re-initialize it when returning to section 2.
     websiteScrollTarget   = 1.0;
     websiteScrollProgress = 1.0;
-    websiteScrollVelocity = 0;
+    websiteScrollVelocity = 0;  // kill all momentum before firing transition
     triggerSectionTransition(currentSectionIdx + 1);
     return;
   }
@@ -5448,6 +5446,15 @@ function getSectionOpacity(idx) {
     return (idx === currentSectionIdx) ? 1.0 : 0.0;
   }
   const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+
+  // Website Experiences special case:
+  // When LEAVING section 2 forward, keep it fully visible until phase 3 starts (progress >= 0.8)
+  // so there is no black void between the walkthrough and AI Calling.
+  if (idx === 2 && currentSectionIdx === 2 && targetSectionIdx > 2) {
+    if (progress < 0.8) return 1.0;
+    return Math.max(0, 1.0 - (progress - 0.8) / 0.2);
+  }
+
   if (idx === currentSectionIdx) {
     if (progress < 0.2) {
       return 1.0 - (progress / 0.2);
@@ -5725,23 +5732,35 @@ function animate() {
   /* -- Zone updates -- */
   updateContent(t, time, dt);
 
-  // ── WEBSITE EXPERIENCES: tick the spring scroll every frame ──
-  tickWebsiteScroll(dt);
-
-  // ── WEBSITE EXPERIENCES SCROLL MODE: override vp when user is exploring websites ──
-  if (isWebsiteScrollMode()) {
-    updateWebsites(t, time, activeVp);
-  } else {
-    // Reset scroll state when leaving section 2
-    if (currentSectionIdx > 2) {
-      websiteScrollProgress = 1.0;
-      websiteScrollTarget   = 1.0;
-      websiteScrollVelocity = 0;
-    } else if (currentSectionIdx < 2) {
-      websiteScrollProgress = 0.0;
-      websiteScrollTarget   = 0.0;
-      websiteScrollVelocity = 0;
+  // ── WEBSITE EXPERIENCES SCROLL MODE ──
+  // Only tick and render websites when section 2 is active (parked OR transitioning).
+  // This prevents website geometry from receiving conflicting updates during other sections.
+  const websiteIsActive = (currentSectionIdx === 2 || targetSectionIdx === 2);
+  if (websiteIsActive) {
+    if (isWebsiteScrollMode()) {
+      // Parked at section 2: use spring-scroll controlled vp
+      tickWebsiteScroll(dt);
+      updateWebsites(t, time, activeVp);
+    } else {
+      // Transitioning to/from section 2: website visible but scroll frozen
+      updateWebsites(t, time, activeVp);
     }
+  } else {
+    // Fully outside website section: ensure scroll state is clean
+    if (currentSectionIdx > 2) {
+      if (websiteScrollProgress !== 1.0) {
+        websiteScrollProgress = 1.0;
+        websiteScrollTarget   = 1.0;
+        websiteScrollVelocity = 0;
+      }
+    } else if (currentSectionIdx < 2) {
+      if (websiteScrollProgress !== 0.0) {
+        websiteScrollProgress = 0.0;
+        websiteScrollTarget   = 0.0;
+        websiteScrollVelocity = 0;
+      }
+    }
+    // Still update websites for opacity fade-out to complete cleanly
     updateWebsites(t, time);
   }
   updateCalling(t, time);
@@ -5799,12 +5818,16 @@ function animate() {
           } else if (i > curveIdx) {
             segmentProgresses[i] = 0.0;
           } else {
-            // Active segment grows with t_travel
-            const limit = goldCurveTravelLimits[curveIdx];
+            // Active segment — interpolate between departure parked value and arrival parked value
+            // This eliminates the backward jump that occurred when departing parked=1.0 then
+            // immediately growing from 0 using only t_travel * limit.
+            const departureProgress = getParkedSegmentProgress(fromIdx, i, callingAutoplayTime, textingAutoplayTime);
+            const arrivalProgress   = getParkedSegmentProgress(toIdx,   i, callingAutoplayTime, textingAutoplayTime);
+            const ease = t_travel * t_travel * (3 - 2 * t_travel); // smoothstep
             if (toIdx > fromIdx) {
-              segmentProgresses[i] = t_travel * limit;
+              segmentProgresses[i] = lerp(departureProgress, arrivalProgress, ease);
             } else {
-              segmentProgresses[i] = (1.0 - t_travel) * limit;
+              segmentProgresses[i] = lerp(departureProgress, arrivalProgress, ease);
             }
           }
         }
