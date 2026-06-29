@@ -4737,12 +4737,12 @@ function updateWebsites(t, time, vpOverride) {
       const easeFade = 0.5 * (1.0 - Math.cos(fadeVal * Math.PI));
       const finalOpacity = easeFade * envOpacity;
 
-      // Position the panel - FIXED structures, never translate or slide in scrolling
-      g.position.y = targetY;
-      g.position.z = d.z;
+      // Position the panel - STRICTLY FIXED structures, never translate or slide
+      g.position.set(d.x, targetY, d.z);
 
-      // Add a tiny float breathing effect
-      g.position.y += Math.sin(time * 0.2 + g.userData.phase) * 0.04;
+      // Cursor micro-tilt influence for high-end feel (Apple Vision Pro inspired)
+      g.rotation.y = d.ry + mouse.sx * 0.015;
+      g.rotation.x = mouse.sy * 0.012;
 
       // Scroll website texture based on row focal progress
       let scrollPct = 0.0;
@@ -4757,7 +4757,13 @@ function updateWebsites(t, time, vpOverride) {
       const easeScrollPct = 0.5 * (1.0 - Math.cos(scrollPct * Math.PI));
       g.userData.scrollPct = easeScrollPct;
       if (g.userData.webTexture && g.userData.repeatY !== undefined) {
-        g.userData.webTexture.offset.y = (1.0 - g.userData.repeatY) * (1.0 - easeScrollPct);
+        // Micro scroll offset influenced by vertical mouse position
+        const mouseScrollInfluence = mouse.sy * 0.015;
+        g.userData.webTexture.offset.y = clamp(
+          (1.0 - g.userData.repeatY) * (1.0 - easeScrollPct) + mouseScrollInfluence,
+          0.0,
+          1.0 - g.userData.repeatY
+        );
       }
 
       // Animate opacity of all meshes in the group
@@ -4832,12 +4838,6 @@ function updateWebsites(t, time, vpOverride) {
       if (lens2) lens2.material.opacity = 1.0 * finalOpacity;
       if (fixture1) fixture1.material.opacity = 1.0 * finalOpacity;
       if (fixture2) fixture2.material.opacity = 1.0 * finalOpacity;
-
-      // Mild billboard tracking toward camera (±12° max = ±0.21 rad)
-      const dx = camera.position.x - g.position.x;
-      const dz = camera.position.z - g.position.z;
-      const trackAngle = Math.atan2(dx, -dz);
-      g.rotation.y = clamp(trackAngle, -0.21, 0.21);
     });
 
     // Canyon light pulse
@@ -4847,7 +4847,7 @@ function updateWebsites(t, time, vpOverride) {
   } else {
     if (scene.userData.slabs) {
       scene.userData.slabs.forEach(g => {
-        g.position.y = g.userData.loweredY;
+        g.position.y = g.userData.targetY; // Keep physically set at targetY
         g.traverse(child => {
           if (child.isMesh && child.material) {
             child.material.opacity = 0;
@@ -5525,130 +5525,141 @@ function animate() {
   mouse.sx = lerp(mouse.sx, mouse.x, 0.04);
   mouse.sy = lerp(mouse.sy, mouse.y, 0.04);
 
-  /* -- Camera along spline -- FORWARD ONLY, no reversals -- */
-  const camPoint = CAM_PATH.getPoint(t);
-  const lookAheadDist = 8.0;
-  const targetLook = LOOK_PATH.getPoint(t);
-  const dist = targetLook.distanceTo(camPoint);
-  let lookPoint;
-  if (dist > 0.001) {
-    const lookDir = new THREE.Vector3().subVectors(targetLook, camPoint).normalize();
-    lookPoint = camPoint.clone().add(lookDir.multiplyScalar(lookAheadDist));
-  } else {
-    lookPoint = targetLook.clone();
+  /* -- Helper for stationary camera state at each section -- */
+  function getStationCamera(sectionIdx, webProgress) {
+    if (sectionIdx === 2) {
+      // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
+      const camZ = lerp(-195.0, -272.0, webProgress);
+      const camY = 1.2 + webProgress * 8.0; // gentle architectural ramp
+      const pos = new THREE.Vector3(0.0, camY, camZ);
+      const look = new THREE.Vector3(0.0, camY + webProgress * 2.0, camZ - 20.0); // look slightly upward as we rise
+      return { pos, look };
+    } else {
+      // Normal sections: evaluate CAM_PATH and LOOK_PATH at their fixed station positions
+      const secVp = SECTIONS[sectionIdx].vp;
+      let secT = 0;
+      if (secVp < 3.0) {
+        secT = (secVp / 3.0) * 0.38;
+      } else if (secVp < 4.0) {
+        secT = 0.38 + (secVp - 3.0) * 0.10;
+      } else if (secVp < 7.0) {
+        secT = 0.48 + ((secVp - 4.0) / 3.0) * 0.10;
+      } else if (secVp < 7.75) {
+        secT = 0.58 + ((secVp - 7.0) / 0.75) * 0.10;
+      } else if (secVp < 11.25) {
+        secT = 0.68 + ((secVp - 7.75) / 3.5) * 0.12;
+      } else if (secVp < 11.75) {
+        secT = 0.80 + ((secVp - 11.25) / 0.5) * 0.08;
+      } else {
+        secT = 0.88 + clamp((secVp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
+      }
+      secT = clamp(secT, 0, maxSafeT);
+      const pos = CAM_PATH.getPoint(secT);
+      const look = LOOK_PATH.getPoint(secT);
+      return { pos, look };
+    }
   }
 
-  // Mouse parallax offset — suppressed during transition gaps, and disabled in the ecosystem section
+  // Determine mouse parallax scaling based on location
   const inTunnel = (t >= 0.40 && t <= 0.48);
   const isEcosystem = (t >= 0.82);
   const parallaxScale = isEcosystem ? 0.0 : (inTunnel ? 0.15 : 1.0);
   const parallaxX = mouse.sx * 1.8 * parallaxScale;
   const parallaxY = mouse.sy * 0.8 * parallaxScale;
 
-  camTarget.set(
-    camPoint.x + parallaxX,
-    camPoint.y + parallaxY,
-    camPoint.z
-  );
+  const finalCamTarget = new THREE.Vector3();
+  const finalLookTarget = new THREE.Vector3();
 
-  // Calculate gravitational suction strength envelope peaking at t=0.755
-  const suctionProgress = clamp((t - 0.78) / 0.05, 0, 1);
-  const suctionStrength = Math.sin(suctionProgress * Math.PI); // 0 -> 1 -> 0
-
-  // Vertigo-like space-time FOV compression (narrowing FOV pulls viewer forward and squashes depth)
-  const fovWarp = 68 - 12 * suctionStrength;
-  if (camera.fov !== fovWarp) {
-    camera.fov = fovWarp;
-    camera.updateProjectionMatrix();
-  }
-
-  // Cinematic lighting pull: ambient light dimming down to simulate gravitational capture
-  if (typeof mainAmbientLight !== 'undefined') {
-    mainAmbientLight.intensity = 1.8 - 1.2 * suctionStrength;
-  }
-
-
-  // ── ROLLER COASTER CAMERA: active ONLY during travel between sections (Phase 2) ──
-  let followActive = false;
-  let followCurve = null;
-  let followProgress = 0.0;
-  let targetFollowBlend = 0.0;
+  const fromIdx = currentSectionIdx;
+  const toIdx = targetSectionIdx;
 
   if (sectionTransitionProgress < 1.0) {
-    if (progressVal >= 0.2 && progressVal <= 0.8) {
-      followActive = true;
-      const fromIdx = currentSectionIdx;
-      const toIdx = targetSectionIdx;
+    // ── STATE 1: ROLLER COASTER TRAVEL ──
+    const startState = getStationCamera(fromIdx, fromIdx === 2 ? websiteScrollProgress : 0.0);
+    const endState = getStationCamera(toIdx, toIdx === 2 ? websiteScrollProgress : 0.0);
+
+    if (progressVal < 0.2) {
+      // Phase 1: Departure hold
+      finalCamTarget.copy(startState.pos);
+      finalLookTarget.copy(startState.look);
+    } else if (progressVal > 0.8) {
+      // Phase 3: Settle hold
+      finalCamTarget.copy(endState.pos);
+      finalLookTarget.copy(endState.look);
+    } else {
+      // Phase 2: Traveling on tube
+      const t_travel = (progressVal - 0.2) / 0.6; // 0..1
       const minIdx = Math.min(fromIdx, toIdx);
-      followCurve = goldCurves[minIdx];
-      const limit = goldCurveTravelLimits[minIdx];
-      const t_travel = (progressVal - 0.2) / 0.6;
-      
+      const followCurve = goldCurves[minIdx];
+      let limit = goldCurveTravelLimits[minIdx];
+      if (minIdx === 1) {
+        limit = 0.36; // Dismount at Z = -195 (Gallery entry)
+      }
+
+      let followProgress = 0.0;
       if (toIdx > fromIdx) {
         followProgress = t_travel * limit;
       } else {
         followProgress = (1.0 - t_travel) * limit;
       }
 
-      // Blend envelope: smooth transition in/out of roller coaster ride
-      if (progressVal < 0.32) {
-        targetFollowBlend = (progressVal - 0.2) / 0.12;
-      } else if (progressVal > 0.68) {
-        targetFollowBlend = (0.8 - progressVal) / 0.12;
+      const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+      const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+      const upVec = new THREE.Vector3(0, 1, 0);
+      const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+      const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+
+      // Banking into turns
+      const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+      if (Math.abs(bankAngle) > 0.001) {
+        actualUp.applyAxisAngle(tangent, bankAngle);
+      }
+
+      const rideHeight = 3.5;
+      const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+      const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+      // Blend boarding (starts Phase 2) and dismounting (ends Phase 2)
+      if (t_travel < 0.2) {
+        const boardBlend = t_travel / 0.2;
+        const easeBlend = 0.5 * (1.0 - Math.cos(boardBlend * Math.PI));
+        finalCamTarget.copy(startState.pos).lerp(tubeCamPos, easeBlend);
+        finalLookTarget.copy(startState.look).lerp(tubeLookPos, easeBlend);
+
+        if (fromIdx === 2) {
+          // Boarding from Website Exhibition: lift camera vertically above tube
+          const liftOffset = Math.sin(boardBlend * Math.PI) * 1.5;
+          finalCamTarget.y += liftOffset;
+        }
+      } else if (t_travel > 0.8) {
+        const dismountBlend = (1.0 - t_travel) / 0.2;
+        const easeBlend = 0.5 * (1.0 - Math.cos(dismountBlend * Math.PI));
+        finalCamTarget.copy(endState.pos).lerp(tubeCamPos, easeBlend);
+        finalLookTarget.copy(endState.look).lerp(tubeLookPos, easeBlend);
+
+        if (toIdx === 2) {
+          // Dismounting to Website Exhibition: lift camera above tube then drop gently onto ramp
+          const liftOffset = Math.sin((1.0 - dismountBlend) * Math.PI) * 1.5;
+          finalCamTarget.y += liftOffset;
+        }
       } else {
-        targetFollowBlend = 1.0;
+        finalCamTarget.copy(tubeCamPos);
+        finalLookTarget.copy(tubeLookPos);
       }
     }
+  } else {
+    // ── STATE 2 & 3: PARKED / STATIONARY ──
+    scene.userData.followBlend = 0.0; // Hard dismount: clear any residual blend weight immediately
+    const currentState = getStationCamera(currentSectionIdx, currentSectionIdx === 2 ? websiteScrollProgress : 0.0);
+    finalCamTarget.copy(currentState.pos);
+    finalLookTarget.copy(currentState.look);
   }
 
-  if (scene.userData.followBlend === undefined) {
-    scene.userData.followBlend = 0.0;
-  }
-
-  const dtSafe = Math.min(dt, 0.1);
-  scene.userData.followBlend = lerp(scene.userData.followBlend, targetFollowBlend, 0.12);
-
-  if (followActive && followCurve) {
-    const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
-    const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
-
-    const upVec = new THREE.Vector3(0, 1, 0);
-    const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
-    const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
-
-    // Premium banking: 4–6° roll into turns (smooth, never aggressive)
-    const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10); // 0.10 rad ≈ 5.7 degrees
-    if (Math.abs(bankAngle) > 0.001) {
-      actualUp.applyAxisAngle(tangent, bankAngle);
-    }
-
-    // ── ROLLER COASTER ABOVE-RAIL POSITIONING ──
-    // Tube radius = 0.42 units. Camera must be ABOVE the tube, not inside it.
-    // 3.5 units above center ≈ 8× radius — clearly outside, like a car on top of a track.
-    const rideHeight = 3.5;
-    const followCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
-
-    // Look DOWN and AHEAD at the upcoming rail — tube stays visible below the camera.
-    // Look target sits ON the tube itself (center-level) 8 units along the spline.
-    // The -1.0 offset on actualUp tilts the gaze downward so the gold guide is always in frame.
-    const followLookTarget = pTube.clone()
-      .addScaledVector(tangent, 8.0)
-      .addScaledVector(actualUp, -1.0);
-
-    scene.userData.followCamPos = followCamPos;
-    scene.userData.followLookTarget = followLookTarget;
-  }
-
-  const targetLookFinal = new THREE.Vector3(lookPoint.x + parallaxX * 0.3, lookPoint.y, lookPoint.z);
-
-  let finalCamTarget = camTarget.clone();
-  let finalLookTarget = targetLookFinal.clone();
-
-  if (scene.userData.followBlend > 0.001 && scene.userData.followCamPos && scene.userData.followLookTarget) {
-    const easeBlend = 0.5 * (1 - Math.cos(scene.userData.followBlend * Math.PI));
-    finalCamTarget.lerp(scene.userData.followCamPos, easeBlend);
-    finalLookTarget.lerp(scene.userData.followLookTarget, easeBlend);
-  }
+  // Apply cursor influence and parallax to target positions
+  finalCamTarget.x += parallaxX;
+  finalCamTarget.y += parallaxY;
+  finalLookTarget.x += parallaxX * 0.3;
+  finalLookTarget.y += parallaxY * 0.3;
 
   camera.position.lerp(finalCamTarget, 0.12);
   lookTarget.lerp(finalLookTarget, 0.12);
