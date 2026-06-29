@@ -3749,7 +3749,6 @@ function createContactShadowTexture() {
 
     group.userData = {
       targetY: targetYAbsolute,
-      loweredY,
       d,
       idx,
       phase: idx * 0.8,
