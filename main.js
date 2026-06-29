@@ -2726,44 +2726,42 @@ function updateMeshGeometry(mesh, newGeom) {
 }
 
 // Points for Segment 1: Hero to Content Engine
-// Redesigned to swoop left initially towards Content Engine
+// Redesigned to swoop left initially and terminate exactly at the Content Engine parked position (Z = -65.5)
 const ptsHeroToContent = [
   new THREE.Vector3(-4.5,  -8.5, -30),
   new THREE.Vector3(-8.5,  -8.7, -38),
   new THREE.Vector3(-11.5,  -9.3, -46),
   new THREE.Vector3(-10.5, -10.0, -54),
   new THREE.Vector3(-6.5, -10.5, -62),
-  new THREE.Vector3(1.5, -11.0, -70),
-  new THREE.Vector3(8.5, -10.5, -78),
-  new THREE.Vector3(14.5, -10.0, -86),
-  new THREE.Vector3(16.5, -10.5, -94),
-  new THREE.Vector3(15.5, -11.5, -100),
-  new THREE.Vector3(13.5, -13.0, -108),
-  new THREE.Vector3(12.5, -14.5, -114),
-  new THREE.Vector3(13.5, -15.5, -120),
-  new THREE.Vector3(15.5, -14.5, -128),
-  new THREE.Vector3(14.5, -13.0, -136),
-  new THREE.Vector3(13.5, -11.5, -145),
-  new THREE.Vector3(12.5, -10.5, -150),
-  new THREE.Vector3(11.5, -10.0, -155)
+  new THREE.Vector3(1.5, -11.0, -65.5)
 ];
 
 // Points for Segment 2: Content Engine to Website Experiences
-// Aligned at the end to exit exactly in the center (x=0) under the camera for seamless boarding
+// Starts exactly at the Content Engine parked position (Z = -65.5) and runs continuously to walkway exit (Z = -272.0)
 const ptsContentToWebsites = [
-  new THREE.Vector3(11.5,  -10.0, -155),       // Connected to Segment 1 end
-  new THREE.Vector3(8.5,   -6.0, -162),
-  new THREE.Vector3(5.5,   -2.0, -170),
-  new THREE.Vector3(3.5,    1.0, -180),        // Enters center corridor gap
-  new THREE.Vector3(2.5,    3.0, -190),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -200),        // Corridor
-  new THREE.Vector3(2.5,    1.0, -210),        // Corridor
-  new THREE.Vector3(4.5,    0.0, -220),        // Corridor
-  new THREE.Vector3(5.5,    2.0, -230),        // Corridor
-  new THREE.Vector3(4.5,    4.0, -240),        // Corridor
-  new THREE.Vector3(2.5,    3.0, -250),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -258),        // Corridor
-  new THREE.Vector3(0.0,    4.5, -266),        // Alignment towards center
+  new THREE.Vector3(1.5, -11.0, -65.5),       // Connected directly to Segment 1 end
+  new THREE.Vector3(5.5, -11.0, -74),
+  new THREE.Vector3(9.5, -10.5, -84),
+  new THREE.Vector3(13.5, -10.0, -94),
+  new THREE.Vector3(15.5, -11.5, -104),
+  new THREE.Vector3(13.5, -13.0, -114),
+  new THREE.Vector3(12.5, -14.5, -124),
+  new THREE.Vector3(13.5, -15.5, -134),
+  new THREE.Vector3(15.5, -14.5, -144),
+  new THREE.Vector3(14.5, -13.0, -154),
+  new THREE.Vector3(11.5, -10.0, -164),
+  new THREE.Vector3(8.5,   -6.0, -174),
+  new THREE.Vector3(5.5,   -2.0, -184),
+  new THREE.Vector3(3.5,    1.0, -194),        // Enters center corridor gap
+  new THREE.Vector3(2.5,    3.0, -204),        // Corridor
+  new THREE.Vector3(1.5,    2.5, -214),        // Corridor
+  new THREE.Vector3(2.5,    1.0, -224),        // Corridor
+  new THREE.Vector3(4.5,    0.0, -234),        // Corridor
+  new THREE.Vector3(5.5,    2.0, -244),        // Corridor
+  new THREE.Vector3(4.5,    4.0, -254),        // Corridor
+  new THREE.Vector3(2.5,    3.0, -260),        // Corridor
+  new THREE.Vector3(1.5,    2.5, -266),        // Corridor
+  new THREE.Vector3(0.0,    4.5, -269),        // Alignment towards center
   new THREE.Vector3(0.0,    5.7, -272)         // Connects to Segment 3 right in center under the exit
 ];
 
@@ -5477,8 +5475,8 @@ const goldCurves = [
 ];
 
 const goldCurveTravelLimits = [
-  0.90, // Hero -> Content
-  0.92, // Content -> Website
+  1.00, // Hero -> Content (fully travels to end of Segment 1 at Z=-65.5)
+  0.63, // Content -> Website (dismounts halfway along Segment 2 at Z=-195)
   0.33, // Website -> Calling
   0.60, // Calling -> Texting
   0.45  // Texting -> Ecosystem
@@ -5679,7 +5677,7 @@ function animate() {
       const followCurve = goldCurves[minIdx];
       let limit = goldCurveTravelLimits[minIdx];
       if (minIdx === 1) {
-        limit = 0.36; // Dismount at Z = -195 (Gallery entry)
+        limit = 0.63; // Dismount at Z = -195 (Gallery entry)
       }
 
       let finalCamTargetTube = new THREE.Vector3();
