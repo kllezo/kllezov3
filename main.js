@@ -2252,7 +2252,7 @@ document.body.style.overflow = 'hidden';
 // When the user is parked at section 2 (Website Experiences), scroll
 // advances the website billboards instead of triggering section transitions.
 let websiteScrollProgress = 0.0; // 0 = entry, 1 = exit
-const WEBSITE_SCROLL_STEPS = 18;  // number of scroll ticks to traverse the zone
+const WEBSITE_SCROLL_STEPS = 6;   // number of scroll ticks to traverse the zone (5-7 comfortable scrolls)
 let websiteScrollTick = 0;         // integer 0..WEBSITE_SCROLL_STEPS
 
 function isWebsiteScrollMode() {
@@ -4732,9 +4732,9 @@ function updateWebsites(t, time, vpOverride) {
       const targetY = g.userData.targetY;
       const rowIdx = Math.floor(idx / 2);
 
-      // Distance-based fade
+      // Distance-based fade — radius of 80 units so all rows are visible during the walkthrough
       const distanceZ = Math.abs(camera.position.z - d.z);
-      const fadeVal = clamp(1.0 - distanceZ / 25.0, 0, 1);
+      const fadeVal = clamp(1.0 - distanceZ / 80.0, 0, 1);
       const easeFade = 0.5 * (1.0 - Math.cos(fadeVal * Math.PI));
       const finalOpacity = easeFade * envOpacity;
 
@@ -5657,23 +5657,44 @@ function animate() {
         finalLookTarget.copy(tubeLookPos);
       }
     }
+
+    // TRAVELING: always use lerp
+    finalCamTarget.x += parallaxX;
+    finalCamTarget.y += parallaxY;
+    finalLookTarget.x += parallaxX * 0.3;
+    finalLookTarget.y += parallaxY * 0.3;
+    camera.position.lerp(finalCamTarget, 0.12);
+    lookTarget.lerp(finalLookTarget, 0.12);
+    camera.lookAt(lookTarget);
+
   } else {
     // ── STATE 2 & 3: PARKED / STATIONARY ──
-    scene.userData.followBlend = 0.0; // Hard dismount: clear any residual blend weight immediately
+    scene.userData.followBlend = 0.0;
     const currentState = getStationCamera(currentSectionIdx, currentSectionIdx === 2 ? websiteScrollProgress : 0.0);
     finalCamTarget.copy(currentState.pos);
     finalLookTarget.copy(currentState.look);
+
+    if (currentSectionIdx === 2) {
+      // ── WEBSITE EXPERIENCES EXHIBITION MODE ──
+      // Camera is EXCLUSIVELY owned here. Hard-set, no lerp, no cross-talk.
+      finalCamTarget.x += parallaxX;
+      finalCamTarget.y += parallaxY;
+      finalLookTarget.x += parallaxX * 0.3;
+      finalLookTarget.y += parallaxY * 0.3;
+      camera.position.copy(finalCamTarget);
+      lookTarget.copy(finalLookTarget);
+      camera.lookAt(lookTarget);
+    } else {
+      // ── ALL OTHER PARKED SECTIONS ──
+      finalCamTarget.x += parallaxX;
+      finalCamTarget.y += parallaxY;
+      finalLookTarget.x += parallaxX * 0.3;
+      finalLookTarget.y += parallaxY * 0.3;
+      camera.position.lerp(finalCamTarget, 0.12);
+      lookTarget.lerp(finalLookTarget, 0.12);
+      camera.lookAt(lookTarget);
+    }
   }
-
-  // Apply cursor influence and parallax to target positions
-  finalCamTarget.x += parallaxX;
-  finalCamTarget.y += parallaxY;
-  finalLookTarget.x += parallaxX * 0.3;
-  finalLookTarget.y += parallaxY * 0.3;
-
-  camera.position.lerp(finalCamTarget, 0.12);
-  lookTarget.lerp(finalLookTarget, 0.12);
-  camera.lookAt(lookTarget);
 
   /* -- Zone updates -- */
   updateContent(t, time, dt);
