@@ -104,11 +104,13 @@ function triggerSectionTransition(nextIdx) {
   // Initialize Website Experiences progress depending on direction
   if (nextIdx === 2) {
     if (currentSectionIdx < 2) {
-      websiteScrollTick = 0;
       websiteScrollProgress = 0.0;
+      websiteScrollTarget   = 0.0;
+      websiteScrollVelocity = 0;
     } else if (currentSectionIdx > 2) {
-      websiteScrollTick = WEBSITE_SCROLL_STEPS;
       websiteScrollProgress = 1.0;
+      websiteScrollTarget   = 1.0;
+      websiteScrollVelocity = 0;
     }
   }
 
@@ -2249,50 +2251,71 @@ window.addEventListener('resize', () => {
 document.body.style.overflow = 'hidden';
 
 // ── WEBSITE EXPERIENCES SCROLL MODE ──
-// When the user is parked at section 2 (Website Experiences), scroll
-// advances the website billboards instead of triggering section transitions.
-let websiteScrollProgress = 0.0; // 0 = entry, 1 = exit
-const WEBSITE_SCROLL_STEPS = 6;   // number of scroll ticks to traverse the zone (5-7 comfortable scrolls)
-let websiteScrollTick = 0;         // integer 0..WEBSITE_SCROLL_STEPS
+// Continuous spring-based scroll: wheel events feed velocity into a target,
+// websiteScrollProgress lerps toward it each frame for buttery-smooth inertia.
+let websiteScrollProgress = 0.0;  // smoothed progress 0..1 (drives camera + textures)
+let websiteScrollTarget   = 0.0;  // raw target progress (nudged by wheel/touch)
+let websiteScrollVelocity = 0.0;  // accumulated velocity from wheel events
 
 function isWebsiteScrollMode() {
   return currentSectionIdx === 2 && sectionTransitionProgress >= 1.0;
 }
 
-function advanceWebsiteScroll(direction) {
-  // direction: +1 = forward (scroll down), -1 = backward (scroll up)
-  websiteScrollTick = Math.max(0, Math.min(WEBSITE_SCROLL_STEPS, websiteScrollTick + direction));
-  websiteScrollProgress = websiteScrollTick / WEBSITE_SCROLL_STEPS;
+// Called every animate frame while in website mode
+function tickWebsiteScroll(dt) {
+  if (!isWebsiteScrollMode()) return;
 
-  if (direction > 0 && websiteScrollTick >= WEBSITE_SCROLL_STEPS) {
-    // User has scrolled past the end of website section → enter Calling
-    websiteScrollTick = WEBSITE_SCROLL_STEPS;
+  // Drain velocity into target
+  websiteScrollTarget += websiteScrollVelocity * dt;
+  websiteScrollVelocity *= Math.pow(0.05, dt); // exponential friction — quick stop
+
+  // Clamp target within legal range
+  if (websiteScrollTarget < 0)   websiteScrollTarget = 0;
+  if (websiteScrollTarget > 1.3) websiteScrollTarget = 1.3; // 1.0 = exit, 1.3 gives exit threshold
+
+  // Trigger exit when target exceeds 1.0
+  if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.95) {
+    websiteScrollTarget  = 1.0;
+    websiteScrollProgress = 1.0;
+    websiteScrollVelocity = 0;
     triggerSectionTransition(currentSectionIdx + 1);
     return;
   }
-  if (direction < 0 && websiteScrollTick <= 0) {
-    // User scrolled back to start → return to Content Engine
-    websiteScrollTick = 0;
+
+  // Trigger reverse exit when target goes below 0
+  if (websiteScrollTarget <= 0 && websiteScrollProgress <= 0.05) {
+    websiteScrollTarget  = 0;
+    websiteScrollProgress = 0;
+    websiteScrollVelocity = 0;
     triggerSectionTransition(currentSectionIdx - 1);
+    return;
   }
+
+  // Smooth lerp toward target (critically-damped spring feel)
+  const lerpSpeed = 1.0 - Math.pow(0.001, dt); // ~6-8 frame settling at 60fps
+  websiteScrollProgress = websiteScrollProgress + (websiteScrollTarget - websiteScrollProgress) * lerpSpeed;
+  websiteScrollProgress = Math.max(0, Math.min(1, websiteScrollProgress));
 }
 
 function handleWheelGesture(e) {
   const now = performance.now();
-  if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
 
-  // Website Experiences: intercept scroll to drive billboard progress
+  // Website Experiences: continuous inertial scroll — bypass GESTURE_COOLDOWN entirely
   if (isWebsiteScrollMode()) {
-    if (e.deltaY > 5) {
-      advanceWebsiteScroll(+1);
-      lastGestureTime = now;
-    } else if (e.deltaY < -5) {
-      advanceWebsiteScroll(-1);
-      lastGestureTime = now;
-    }
+    // Normalize delta: pixel mode can give huge values, line mode gives ~3, page mode gives ~1
+    let delta = e.deltaY;
+    if (e.deltaMode === 1) delta *= 30; // line units → pixel-like
+    if (e.deltaMode === 2) delta *= 300; // page units → pixel-like
+    // Add to velocity (scale so a comfortable scroll = 0.18 progress units/scroll)
+    const velocityAdd = (delta / 300) * 1.2;
+    websiteScrollVelocity += velocityAdd;
+    // Clamp peak velocity to avoid overshooting on fast flings
+    websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
     return;
   }
+
+  if (now - lastGestureTime < GESTURE_COOLDOWN) return;
 
   if (isSectionLocked(currentSectionIdx)) return;
 
@@ -2320,15 +2343,12 @@ window.addEventListener('touchmove', e => {
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
 
-  // Website Experiences: intercept touch to drive billboard progress
+  // Website Experiences: continuous inertial touch
   if (isWebsiteScrollMode()) {
-    if (deltaY > 30) {
-      advanceWebsiteScroll(+1);
-      lastGestureTime = now;
-    } else if (deltaY < -30) {
-      advanceWebsiteScroll(-1);
-      lastGestureTime = now;
-    }
+    const velocityAdd = (deltaY / 300) * 1.2;
+    websiteScrollVelocity += velocityAdd;
+    websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
+    touchStartY = touchEndY; // reset so subsequent moves add delta, not total
     return;
   }
 
@@ -2348,14 +2368,12 @@ window.addEventListener('keydown', e => {
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
 
-  // Website Experiences: intercept key to drive billboard progress
+  // Website Experiences: keyboard drives velocity too
   if (isWebsiteScrollMode()) {
     if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
-      advanceWebsiteScroll(+1);
-      lastGestureTime = now;
+      websiteScrollVelocity += 0.8;
     } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-      advanceWebsiteScroll(-1);
-      lastGestureTime = now;
+      websiteScrollVelocity -= 0.8;
     }
     return;
   }
@@ -4745,26 +4763,29 @@ function updateWebsites(t, time, vpOverride) {
       g.rotation.y = d.ry + mouse.sx * 0.015;
       g.rotation.x = mouse.sy * 0.012;
 
-      // Scroll website texture based on row focal progress
+      // Per-billboard independent website scroll
+      // Each row activates progressively; closest billboard scrolls furthest
       let scrollPct = 0.0;
       if (rowIdx === 0) {
         scrollPct = clamp(websiteScrollProgress / 0.33, 0, 1);
       } else if (rowIdx === 1) {
-        scrollPct = clamp((websiteScrollProgress - 0.33) / 0.33, 0, 1);
+        scrollPct = clamp((websiteScrollProgress - 0.28) / 0.38, 0, 1);
       } else {
-        scrollPct = clamp((websiteScrollProgress - 0.66) / 0.34, 0, 1);
+        scrollPct = clamp((websiteScrollProgress - 0.58) / 0.42, 0, 1);
       }
-      
+
+      // Per-billboard proximity weight — closest billboard (smallest distanceZ) scrolls most
+      const proximityWeight = clamp(1.0 - distanceZ / 50.0, 0.35, 1.0);
+
       const easeScrollPct = 0.5 * (1.0 - Math.cos(scrollPct * Math.PI));
       g.userData.scrollPct = easeScrollPct;
       if (g.userData.webTexture && g.userData.repeatY !== undefined) {
-        // Micro scroll offset influenced by vertical mouse position
-        const mouseScrollInfluence = mouse.sy * 0.015;
-        g.userData.webTexture.offset.y = clamp(
-          (1.0 - g.userData.repeatY) * (1.0 - easeScrollPct) + mouseScrollInfluence,
-          0.0,
-          1.0 - g.userData.repeatY
-        );
+        const maxOffset = 1.0 - g.userData.repeatY;
+        // Mouse adds a tiny vertical peek offset inside this billboard
+        const mouseScrollInfluence = mouse.sy * 0.012 * proximityWeight;
+        const baseOffset = maxOffset * (1.0 - easeScrollPct * proximityWeight);
+        g.userData.webTexture.offset.y = clamp(baseOffset + mouseScrollInfluence, 0.0, maxOffset);
+        g.userData.webTexture.needsUpdate = true;
       }
 
       // Animate opacity of all meshes in the group
@@ -5676,13 +5697,14 @@ function animate() {
 
     if (currentSectionIdx === 2) {
       // ── WEBSITE EXPERIENCES EXHIBITION MODE ──
-      // Camera is EXCLUSIVELY owned here. Hard-set, no lerp, no cross-talk.
+      // Camera is exclusively owned here. Smooth lerp so progress changes glide.
       finalCamTarget.x += parallaxX;
       finalCamTarget.y += parallaxY;
       finalLookTarget.x += parallaxX * 0.3;
       finalLookTarget.y += parallaxY * 0.3;
-      camera.position.copy(finalCamTarget);
-      lookTarget.copy(finalLookTarget);
+      // Lerp at ~0.08 per frame for a gentle glide — progress changes are already smoothed
+      camera.position.lerp(finalCamTarget, 0.08);
+      lookTarget.lerp(finalLookTarget, 0.08);
       camera.lookAt(lookTarget);
     } else {
       // ── ALL OTHER PARKED SECTIONS ──
@@ -5699,18 +5721,22 @@ function animate() {
   /* -- Zone updates -- */
   updateContent(t, time, dt);
 
+  // ── WEBSITE EXPERIENCES: tick the spring scroll every frame ──
+  tickWebsiteScroll(dt);
+
   // ── WEBSITE EXPERIENCES SCROLL MODE: override vp when user is exploring websites ──
   if (isWebsiteScrollMode()) {
     updateWebsites(t, time, activeVp);
   } else {
-    // Normal: websites animate based on global scroll vp
-    // Reset websiteScrollTick when leaving section 2 going forward
-    if (currentSectionIdx > 2 && websiteScrollTick !== WEBSITE_SCROLL_STEPS) {
-      websiteScrollTick = WEBSITE_SCROLL_STEPS;
+    // Reset scroll state when leaving section 2
+    if (currentSectionIdx > 2) {
       websiteScrollProgress = 1.0;
-    } else if (currentSectionIdx < 2 && websiteScrollTick !== 0) {
-      websiteScrollTick = 0;
+      websiteScrollTarget   = 1.0;
+      websiteScrollVelocity = 0;
+    } else if (currentSectionIdx < 2) {
       websiteScrollProgress = 0.0;
+      websiteScrollTarget   = 0.0;
+      websiteScrollVelocity = 0;
     }
     updateWebsites(t, time);
   }
