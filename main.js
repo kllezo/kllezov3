@@ -89,11 +89,12 @@ const SECTIONS = [
 ];
 
 function isSectionLocked(idx) {
-  // WEBSITE_EXPLORE is a one-way locked state. While parked at section 2
-  // and the transition is complete, NO section transition may fire backward.
-  // The only valid exit is forward (to Calling) after completing the walkthrough.
-  if (idx === 2 && sectionTransitionProgress >= 1.0) {
-    return true; // locked inside — exit only via tickWebsiteScroll forward trigger
+  // WEBSITE_EXPLORE is a permanently locked state while section 2 is active
+  // (either parked OR mid-transition away from it). The only valid section-2 exit
+  // is the forward trigger inside tickWebsiteScroll. Any scroll-up or backward
+  // gesture during or after the walkthrough must be suppressed.
+  if (idx === 2 || (currentSectionIdx === 2 && sectionTransitionProgress < 1.0)) {
+    return true;
   }
   if (idx === 3) { // AI Calling Agents
     return callingAutoplayTime < 2.8;
@@ -2275,10 +2276,8 @@ function tickWebsiteScroll(dt) {
   websiteScrollTarget += websiteScrollVelocity * dt;
   websiteScrollVelocity *= Math.pow(0.05, dt); // exponential friction — quick stop
 
-  // ── ONE-WAY LOCK ──
-  // Target is clamped to [0, 1.3]. It can NEVER go below 0.
-  // This ensures the user can never accidentally scroll back to Content Engine.
-  // WEBSITE_EXPLORE is a locked state — exit is only forward.
+  // ONE-WAY LOCK: target is clamped to [0, 1.3]. It can NEVER go below 0.
+  // WEBSITE_EXPLORE is a locked state — exit is only forward, never backward.
   if (websiteScrollTarget < 0) {
     websiteScrollTarget  = 0;
     websiteScrollVelocity = 0; // kill negative momentum completely
@@ -2287,8 +2286,10 @@ function tickWebsiteScroll(dt) {
 
   // Forward exit: only when user has fully walked through the entire exhibition
   if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.95) {
-    websiteScrollTarget   = 0.0; // reset for re-entry if user comes back
-    websiteScrollProgress = 0.0;
+    // Keep state at 1.0 — do NOT reset to 0 here.
+    // The transition system will re-initialize it when returning to section 2.
+    websiteScrollTarget   = 1.0;
+    websiteScrollProgress = 1.0;
     websiteScrollVelocity = 0;
     triggerSectionTransition(currentSectionIdx + 1);
     return;
@@ -5810,28 +5811,34 @@ function animate() {
       }
     }
 
-    // Master opacity envelope matching the snap transition phases
+    // Master opacity envelope matching the snap transition phases.
+    // The gold tube is ALWAYS visible during travel and parked at sections 2, 3, 4, 5.
+    // It is only invisible when parked at sections 0 (Hero) or 1 (Content).
     let goldTubeMasterOpacity = 0.0;
     if (sectionTransitionProgress >= 1.0) {
-      // Parked: guide tube is visible ONLY for Website Experiences
-      goldTubeMasterOpacity = (currentSectionIdx === 2) ? 1.0 : 0.0;
+      // Parked: tube visible for Website Experiences + all downstream sections
+      goldTubeMasterOpacity = (currentSectionIdx >= 2) ? 1.0 : 0.0;
     } else {
       // Transitioning
       const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-      if (progress < 0.2) {
+      // Both source and destination are downstream (idx >= 2): keep tube fully visible
+      const bothDownstream = (currentSectionIdx >= 2 && targetSectionIdx >= 2);
+      if (bothDownstream) {
+        goldTubeMasterOpacity = 1.0;
+      } else if (progress < 0.2) {
         goldTubeMasterOpacity = 0.0;
       } else if (progress >= 0.2 && progress < 0.35) {
         goldTubeMasterOpacity = (progress - 0.2) / 0.15; // Fade in
       } else if (progress >= 0.35 && progress <= 0.65) {
         goldTubeMasterOpacity = 1.0;
       } else if (progress > 0.65 && progress <= 0.8) {
-        if (targetSectionIdx === 2) {
-          goldTubeMasterOpacity = 1.0; // Stays visible for Website Experiences
+        if (targetSectionIdx >= 2) {
+          goldTubeMasterOpacity = 1.0; // Stays visible for Website+ sections
         } else {
           goldTubeMasterOpacity = (0.8 - progress) / 0.15; // Fade out
         }
       } else {
-        goldTubeMasterOpacity = (targetSectionIdx === 2) ? 1.0 : 0.0;
+        goldTubeMasterOpacity = (targetSectionIdx >= 2) ? 1.0 : 0.0;
       }
     }
 
