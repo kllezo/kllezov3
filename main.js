@@ -1,22 +1,22 @@
 /**
- * KLLEZO ??? Universe Engine
+ * KLLEZO — Universe Engine
  *
  * One Three.js scene. Camera travels a CatmullRom spline.
- * Scroll progress (0???1) drives the entire journey.
+ * Scroll progress (0→1) drives the entire journey.
  *
  * Zones (world Z-axis):
- *   Hero     z=0  ??? z=-40
- *   Content  z=-60 ??? z=-150
- *   Websites z=-180 ??? z=-270
- *   Texting  z=-326 ??? z=-366
- *   Ecosystem z=-400 ??? z=-470
+ *   Hero     z=0  → z=-40
+ *   Content  z=-60 → z=-150
+ *   Websites z=-180 → z=-270
+ *   Texting  z=-326 → z=-366
+ *   Ecosystem z=-400 → z=-470
  */
 
 'use strict';
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    HELPERS
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const lerp  = (a, b, t) => a + (b - a) * t;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const rand  = (lo, hi) => lo + Math.random() * (hi - lo);
@@ -35,9 +35,9 @@ function alignCylinder(cylinder, pointA, pointB) {
   cylinder.quaternion.copy(quaternion);
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    COLOR PALETTE (Tech-Luxury)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const PALETTE = {
   bg: 0x050608,         // Void Black
   text: 0xF7F3EB,       // Primary Text
@@ -71,7 +71,7 @@ let ecoTime = 0;
 let currentSectionIdx = 0;
 let targetSectionIdx = 0;
 let sectionTransitionProgress = 1.0; // 1.0 means transition is complete
-let transitionDuration = 1.2; // 1.2s smooth snap transition duration
+let transitionDuration = 4.8; // 4.8s cinematic snap transition duration (reduced speed by ~12.5% for luxury feel)
 let transitionTimeElapsed = 0;
 let startScrollProgress = 0;
 let targetScrollProgress = 0;
@@ -89,17 +89,37 @@ const SECTIONS = [
 ];
 
 function isSectionLocked(idx) {
+  // WEBSITE_EXPLORE is a permanently locked state while section 2 is active
+  // (either parked OR mid-transition away from it). The only valid section-2 exit
+  // is the forward trigger inside tickWebsiteScroll. Any scroll-up or backward
+  // gesture during or after the walkthrough must be suppressed.
+  if (idx === 2 || (currentSectionIdx === 2 && sectionTransitionProgress < 1.0)) {
+    return true;
+  }
   if (idx === 3) { // AI Calling Agents
     return callingAutoplayTime < 2.8;
   }
   if (idx === 4) { // AI Texting Agents
-    return textingAutoplayTime < 4.0;
+    return textingAutoplayTime < 12.0;
   }
   return false;
 }
 
 function triggerSectionTransition(nextIdx) {
   if (nextIdx < 0 || nextIdx >= SECTIONS.length) return;
+
+  // Initialize Website Experiences progress depending on direction
+  if (nextIdx === 2) {
+    if (currentSectionIdx < 2) {
+      websiteScrollProgress = 0.0;
+      websiteScrollTarget   = 0.0;
+      websiteScrollVelocity = 0;
+    } else if (currentSectionIdx > 2) {
+      websiteScrollProgress = 1.0;
+      websiteScrollTarget   = 1.0;
+      websiteScrollVelocity = 0;
+    }
+  }
 
   window.manualServiceState = null; // Reset tab override on scroll transition!
   targetSectionIdx = nextIdx;
@@ -110,9 +130,9 @@ function triggerSectionTransition(nextIdx) {
   transitionTimeElapsed = 0;
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    1. RENDERER SETUP
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const canvas   = document.getElementById('universe');
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -141,9 +161,9 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    CANVAS 2D GRAPHICS HELPERS
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function drawRoundRect(ctx, x, y, w, h, r, fill, stroke) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -184,9 +204,9 @@ function drawLine(ctx, x1, y1, x2, y2, color, width = 1) {
   ctx.stroke();
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    DYNAMIC CANVAS TEXTURE MANAGER
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const dynamicTextures = [];
 function createDynamicTexture(width, height, drawFn) {
   const canvas = document.createElement('canvas');
@@ -248,9 +268,9 @@ function tickDynamicTextures() {
   });
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    IMAGE PRE-LOADING LOGIC
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const IMAGES = {
   niche1: new Image(),
   niche2: new Image(),
@@ -279,8 +299,8 @@ IMAGES.niche4.src = 'assets/niche 4.png';
 IMAGES.niche5.src = 'assets/niche 5.png';
 IMAGES.niche6.src = 'assets/niche 6.png';
 IMAGES.whatsapp.src = 'assets/whatsapp.png';
-IMAGES.instagram.src = 'assets/w instagram.png';
-IMAGES.websiteUi.src = 'assets/website ui.png';
+IMAGES.instagram.src = 'assets/instagram.png';
+IMAGES.websiteUi.src = 'assets/kllezo bot.png';
 IMAGES.textingAgents.src = 'assets/whatsapp.png'; // Fallback alias
 IMAGES.goldenOrb.src = 'assets/golden-orb.png';
 IMAGES.goldRing.src = 'assets/gold-ring.png';
@@ -310,9 +330,9 @@ Object.keys(IMAGES).forEach(key => {
   }
 });
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    WEBSITE DRAWING LOGIC (Slabs 0 - 5)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function drawWebsiteCanvas(idx, ctx, w, h) {
   // Clear background
   ctx.fillStyle = '#050608'; // Pure Void Black
@@ -464,7 +484,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     drawText(ctx, 'E L E V A T E   C L I N I C', w/2, heroContentY, 'bold 16px "Inter", sans-serif', '#C7A66B', 'center');
     drawText(ctx, 'Natural Beauty.', w/2, heroContentY + 90, '300 72px "Cormorant Garamond", serif', '#F7F3EB', 'center');
     drawText(ctx, 'Elevated Confidence.', w/2, heroContentY + 180, 'italic 300 72px "Cormorant Garamond", serif', '#C7A66B', 'center');
-    drawText(ctx, 'EXQUISITE COSMETIC SANCTUARY  ??  BEVERLY HILLS ?? DUBAI ?? MONACO', w/2, heroContentY + 260, '14px "Inter", sans-serif', '#8A94A0', 'center');
+    drawText(ctx, 'EXQUISITE COSMETIC SANCTUARY  ·  BEVERLY HILLS · DUBAI · MONACO', w/2, heroContentY + 260, '14px "Inter", sans-serif', '#8A94A0', 'center');
 
     // Hero CTA buttons
     const btnY = heroContentY + 340;
@@ -478,7 +498,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
 
     // View Treatments (Outline)
     drawRoundRect(ctx, w/2 + 20, btnY, 230, 56, 28, 'rgba(255,255,255,0.02)', 'rgba(255, 255, 255, 0.25)');
-    drawText(ctx, 'VIEW TREATMENTS ???', w/2 + 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, 'VIEW TREATMENTS ➔', w/2 + 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
 
     // Section 2: Treatments Grid (y = 1200 to 2300)
     const sec2Y = 1200 - currentScrollY;
@@ -534,7 +554,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
       drawText(ctx, line, cardX + 40, lineY, '14px "Inter", sans-serif', '#8A94A0');
 
       // Learn more CTA link
-      drawText(ctx, 'EXPLORE TREATMENT ???', cardX + 40, cardValY + cardH - 45, 'bold 9px "Inter", sans-serif', '#C7A66B');
+      drawText(ctx, 'EXPLORE TREATMENT ➔', cardX + 40, cardValY + cardH - 45, 'bold 9px "Inter", sans-serif', '#C7A66B');
     });
 
     // Section 3: About Sanctuary (y = 2300 to 3000)
@@ -543,7 +563,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.fillRect(0, sec3Y, w, 700);
 
     drawText(ctx, 'THE SANCTUARY PHILOSOPHY', w/2, sec3Y + 120, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, '???Cosmetic science is the pursuit of personal symmetry.???', w/2, sec3Y + 220, 'italic 300 38px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawText(ctx, '“Cosmetic science is the pursuit of personal symmetry.”', w/2, sec3Y + 220, 'italic 300 38px "Cormorant Garamond", serif', '#F7F3EB', 'center');
     
     // Detailed about paragraphs
     ctx.font = '300 16px "Inter", sans-serif';
@@ -572,8 +592,8 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     
     // Staggered testimonial cards (left/right)
     const quotes = [
-      { q: "???The absolute zenith of aesthetic medicine. My skin elasticity restored by 42% in twelve weeks. A masterpiece of clinical results.???", a: "MONACO RESIDENT  ??  AGE 46" },
-      { q: "???Unmatched precision and cellular rejuvenation. Dr. Evelyn Ross and her staff are true cosmetic sculptors. The results are completely natural.???", a: "BEVERLY HILLS CLIENT  ??  AGE 52" }
+      { q: "“The absolute zenith of aesthetic medicine. My skin elasticity restored by 42% in twelve weeks. A masterpiece of clinical results.”", a: "MONACO RESIDENT  ·  AGE 46" },
+      { q: "“Unmatched precision and cellular rejuvenation. Dr. Evelyn Ross and her staff are true cosmetic sculptors. The results are completely natural.”", a: "BEVERLY HILLS CLIENT  ·  AGE 52" }
     ];
 
     quotes.forEach((q, i) => {
@@ -636,7 +656,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
 
     drawText(ctx, 'CLINICAL LEADERSHIP', w/2, sec5Y + 100, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
     drawText(ctx, 'Dr. Evelyn Ross, MD, PhD', w/2, sec5Y + 160, '300 44px "Cormorant Garamond", serif', '#F7F3EB', 'center');
-    drawText(ctx, 'CHIEF OF CELLULAR LONGEVITY  ??  FORMER HARVARD CLINICAL DIAGNOSTICS FELLOW', w/2, sec5Y + 205, 'bold 9px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'CHIEF OF CELLULAR LONGEVITY  ·  FORMER HARVARD CLINICAL DIAGNOSTICS FELLOW', w/2, sec5Y + 205, 'bold 9px "Inter", sans-serif', '#C7A66B', 'center');
 
     const profileW = w - 300;
     const profileH = 340;
@@ -648,10 +668,10 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
 
     // Dr. Ross qualifications
     const qual = [
-      "??? 15+ years engineering systemic cellular repair protocols and clinical aesthetic programs.",
-      "??? Pioneer of advanced DNA methylation sequencing for non-surgical tissue rejuvenation.",
-      "??? Oversees all personal molecular diagnostics and treatment designs across all global sanctuaries.",
-      "??? Author of 40+ publications on bio-identical cosmetic architecture and aesthetic symmetry."
+      "• 15+ years engineering systemic cellular repair protocols and clinical aesthetic programs.",
+      "• Pioneer of advanced DNA methylation sequencing for non-surgical tissue rejuvenation.",
+      "• Oversees all personal molecular diagnostics and treatment designs across all global sanctuaries.",
+      "• Author of 40+ publications on bio-identical cosmetic architecture and aesthetic symmetry."
     ];
     qual.forEach((q, idxQ) => {
       drawText(ctx, q, 200, profBoxY + 65 + idxQ * 60, '300 16px "Cormorant Garamond", serif', '#8A94A0');
@@ -672,7 +692,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     drawText(ctx, 'REQUEST PRIVATE CONSULTATION', w/2, sec6Y + 273, 'bold 11px "Inter", sans-serif', '#050608', 'center');
     ctx.restore();
 
-    drawText(ctx, '?? ELEVATE CLINIC SANCTUARY 2026. ALL RIGHTS CONFIDENTIAL. COMPLIANT WITH MONACO SPA REGULATIONS', w/2, sec6Y + 440, '9px "Inter", sans-serif', '#475569', 'center');
+    drawText(ctx, '© ELEVATE CLINIC SANCTUARY 2026. ALL RIGHTS CONFIDENTIAL. COMPLIANT WITH MONACO SPA REGULATIONS', w/2, sec6Y + 440, '9px "Inter", sans-serif', '#475569', 'center');
   }
 
   // Draw fixed Header/Navbar at the very top of each canvas
@@ -746,7 +766,7 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
     ] : i === 1 ? [
       "Custom Luxury Real Estate website launch.",
       "See how we got 12 privatized site tour bookings",
-      "in the first week. Link in bio! ???",
+      "in the first week. Link in bio! ↗",
       "#realestate #webdesign #custom"
     ] : [
       "Behind the scenes at the content lab.",
@@ -761,9 +781,9 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
     // Likes/Shares metrics
     const metricY = itemY + 180;
     const icons = [
-      { char: '???', val: '12.4K', c: '#1A9E8F' },
-      { char: '????', val: '382', c: '#F7F3EB' },
-      { char: '???', val: '1.2K', c: '#F7F3EB' }
+      { char: '♥', val: '12.4K', c: '#1A9E8F' },
+      { char: '💬', val: '382', c: '#F7F3EB' },
+      { char: '➦', val: '1.2K', c: '#F7F3EB' }
     ];
     icons.forEach((ic, ii) => {
       const iy = metricY + ii * 65;
@@ -778,7 +798,7 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
   ctx.fillRect(0, 0, w, 60);
   drawText(ctx, '9:41', 30, 30, 'bold 11px "Inter", sans-serif', '#F7F3EB');
   drawText(ctx, 'KLLEZO FEED', w/2, 30, 'bold 11px "Inter", sans-serif', '#BFA27A', 'center');
-  drawText(ctx, '???? ???? 100%', w - 30, 30, '10px "Inter", sans-serif', '#F7F3EB', 'right');
+  drawText(ctx, '📶 🔋 100%', w - 30, 30, '10px "Inter", sans-serif', '#F7F3EB', 'right');
   drawLine(ctx, 0, 60, w, 60, 'rgba(255,255,255,0.06)');
 
   // Bottom Navigation Bar (Fixed)
@@ -789,13 +809,13 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
   const navs = ['Home', 'Search', 'Post', 'Activity', 'Profile'];
   navs.forEach((nv, ni) => {
     const nx = 40 + ni * (w - 80)/4;
-    drawText(ctx, nv === 'Post' ? '???' : nv[0], nx, h - 30, 'bold 12px "Inter", sans-serif', nv === 'Home' ? '#1A9E8F' : '#7D8A94', 'center');
+    drawText(ctx, nv === 'Post' ? '⊕' : nv[0], nx, h - 30, 'bold 12px "Inter", sans-serif', nv === 'Home' ? '#1A9E8F' : '#7D8A94', 'center');
   });
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    ORBITING REELS DRAWING LOGIC (Content Engine Reels)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function drawReelCanvas(idx, ctx, w, h) {
   ctx.fillStyle = '#0B0D10';
   ctx.fillRect(0, 0, w, h);
@@ -853,9 +873,9 @@ function drawReelCanvas(idx, ctx, w, h) {
         drawRoundRect(ctx, cx, cy, 70, 50, 4, fill ? '#23453F' : '#13171D', 'rgba(255,255,255,0.05)');
         drawText(ctx, `${12 + row * 3 + col}`, cx + 8, cy + 14, 'bold 9px "Inter", sans-serif', '#7D8A94');
         if (fill) {
-          drawText(ctx, '??? Published', cx + 8, cy + 35, 'bold 8px "Inter", sans-serif', '#1A9E8F');
+          drawText(ctx, '● Published', cx + 8, cy + 35, 'bold 8px "Inter", sans-serif', '#1A9E8F');
         } else {
-          drawText(ctx, '??? Draft', cx + 8, cy + 35, '8px "Inter", sans-serif', '#7D8A94');
+          drawText(ctx, '○ Draft', cx + 8, cy + 35, '8px "Inter", sans-serif', '#7D8A94');
         }
       }
     }
@@ -863,13 +883,13 @@ function drawReelCanvas(idx, ctx, w, h) {
   else if (idx === 2) {
     // Podcast Quote
     drawRoundRect(ctx, w/2 - 24, 35, 48, 48, 24, '#23453F');
-    drawText(ctx, '???', w/2, 65, 'bold 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawText(ctx, '“', w/2, 65, 'bold 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
 
     const quotes = [
-      "???Systems scale",
+      "“Systems scale",
       "businesses. Hustle",
       "is just a placeholder",
-      "for missing pipeline.???",
+      "for missing pipeline.”",
     ];
     quotes.forEach((q, i) => {
       drawText(ctx, q, w/2, 115 + i * 24, 'light 14px "Cormorant Garamond", serif', '#F7F3EB', 'center');
@@ -880,7 +900,7 @@ function drawReelCanvas(idx, ctx, w, h) {
   else if (idx === 3) {
     // Product Shoot Layout
     drawText(ctx, 'RAW CAMERA STREAM', 15, 30, 'bold 9px "Inter", sans-serif', '#7D8A94');
-    drawText(ctx, 'REC [???]', w - 15, 30, 'bold 9px "Inter", sans-serif', '#D4A853', 'right');
+    drawText(ctx, 'REC [●]', w - 15, 30, 'bold 9px "Inter", sans-serif', '#D4A853', 'right');
 
     ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 1;
@@ -888,7 +908,7 @@ function drawReelCanvas(idx, ctx, w, h) {
     drawLine(ctx, w/2 - 10, 135, w/2 + 10, 135, 'rgba(255,255,255,0.3)');
     drawLine(ctx, w/2, 125, w/2, 145, 'rgba(255,255,255,0.3)');
 
-    drawText(ctx, '4K 60FPS ?? ISO 100 ?? F/2.8', w/2, 230, 'bold 9px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, '4K 60FPS · ISO 100 · F/2.8', w/2, 230, 'bold 9px "Inter", sans-serif', '#F7F3EB', 'center');
   }
   else if (idx === 4) {
     // Social Feed Post Mock
@@ -899,7 +919,7 @@ function drawReelCanvas(idx, ctx, w, h) {
     drawRoundRect(ctx, 15, 70, w - 30, 110, 6, '#13171D');
     drawText(ctx, '[Video Preview]', w/2, 125, '10px "Inter", sans-serif', '#7D8A94', 'center');
 
-    drawText(ctx, 'Likes: 14.8K  ??  Comments: 421', 15, 200, 'bold 9px "Inter", sans-serif', '#1A9E8F');
+    drawText(ctx, 'Likes: 14.8K  ·  Comments: 421', 15, 200, 'bold 9px "Inter", sans-serif', '#1A9E8F');
     drawText(ctx, 'Scaling Apex Athletics to $1.2M...', 15, 225, '9px "Inter", sans-serif', '#F7F3EB');
   }
   else if (idx === 5) {
@@ -912,10 +932,10 @@ function drawReelCanvas(idx, ctx, w, h) {
 
     drawText(ctx, 'AUDIO VOICEOVER', 15, 130, 'bold 8px "Inter", sans-serif', '#7D8A94');
     const scriptLines = [
-      "???Most businesses do not",
+      "“Most businesses do not",
       "fail because of product.",
       "They fail because they",
-      "are invisible.???"
+      "are invisible.”"
     ];
     scriptLines.forEach((sl, i) => {
       drawText(ctx, sl, 15, 155 + i * 16, 'bold 10px "Inter", sans-serif', '#F7F3EB');
@@ -945,9 +965,9 @@ function drawReelCanvas(idx, ctx, w, h) {
   }
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    FOOTAGE PLANES DRAWING LOGIC (Content Engine Backgrounds)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function drawFootageCanvas(idx, ctx, w, h) {
   ctx.fillStyle = 'rgba(11, 13, 16, 0.95)';
   ctx.fillRect(0, 0, w, h);
@@ -990,7 +1010,7 @@ function drawFootageCanvas(idx, ctx, w, h) {
   else if (idx === 1) {
     // Podcast interview
     drawText(ctx, 'LIVE PODCAST INTERVIEW SCREEN', 20, 30, 'bold 11px "Inter", sans-serif', '#7D8A94');
-    drawText(ctx, '???Scale systems, not your manual input.???', 20, 60, 'bold 20px "Cormorant Garamond", serif', '#F7F3EB');
+    drawText(ctx, '“Scale systems, not your manual input.”', 20, 60, 'bold 20px "Cormorant Garamond", serif', '#F7F3EB');
     
     ctx.strokeStyle = '#BFA27A';
     ctx.lineWidth = 3;
@@ -1003,12 +1023,12 @@ function drawFootageCanvas(idx, ctx, w, h) {
     ctx.stroke();
 
     drawText(ctx, 'EPISODE 18: AUTOMATION SECRETS', 20, h - 40, 'bold 9px "Inter", sans-serif', '#BFA27A');
-    drawText(ctx, '08:42 / 48:00  ??  ACTIVE CAPTIONS ENABLED', w - 20, h - 40, 'bold 9px "Inter", sans-serif', '#7D8A94', 'right');
+    drawText(ctx, '08:42 / 48:00  ·  ACTIVE CAPTIONS ENABLED', w - 20, h - 40, 'bold 9px "Inter", sans-serif', '#7D8A94', 'right');
   }
   else if (idx === 2) {
     // Product catalog
     drawText(ctx, 'PRODUCTION CONTENT PREVIEW', 20, 30, 'bold 11px "Inter", sans-serif', '#7D8A94');
-    drawText(ctx, 'APEX WATCH Co. ??? LUXURY SERIES', 20, 55, 'bold 18px "Inter", sans-serif', '#F7F3EB');
+    drawText(ctx, 'APEX WATCH Co. — LUXURY SERIES', 20, 55, 'bold 18px "Inter", sans-serif', '#F7F3EB');
 
     drawRoundRect(ctx, 20, 90, 260, 240, 6, '#13171D', 'rgba(255,255,255,0.06)');
     drawText(ctx, '[Product Photo Frame]', 150, 210, '10px "Inter", sans-serif', '#7D8A94', 'center');
@@ -1062,7 +1082,7 @@ function drawFootageCanvas(idx, ctx, w, h) {
   }
 }
 
-// ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+// ═══════════════════════════════════════════
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(' ');
   let lines = [];
@@ -1133,7 +1153,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
   const cycleTime = callingZoneTime % 2.8; // 2.8s overall pipeline loop
 
   if (idx === 0) {
-    // ????????? CARD 1: LIVE VOICE CALL ?????????
+    // ─── CARD 1: LIVE VOICE CALL ───
     // Mask original waveform (Y: 490-695, X: 240-920)
     ctx.fillStyle = '#08090b';
     ctx.fillRect(240, 490, 680, 205);
@@ -1222,7 +1242,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
 
   } 
   else if (idx === 1) {
-    // ????????? CARD 2: LIVE TRANSCRIPT CONVERSATION ?????????
+    // ─── CARD 2: LIVE TRANSCRIPT CONVERSATION ───
     // Mask original transcript bubbles (Y: 460-1175, X: 47-1075) - preserves card borders (X=1078+)
     ctx.fillStyle = '#080808';
     ctx.fillRect(47, 460, 1028, 715);
@@ -1393,7 +1413,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
 
     ctx.restore(); // Restore message area clipping mask
 
-    // ????????? BOTTOM AI STATUS BAR ANIMATION ?????????
+    // ─── BOTTOM AI STATUS BAR ANIMATION ───
     // Mask bottom status bar area (Y: 1205 to 1345, X: 47 to 1082)
     // Left status text: X: 205-555, Y: 1235-1280
     // Thinking dots: X: 205-655, Y: 1300-1320
@@ -1461,7 +1481,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     }
   } 
   else if (idx === 2) {
-    // ????????? CARD 3: APPOINTMENT SECURED Checklist ?????????
+    // ─── CARD 3: APPOINTMENT SECURED Checklist ───
     const maskBgColors = ['#141310', '#131210', '#13120f', '#12120e', '#10110d'];
     const checkCentersY = [548, 648, 748, 847, 945];
 
@@ -1544,48 +1564,20 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
 
 
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   TEXT BUBBLE DRAWING LOGIC ??? Platform Morphing Chat
-   Single conversation morphs: WhatsApp ??? Instagram ??? Messenger ??? Website Chat
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════
+   TEXT BUBBLE DRAWING LOGIC — Platform Morphing Chat
+   Single conversation morphs: WhatsApp → Instagram → Messenger → Website Chat
+   ═══════════════════════════════════════════ */
 
+// 6-message conversation — User/AI/User/AI/User/AI
+// Platform morphs: WhatsApp (msgs 1-2) → Instagram (msgs 3-4) → Kllezo Bot (msgs 5-6)
 const CONVERSATION_SCRIPT = [
-  { sender: 'customer', text: "Hi! I saw your website and wanted to check your services." },
-  { sender: 'ai', text: "Hello! We design custom AI voice and texting agents that automate lead capture, booking, and support. What kind of business do you run?" },
-  { sender: 'customer', text: "I run a local plumbing and HVAC service in Dallas." },
-  { sender: 'ai', text: "Excellent! We work with many home services. Are you looking to qualify incoming leads or handle after-hours booking?" },
-  { sender: 'customer', text: "After-hours booking is our biggest headache. We miss lots of calls." },
-  { sender: 'ai', text: "Our AI Voice Agents answer 24/7, qualify the emergency level, and book appointments directly into your calendar. Would you like to know about pricing?" },
-  { sender: 'customer', text: "Yes, what is your standard pricing model?" },
-  { sender: 'ai', text: "We have a Starter package at $1,200/month which includes full voice setup, integrations, and 24/7 coverage. Would you like to schedule a quick demo?" },
-  { sender: 'customer', text: "Sounds interesting. Can we schedule a demo next Tuesday?" },
-  { sender: 'ai', text: "Absolutely! I would be happy to set that up. Do you prefer morning or afternoon?" },
-  { sender: 'customer', text: "Tuesday afternoon works best for me, around 2:00 PM." },
-  { sender: 'ai', text: "Perfect. Tuesday at 2:00 PM is secured. What is your email to send the calendar link?" },
-  { sender: 'customer', text: "Sure, it is plumbingdallas@gmail.com" },
-  { sender: 'ai', text: "Got it! And a good phone number for text confirmation updates?" },
-  { sender: 'customer', text: "Yes, it is 214-555-0199." },
-  { sender: 'ai', text: "Awesome. I've sent the meeting invite. Can I help answer any FAQs about how the AI agent works?" },
-  { sender: 'customer', text: "Yes, how does it handle complex questions from clients?" },
-  { sender: 'ai', text: "We train the agent on your specific knowledge base. If a query is too complex, it smoothly transfers the chat or call to a human team member." },
-  { sender: 'customer', text: "That is great. We don't want the AI giving wrong advice." },
-  { sender: 'ai', text: "Precisely! Guardrails are our priority. It only uses approved resources. Would you like to see how we integrate with your CRM?" },
-  { sender: 'customer', text: "Yes, we use ServiceTitan. Do you support that?" },
-  { sender: 'ai', text: "Yes! We support ServiceTitan, HubSpot, Salesforce, and over 4,000 other apps. We log all call summaries directly inside the client profile." },
-  { sender: 'customer', text: "That is perfect. That saves my dispatch team a ton of typing." },
-  { sender: 'ai', text: "Exactly! It reduces administrative work by up to 80%. Would you like me to send a client case study?" },
-  { sender: 'customer', text: "Sure, that would be helpful." },
-  { sender: 'ai', text: "Sending it now... This local team doubled their booking rate in 30 days using our AI booking flow!" },
-  { sender: 'customer', text: "Impressive results. I will read through this before Tuesday." },
-  { sender: 'ai', text: "My pleasure! I will check back with you later if you have any questions." },
-  { sender: 'customer', text: "Actually, I have one more question: does it support SMS too?" },
-  { sender: 'ai', text: "Yes, it supports SMS, WhatsApp, and Instagram DMs! It can automatically text back missed calls to save the lead." },
-  { sender: 'customer', text: "Awesome, missed call text back is exactly what we need." },
-  { sender: 'ai', text: "It's highly effective! Most customers reply within 2 minutes. We will show you this during the demo." },
-  { sender: 'customer', text: "Great. Is there any contract or can we cancel anytime?" },
-  { sender: 'ai', text: "All our plans are month-to-month. No long term contracts, you can cancel or upgrade with a 14-day notice." },
-  { sender: 'customer', text: "Perfect. Looking forward to our call." },
-  { sender: 'ai', text: "Likewise! I'll see you on Tuesday at 2:00 PM. Have a wonderful day!" }
+  { sender: 'customer', text: "Hi! I saw your website." },
+  { sender: 'ai',       text: "Hey! Thanks for reaching out 👋 What kind of business do you run?" },
+  { sender: 'customer', text: "A local restaurant. We miss too many calls." },
+  { sender: 'ai',       text: "We can fix that. Our AI handles every missed call automatically. Want to see how?" },
+  { sender: 'customer', text: "Yes! How fast can you set it up?" },
+  { sender: 'ai',       text: "Usually 24–48 hours 🚀 I'll send you a setup link right now." }
 ];
 
 function easeOutBack(t) {
@@ -1604,128 +1596,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
   if (imgW && imgW.complete && imgI && imgI.complete && imgWeb && imgWeb.complete) {
     const phoneSettled = (typeof textingPhoneSettled !== 'undefined') ? textingPhoneSettled : false;
 
-    // Decouple t_text from scroll and drive it via the textingAutoplayTime timer
-    let t_text = 0;
-    if (phoneSettled) {
-      if (textingAutoplayTime < 1.2) {
-        t_text = (textingAutoplayTime / 1.2) * 0.33;
-      } else if (textingAutoplayTime < 1.4) {
-        const p = (textingAutoplayTime - 1.2) / 0.2;
-        t_text = 0.33 + p * 0.04;
-      } else if (textingAutoplayTime < 2.6) {
-        t_text = 0.37 + ((textingAutoplayTime - 1.4) / 1.2) * 0.28;
-      } else if (textingAutoplayTime < 2.8) {
-        const p = (textingAutoplayTime - 2.6) / 0.2;
-        t_text = 0.65 + p * 0.04;
-      } else if (textingAutoplayTime < 4.0) {
-        t_text = 0.69 + ((textingAutoplayTime - 2.8) / 1.2) * 0.31;
-      } else {
-        t_text = 1.0;
-      }
-    }
-
-    let whatsappOpacity = 0;
-    let instagramOpacity = 0;
-    let websiteUiOpacity = 0;
-
-    if (t_text < 0.33) {
-      whatsappOpacity = 1.0;
-    } else if (t_text < 0.37) {
-      const p = (t_text - 0.33) / 0.04;
-      whatsappOpacity = clamp(1.0 - p, 0, 1);
-      instagramOpacity = clamp(p, 0, 1);
-    } else if (t_text < 0.65) {
-      instagramOpacity = 1.0;
-    } else if (t_text < 0.69) {
-      const p = (t_text - 0.65) / 0.04;
-      instagramOpacity = clamp(1.0 - p, 0, 1);
-      websiteUiOpacity = clamp(p, 0, 1);
-    } else {
-      websiteUiOpacity = 1.0;
-    }
-
-    const destW = 422;
-    const destH = 912;
-    const destX = (w - destW) / 2;
-    const destY = (h - destH) / 2;
-
-    // Draw the persistent iPhone body frame with crossfade
-    let baseImg = imgW;
-    let fadeImg = null;
-    let fadeOpacity = 0;
-
-    if (instagramOpacity > 0.001) {
-      fadeImg = imgI;
-      fadeOpacity = instagramOpacity;
-    }
-    if (websiteUiOpacity > 0.001) {
-      fadeImg = imgWeb;
-      fadeOpacity = websiteUiOpacity;
-      if (instagramOpacity > 0.001) {
-        baseImg = imgI;
-      }
-    }
-
-    // Draw solid dark background behind the iPhone body frame to make it opaque
-    ctx.save();
-    drawRoundRect(ctx, destX + 2, destY + 2, destW - 4, destH - 4, 38, '#08090c');
-    ctx.restore();
-
-    if (fadeImg) {
-      ctx.globalAlpha = 1.0 - fadeOpacity;
-      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
-      ctx.globalAlpha = fadeOpacity;
-      ctx.drawImage(fadeImg, 0, 0, fadeImg.naturalWidth, fadeImg.naturalHeight, destX, destY, destW, destH);
-    } else {
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
-    }
-
-    // Screen clipping area
-    ctx.save();
-    const screenX = destX + 12;
-    const screenY = destY + 12;
-    const screenW = destW - 24;
-    const screenH = destH - 24;
-    ctx.beginPath();
-    const x = screenX, y = screenY, wScreen = screenW, hScreen = screenH, r = 35;
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + wScreen - r, y);
-    ctx.quadraticCurveTo(x + wScreen, y, x + wScreen, y + r);
-    ctx.lineTo(x + wScreen, y + hScreen - r);
-    ctx.quadraticCurveTo(x + wScreen, y + hScreen, x + wScreen - r, y + hScreen);
-    ctx.lineTo(x + r, y + hScreen);
-    ctx.quadraticCurveTo(x, y + hScreen, x, y + hScreen - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-    ctx.clip();
-
-    // Draw Instagram screen content inside screen area
-    if (instagramOpacity > 0.001) {
-      ctx.globalAlpha = instagramOpacity;
-      ctx.drawImage(imgI, 0, 0, imgI.naturalWidth, imgI.naturalHeight, destX, destY, destW, destH);
-    }
-
-    // Draw Website UI (Kllezo AI Assistant) screen content
-    if (websiteUiOpacity > 0.001) {
-      ctx.globalAlpha = websiteUiOpacity;
-      ctx.drawImage(imgWeb, 0, 0, imgWeb.naturalWidth, imgWeb.naturalHeight, destX, destY, destW, destH);
-    }
-
-    ctx.restore();
-    ctx.globalAlpha = 1.0;
-
-    // MESSAGE BUBBLES
-    if (!phoneSettled) return;
-
-    const sidePadding = 30;
-    const viewportMinY = destY + 115;
-    const viewportMaxY = destY + 835;
-    const maxBubbleWidth = 250;
+    const now = performance.now() / 1000.0;
+    if (!ctx.lastChatUpdateTime) ctx.lastChatUpdateTime = now;
+    const chatDt = Math.min(0.1, now - ctx.lastChatUpdateTime);
+    ctx.lastChatUpdateTime = now;
 
     function calculateBubbleLayout(text, maxW) {
-      ctx.font = '13px "Inter", -apple-system, sans-serif';
+      ctx.font = '500 14px "Inter", -apple-system, sans-serif';
       const words = text.split(' ');
       const lines = [];
       let currentLine = words[0] || '';
@@ -1747,22 +1624,9 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       });
       const paddingX = 14;
       const paddingY = 10;
-      const lineHeight = 18;
+      const lineHeight = 20;
       const height = lines.length * lineHeight + paddingY * 2;
       return { lines, width: Math.ceil(maxLineWidth + paddingX * 2), height };
-    }
-
-    function interpolateRGB(rgb1, rgb2, factor) {
-      const parse = (str) => {
-        const matches = str.match(/\d+/g);
-        return matches ? matches.map(Number) : [255, 255, 255];
-      };
-      const c1 = parse(rgb1);
-      const c2 = parse(rgb2);
-      const rr = Math.round(c1[0] + factor * (c2[0] - c1[0]));
-      const g = Math.round(c1[1] + factor * (c2[1] - c1[1]));
-      const b = Math.round(c1[2] + factor * (c2[2] - c1[2]));
-      return `rgb(${rr}, ${g}, ${b})`;
     }
 
     function getPlatformStyle(platform) {
@@ -1809,20 +1673,18 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       ctx.fill();
     }
 
-    // STATE MACHINE UPDATE LOOP
-    const now = performance.now() / 1000.0;
-    if (!ctx.lastChatUpdateTime) ctx.lastChatUpdateTime = now;
-    const chatDt = Math.min(0.1, now - ctx.lastChatUpdateTime);
-    ctx.lastChatUpdateTime = now;
+    // Reset chat state if phone is not settled/active
+    if (!phoneSettled) {
+      ctx.chatState = null;
+      window.textingChatDone = false;
+    }
 
+    // Initialize chatState if null
     if (!ctx.chatState) {
       ctx.chatState = {
-        messages: [
-          { id: 1, sender: CONVERSATION_SCRIPT[0].sender, text: CONVERSATION_SCRIPT[0].text, opacity: 1.0, yOffset: 0.0, scale: 1.0, popProgress: 1.0 },
-          { id: 2, sender: CONVERSATION_SCRIPT[1].sender, text: CONVERSATION_SCRIPT[1].text, opacity: 1.0, yOffset: 0.0, scale: 1.0, popProgress: 1.0 }
-        ],
-        messageIdCounter: 3,
-        scriptIndex: 2,
+        messages: [], // start empty
+        messageIdCounter: 1,
+        scriptIndex: 0,
         state: 'customer_typing',
         timer: 0,
         charIndex: 0,
@@ -1836,160 +1698,199 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         scrollAnimDuration: 0.85,
         lastTotalHeight: 0,
         time: 0,
-        thinkingEmoji: '????',
-        thinkingText: 'Thinking...',
-        sendReaction: false
+        thinkingText: 'Kllezo AI is typing',
+        platform: 'whatsapp',
+        targetPlatform: 'whatsapp',
+        platformProgress: 0.0
       };
     }
+
     const state = ctx.chatState;
     state.time += chatDt;
     state.timer += chatDt;
 
-    const activeMsg = CONVERSATION_SCRIPT[state.scriptIndex];
+    // Platform transition state update
+    if (state.platform !== state.targetPlatform) {
+      state.platformProgress = Math.min(1.0, state.platformProgress + chatDt / 1.0); // 1.0s smooth morph
+      if (state.platformProgress >= 1.0) {
+        state.platform = state.targetPlatform;
+        state.platformProgress = 0.0;
+      }
+    }
 
-    if (state.state === 'customer_typing') {
-      if (state.timer >= state.charDelay) {
-        state.timer = 0;
-        state.charIndex++;
-        state.inputText = activeMsg.text.substring(0, state.charIndex);
-        
-        // Typing speed between 140ms and 260ms naturally fluctuated (45-85 WPM)
-        const baseSpeed = 0.06 + Math.random() * 0.07;
-        const lastChar = state.inputText[state.inputText.length - 1];
-        if (lastChar === ' ') {
-          state.charDelay = 0.12 + Math.random() * 0.12;
-        } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-          state.charDelay = 0.30 + Math.random() * 0.20;
-        } else {
-          state.charDelay = baseSpeed;
-        }
+    // Blend platform opacities based on active state and progress
+    let whatsappOpacity = 0.0;
+    let instagramOpacity = 0.0;
+    let websiteUiOpacity = 0.0;
 
-        if (state.charIndex >= activeMsg.text.length) {
-          state.state = 'customer_pause';
+    if (state.platform === 'whatsapp' && state.targetPlatform === 'instagram') {
+      whatsappOpacity = 1.0 - state.platformProgress;
+      instagramOpacity = state.platformProgress;
+    } else if (state.platform === 'instagram' && state.targetPlatform === 'web') {
+      instagramOpacity = 1.0 - state.platformProgress;
+      websiteUiOpacity = state.platformProgress;
+    } else {
+      if (state.platform === 'whatsapp') whatsappOpacity = 1.0;
+      else if (state.platform === 'instagram') instagramOpacity = 1.0;
+      else if (state.platform === 'web') websiteUiOpacity = 1.0;
+    }
+
+    const destW = 422;
+    const destH = 912;
+    const destX = (w - destW) / 2;
+    const destY = (h - destH) / 2;
+
+    // Draw persistent iPhone background & crossfade
+    let baseImg = imgW;
+    let fadeImg = null;
+    let fadeOpacity = 0;
+
+    if (instagramOpacity > 0.001) {
+      fadeImg = imgI;
+      fadeOpacity = instagramOpacity;
+    }
+    if (websiteUiOpacity > 0.001) {
+      fadeImg = imgWeb;
+      fadeOpacity = websiteUiOpacity;
+      if (instagramOpacity > 0.001) {
+        baseImg = imgI;
+      }
+    }
+
+    // ── SCREEN CLIPPING: enforce curved edges of the phone display ──
+    ctx.save();
+    ctx.beginPath();
+    const screenX = destX + 6;
+    const screenY = destY + 6;
+    const screenW = destW - 12;
+    const screenH = destH - 12;
+    const screenR = 25; // Slightly reduced curvature for a natural fit
+    ctx.moveTo(screenX + screenR, screenY);
+    ctx.arcTo(screenX + screenW, screenY,            screenX + screenW, screenY + screenH, screenR);
+    ctx.arcTo(screenX + screenW, screenY + screenH,  screenX,           screenY + screenH, screenR);
+    ctx.arcTo(screenX,           screenY + screenH,  screenX,           screenY,           screenR);
+    ctx.arcTo(screenX,           screenY,            screenX + screenW, screenY,           screenR);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.save();
+    // Solid backdrop behind the transparent frame
+    drawRoundRect(ctx, destX + 2, destY + 2, destW - 4, destH - 4, 38, '#08090c');
+    ctx.restore();
+
+    if (fadeImg) {
+      ctx.globalAlpha = 1.0 - fadeOpacity;
+      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
+      ctx.globalAlpha = fadeOpacity;
+      ctx.drawImage(fadeImg, 0, 0, fadeImg.naturalWidth, fadeImg.naturalHeight, destX, destY, destW, destH);
+    } else {
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(baseImg, 0, 0, baseImg.naturalWidth, baseImg.naturalHeight, destX, destY, destW, destH);
+    }
+    ctx.globalAlpha = 1.0;
+
+    // CHAT STATE MACHINE
+    if (phoneSettled) {
+      const activeMsg = CONVERSATION_SCRIPT[state.scriptIndex];
+
+      if (state.state === 'customer_typing') {
+        if (state.timer >= state.charDelay) {
           state.timer = 0;
-          state.targetDelay = 0.3 + Math.random() * 0.9; // 300 - 1200ms
+          state.charIndex++;
+          state.inputText = activeMsg.text.substring(0, state.charIndex);
+
+          // Fast, natural typing speed (12-24ms per character)
+          const baseSpeed = 0.012 + Math.random() * 0.012;
+          const lastChar = state.inputText[state.inputText.length - 1];
+          if (lastChar === ' ') {
+            state.charDelay = 0.03 + Math.random() * 0.03;
+          } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
+            state.charDelay = 0.06 + Math.random() * 0.06;
+          } else {
+            state.charDelay = baseSpeed;
+          }
+
+          if (state.charIndex >= activeMsg.text.length) {
+            state.state = 'customer_pause';
+            state.timer = 0;
+            state.targetDelay = 0.2 + Math.random() * 0.2; // 200 - 400ms pause
+          }
         }
       }
-    }
-    else if (state.state === 'customer_pause') {
-      if (state.timer >= state.targetDelay) {
-        state.state = 'customer_send';
-        state.timer = 0;
+      else if (state.state === 'customer_pause') {
+        if (state.timer >= state.targetDelay) {
+          state.state = 'customer_send';
+          state.timer = 0;
+        }
       }
-    }
-    else if (state.state === 'customer_send') {
-      state.messages.push({
-        id: state.messageIdCounter++,
-        sender: 'customer',
-        text: activeMsg.text,
-        opacity: 0,
-        yOffset: 25,
-        scale: 0.5,
-        popProgress: 0.0
-      });
-      state.inputText = '';
-      state.state = 'ai_thinking';
-      state.timer = 0;
-      state.targetDelay = 0.8 + Math.random() * 1.7; // 800 - 2500ms
-      state.scriptIndex = (state.scriptIndex + 1) % CONVERSATION_SCRIPT.length;
-      
-      // 20% chance to send a quick emoji/short reaction bubble before the main AI text
-      state.sendReaction = Math.random() < 0.20;
+      else if (state.state === 'customer_send') {
+        state.messages.push({
+          id: state.messageIdCounter++,
+          sender: 'customer',
+          text: activeMsg.text,
+          opacity: 0,
+          yOffset: 25,
+          scale: 0.5,
+          popProgress: 0.0
+        });
+        state.inputText = '';
+        state.scriptIndex++;
 
-      const emojis = ['????', '????', '???', '????', '????'];
-      state.thinkingEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-      state.thinkingText = Math.random() > 0.45 ? 'Thinking...' : '';
-    }
-    else if (state.state === 'ai_thinking') {
-      if (state.timer >= state.targetDelay) {
-        if (state.sendReaction) {
-          const reactions = ['????', '????', '???'];
-          const reactText = reactions[Math.floor(Math.random() * reactions.length)];
+        if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+          state.state = 'done';
+          window.textingChatDone = true;
+        } else {
+          state.state = 'ai_thinking';
+          state.timer = 0;
+          state.targetDelay = 0.8 + Math.random() * 0.2; // 0.8 to 1.0s typing indicator
+          state.thinkingText = 'Kllezo AI is typing';
+        }
+      }
+      else if (state.state === 'ai_thinking') {
+        if (state.timer >= state.targetDelay) {
+          // Send complete AI reply bubble with spring animations
           state.messages.push({
             id: state.messageIdCounter++,
             sender: 'ai',
-            text: reactText,
+            text: activeMsg.text,
             opacity: 0,
             yOffset: 25,
             scale: 0.5,
             popProgress: 0.0
           });
-          state.sendReaction = false;
-          state.state = 'ai_thinking';
+          state.scriptIndex++;
+          state.state = 'ai_pause';
           state.timer = 0;
-          state.targetDelay = 0.6 + Math.random() * 0.6; // 600 - 1200ms
-          
-          const emojis = ['????', '????', '???', '????', '????'];
-          state.thinkingEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-          state.thinkingText = 'Thinking...';
-        } else {
-          state.state = 'ai_typing';
-          state.timer = 0;
-          state.charIndex = 0;
-          state.messages.push({
-            id: 'temp_ai',
-            sender: 'ai',
-            text: CONVERSATION_SCRIPT[state.scriptIndex].text,
-            typedText: '',
-            opacity: 1,
-            yOffset: 0,
-            scale: 1.0,
-            isTypingTemp: true
-          });
-          state.charDelay = 0.04;
+          state.targetDelay = 0.8; // 0.8s delay before next user message starts
         }
       }
-    }
-    else if (state.state === 'ai_typing') {
-      const tempAiMsg = state.messages.find(m => m.isTypingTemp);
-      const targetText = CONVERSATION_SCRIPT[state.scriptIndex].text;
-      if (tempAiMsg) {
-        if (state.timer >= state.charDelay) {
-          state.timer = 0;
-          state.charIndex++;
-          tempAiMsg.typedText = targetText.substring(0, state.charIndex);
-          
-          // Vary AI typing speed (60-140 WPM)
-          const baseSpeed = 0.03 + Math.random() * 0.04;
-          const lastChar = tempAiMsg.typedText[tempAiMsg.typedText.length - 1];
-          if (lastChar === ' ') {
-            state.charDelay = 0.06 + Math.random() * 0.07;
-          } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-            state.charDelay = 0.18 + Math.random() * 0.12;
+      else if (state.state === 'ai_pause') {
+        // Trigger platform morphs after AI replies are fully displayed
+        if (state.messages.length === 2 && state.targetPlatform === 'whatsapp') {
+          state.targetPlatform = 'instagram';
+        } else if (state.messages.length === 4 && state.targetPlatform === 'instagram') {
+          state.targetPlatform = 'web';
+        }
+
+        if (state.timer >= state.targetDelay) {
+          if (state.scriptIndex >= CONVERSATION_SCRIPT.length) {
+            state.state = 'done';
+            window.textingChatDone = true;
           } else {
-            state.charDelay = baseSpeed;
-          }
-
-          if (state.charIndex >= targetText.length) {
-            tempAiMsg.isTypingTemp = false;
-            tempAiMsg.text = targetText;
-            delete tempAiMsg.typedText;
-            state.state = 'ai_pause';
+            state.state = 'customer_typing';
             state.timer = 0;
-            state.targetDelay = 0.5 + Math.random() * 1.0; // 500 - 1500ms
-            state.scriptIndex = (state.scriptIndex + 1) % CONVERSATION_SCRIPT.length;
+            state.charIndex = 0;
+            state.inputText = '';
+            state.charDelay = 0.02;
           }
         }
-      } else {
-        state.state = 'ai_pause';
-        state.timer = 0;
-        state.targetDelay = 1.0;
-      }
-    }
-    else if (state.state === 'ai_pause') {
-      if (state.timer >= state.targetDelay) {
-        state.state = 'customer_typing';
-        state.timer = 0;
-        state.charIndex = 0;
-        state.inputText = '';
-        state.charDelay = 0.05;
       }
     }
 
-    // Update message pop animations
+    // Update message spring pop animations
     state.messages.forEach(msg => {
       if (msg.popProgress !== undefined && msg.popProgress < 1.0) {
-        msg.popProgress = Math.min(1.0, msg.popProgress + chatDt * 4.0);
+        msg.popProgress = Math.min(1.0, msg.popProgress + chatDt * 5.0); // Snap pop in ~0.2s
         const ease = easeOutBack(msg.popProgress);
         msg.opacity = Math.min(1.0, msg.popProgress * 2.0);
         msg.scale = 0.8 + ease * 0.2;
@@ -1997,60 +1898,43 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       }
     });
 
-    // LAYOUT CALCULATIONS
-    let activeMinY = screenY + 115;
-    let activeMaxY = screenY + screenH - 115;
-    let activeW = screenW - 32;
-    let activeX = screenX + 16;
+    // Chat area dimensions
+    let activeMinY = destY + 125;
+    let activeMaxY = destY + destH - 110; // Raised bottom limit to respect input bar and padding
+    let activeW = destW - 48;             // 24px screen margin padding on left/right for wider layout
+    let activeX = destX + 24;
 
     if (websiteUiOpacity > 0.001) {
-      activeMinY = lerp(screenY + 115, screenY + 180, websiteUiOpacity);
-      activeMaxY = lerp(screenY + screenH - 115, screenY + 700, websiteUiOpacity);
-      activeW = lerp(screenW - 32, screenW - 48, websiteUiOpacity);
-      activeX = lerp(screenX + 16, screenX + 24, websiteUiOpacity);
+      activeMinY = lerp(destY + 125, destY + 165, websiteUiOpacity);
+      activeMaxY = lerp(destY + destH - 110, destY + destH - 130, websiteUiOpacity);
+      activeW = lerp(destW - 48, destW - 64, websiteUiOpacity);
+      activeX = lerp(destX + 24, destX + 32, websiteUiOpacity);
     }
 
-    const chatContentMinY = activeMinY + 16;
-    const chatContentMaxY = activeMaxY - 16;
+    const chatContentMinY = activeMinY + 10;
+    const chatContentMaxY = activeMaxY - 10;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
+    const maxBubbleWidth = 270;            // Increased bubble width for realistic responsive message bubbles
 
     let bubblesToDraw = [];
     let totalHeight = 0;
     const spacing = 12;
 
     state.messages.forEach(m => {
-      const textToShow = m.isTypingTemp ? m.typedText : m.text;
-      const layout = calculateBubbleLayout(textToShow, maxBubbleWidth);
+      const layout = calculateBubbleLayout(m.text, maxBubbleWidth);
       bubblesToDraw.push({
         id: m.id,
         sender: m.sender,
-        text: textToShow,
+        text: m.text,
         lines: layout.lines,
         width: layout.width,
         height: layout.height,
         opacity: m.opacity !== undefined ? m.opacity : 1.0,
         yOffset: m.yOffset !== undefined ? m.yOffset : 0,
-        scale: m.scale !== undefined ? m.scale : 1.0,
-        isTyping: false
+        scale: m.scale !== undefined ? m.scale : 1.0
       });
       totalHeight += layout.height + spacing;
     });
-
-    if (state.state === 'ai_thinking') {
-      const typingH = 32;
-      const typingW = 65;
-      bubblesToDraw.push({
-        id: 'thinking',
-        sender: 'ai',
-        width: typingW,
-        height: typingH,
-        opacity: 1.0,
-        yOffset: 0,
-        scale: 1.0,
-        isTyping: true
-      });
-      totalHeight += typingH + spacing;
-    }
 
     const maxScroll = Math.max(0, totalHeight - maxViewportHeight);
 
@@ -2061,12 +1945,12 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       state.scrollTargetOffset = maxScroll;
     }
 
-    // Scroll animation trigger on height increase (arrival of new bubble or new wrapped line)
+    // Scroll animation trigger on height increase
     if (totalHeight > state.lastTotalHeight + 1) {
       state.scrollStartOffset = state.scrollOffset;
       state.scrollTargetOffset = maxScroll;
       state.scrollAnimTime = 0.0;
-      state.scrollAnimDuration = 0.75; // 750ms (between 600ms and 900ms)
+      state.scrollAnimDuration = 0.75;
       state.lastTotalHeight = totalHeight;
     } else if (totalHeight < state.lastTotalHeight - 1) {
       state.lastTotalHeight = totalHeight;
@@ -2075,7 +1959,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     // Gentle scroll drift upward during active typing or thinking states (4 pixels per second)
     let drift = 0;
     if (state.scrollAnimTime >= state.scrollAnimDuration) {
-      if (state.state === 'customer_typing' || state.state === 'ai_typing' || state.state === 'ai_thinking') {
+      if (state.state === 'customer_typing' || state.state === 'ai_thinking') {
         drift = 4.0 * chatDt;
       }
     }
@@ -2084,42 +1968,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     if (state.scrollAnimTime < state.scrollAnimDuration) {
       state.scrollAnimTime = Math.min(state.scrollAnimDuration, state.scrollAnimTime + chatDt);
       const t = state.scrollAnimTime / state.scrollAnimDuration;
-      const ease = 1 - Math.pow(1 - t, 3); // power3.out
+      const ease = 1 - Math.pow(1 - t, 3);
       state.scrollOffset = state.scrollStartOffset + (state.scrollTargetOffset - state.scrollStartOffset) * ease;
     } else {
       state.scrollOffset = Math.min(maxScroll, state.scrollOffset + drift);
-    }
-
-    // Prune off-screen messages to ensure performance remains 60fps
-    let messagesToRemove = 0;
-    let currentY = chatContentMinY - state.scrollOffset;
-    for (let i = 0; i < state.messages.length; i++) {
-      const msg = state.messages[i];
-      if (msg.id === 'temp_ai' || msg.id === 'temp_customer' || (msg.popProgress !== undefined && msg.popProgress < 1.0)) break;
-      
-      const layout = calculateBubbleLayout(msg.text, maxBubbleWidth);
-      const drawY = currentY + (msg.yOffset || 0);
-      
-      // Prune only when it is completely out of the visible screen (above activeMinY)
-      if (drawY + layout.height < activeMinY) {
-        messagesToRemove++;
-      } else {
-        break;
-      }
-      currentY += layout.height + spacing;
-    }
-
-    if (messagesToRemove > 0) {
-      let removedHeight = 0;
-      for (let i = 0; i < messagesToRemove; i++) {
-        const msg = state.messages[i];
-        const layout = calculateBubbleLayout(msg.text, maxBubbleWidth);
-        removedHeight += layout.height + spacing;
-      }
-      state.messages.splice(0, messagesToRemove);
-      state.scrollOffset = Math.max(0, state.scrollOffset - removedHeight);
-      state.scrollTargetOffset = Math.max(0, state.scrollTargetOffset - removedHeight);
-      state.scrollStartOffset = Math.max(0, state.scrollStartOffset - removedHeight);
     }
 
     // BLENDED DYNAMIC MORPHING STYLES
@@ -2164,7 +2016,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
 
     ctx.save();
     ctx.beginPath();
-    ctx.rect(screenX - 10, activeMinY, screenW + 20, activeMaxY - activeMinY);
+    ctx.rect(destX - 10, activeMinY, destW + 20, activeMaxY - activeMinY);
     ctx.clip();
 
     bubblesToDraw.forEach(b => {
@@ -2175,162 +2027,113 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         ctx.save();
         ctx.globalAlpha = b.opacity;
 
-        // spring scale transformation centered on bubble
         ctx.translate(bubbleX + b.width / 2, y + b.height / 2);
         ctx.scale(b.scale, b.scale);
         ctx.translate(-(bubbleX + b.width / 2), -(y + b.height / 2));
 
-        if (b.isTyping) {
-          const typingY = y + b.height - 32;
-          drawBubble(bubbleX, typingY, 65, 32, styleBorderRadius, aiBubbleColor);
-          ctx.fillStyle = aiTextColor;
-          const dotRadius = 2.5;
-          const dotSpacing = 9;
-          const startDotX = bubbleX + 22.5;
-          for (let d = 0; d < 3; d++) {
-            const dotTime = state.time * 8.0 - d * 1.2;
-            const bounce = Math.sin(dotTime) * 3;
-            const offsetY = Math.min(0, bounce);
-            const dotOpacity = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(dotTime));
-            ctx.save();
-            ctx.globalAlpha = b.opacity * dotOpacity;
-            ctx.beginPath();
-            ctx.arc(startDotX + d * dotSpacing, typingY + 16 + offsetY, dotRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        } else {
-          const bubbleColor = (b.sender === 'customer') ? customerBubbleColor : aiBubbleColor;
-          const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
-          drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
-          
-          ctx.font = '13px "Inter", -apple-system, sans-serif';
-          ctx.fillStyle = textColor;
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'top';
-          const lineHeight = 18;
-          const paddingX = 14;
-          const paddingY = 10;
-          b.lines.forEach((line, lineIdx) => {
-            ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
-          });
-        }
+        const bubbleColor = (b.sender === 'customer') ? customerBubbleColor : aiBubbleColor;
+        const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
+        drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
+        
+        ctx.font = '500 14px "Inter", -apple-system, sans-serif';
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const lineHeight = 20;
+        const paddingX = 14;
+        const paddingY = 10;
+        b.lines.forEach((line, lineIdx) => {
+          ctx.fillText(line, bubbleX + paddingX, y + paddingY + lineIdx * lineHeight);
+        });
         ctx.restore();
       }
       renderY += b.height + spacing;
     });
 
-    ctx.restore();
+    // ── ANIMATED TYPING INDICATOR BUBBLE (three bouncing dots) ──
+    if (state.state === 'ai_thinking') {
+      const dotBubbleW = 64;
+      const dotBubbleH = 42;
+      const dotBubbleX = activeX;
+      const dotBubbleY = renderY;
 
-    // DRAW WIDGET FRAMES & INPUT TEXTS
-    const widgetX = screenX + 16;
-    const widgetY = screenY + 120;
-    const widgetW = screenW - 32;
-    const widgetH = screenH - 180;
-
-    // 1. Kllezo Assistant Box Frame UI
-    if (websiteUiOpacity > 0.001) {
-      ctx.save();
-      ctx.globalAlpha = websiteUiOpacity;
-
-      // Header Bar
-      const headerH = 48;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(widgetX, widgetY, widgetW, headerH, 12);
-      } else {
-        ctx.rect(widgetX, widgetY, widgetW, headerH);
-      }
-      ctx.fillStyle = 'rgba(28, 30, 36, 0.95)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Pulsing Green Status Dot
-      ctx.beginPath();
-      ctx.arc(widgetX + 24, widgetY + 24, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#10B981';
-      ctx.fill();
-      
-      const dotPulse = 0.5 + 0.5 * Math.sin(time * 5);
-      ctx.beginPath();
-      ctx.arc(widgetX + 24, widgetY + 24, 4 + dotPulse * 4, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Header Text (Dynamically updates when AI is thinking)
-      ctx.font = 'bold 13px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = '#FFFFFF';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      const headerTitle = (state.state === 'ai_thinking') ? 'Kllezo AI (Thinking...)' : 'Kllezo AI Assistant';
-      ctx.fillText(headerTitle, widgetX + 40, widgetY + 24);
-
-      // Input Bar
-      const inputH = 44;
-      const inputY = widgetY + widgetH - inputH;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(widgetX, inputY, widgetW, inputH, 12);
-      } else {
-        ctx.rect(widgetX, inputY, widgetW, inputH);
-      }
-      ctx.fillStyle = 'rgba(28, 30, 36, 0.95)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Typing or placeholder text in input
-      const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
-      const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : 'Write a message...';
-      ctx.font = '12px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = (state.state === 'customer_typing' || state.state === 'customer_pause') ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.35)';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(textToDraw, widgetX + 20, inputY + 22);
-
-      // Send arrow icon
-      ctx.font = '14px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.textAlign = 'right';
-      ctx.fillText('???', widgetX + widgetW - 20, inputY + 22);
-
-      ctx.restore();
-    }
-
-    // 2. WhatsApp/Instagram bottom input bar text overlay
-    if (websiteUiOpacity < 0.99) {
-      const bottomInputY = screenY + screenH - 35;
-      const cursor = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
-      const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursor) : '';
-      if (textToDraw) {
+      // Only draw if inside clip region
+      if (dotBubbleY < activeMaxY) {
         ctx.save();
-        ctx.globalAlpha = 1.0 - websiteUiOpacity;
-        ctx.font = '12px "Inter", -apple-system, sans-serif';
-        ctx.fillStyle = interpolateRGB('rgb(17, 27, 33)', 'rgb(255, 255, 255)', instagramOpacity);
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(textToDraw, screenX + 52, bottomInputY);
+        // Draw bubble background
+        drawBubble(dotBubbleX, dotBubbleY, dotBubbleW, dotBubbleH, styleBorderRadius, aiBubbleColor);
+
+        // Animate three dots
+        const dotRadius = 5;
+        const dotSpacing = 16;
+        const totalDotsW = dotRadius * 2 * 3 + dotSpacing * 2;
+        const dotStartX = dotBubbleX + (dotBubbleW - totalDotsW) / 2 + dotRadius;
+        const dotCenterY = dotBubbleY + dotBubbleH / 2;
+        const bounceAmp = 5;
+        const bounceSpeed = 6.0;
+        const phase = state.time * bounceSpeed;
+
+        // Blend dot color (slightly lighter than bubble)
+        const dotColorR = 120 * whatsappOpacity + 120 * instagramOpacity + 120 * websiteUiOpacity;
+        const dotColorG = 130 * whatsappOpacity + 130 * instagramOpacity + 130 * websiteUiOpacity;
+        const dotColorB = 140 * whatsappOpacity + 140 * instagramOpacity + 140 * websiteUiOpacity;
+        ctx.fillStyle = `rgb(${Math.round(dotColorR)}, ${Math.round(dotColorG)}, ${Math.round(dotColorB)})`;
+
+        for (let d = 0; d < 3; d++) {
+          const dotX = dotStartX + d * (dotRadius * 2 + dotSpacing);
+          const dotY = dotCenterY + Math.sin(phase + d * 1.2) * bounceAmp;
+          ctx.beginPath();
+          ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
     }
 
-    // 3. AI Status indicator shown just above the input bars during thinking
-    if (state.state === 'ai_thinking') {
-      const statusY = lerp(screenY + screenH - 70, widgetY + widgetH - 59, websiteUiOpacity);
+    ctx.restore();
+
+    // Bottom input bar typing text overlay (unified for WhatsApp, Instagram, and Kllezo Bot)
+    const bottomInputY = destY + destH - 77;
+    const cursorStr = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
+    const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursorStr) : '';
+    
+    if (textToDraw) {
       ctx.save();
-      ctx.font = 'italic 11px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = interpolateRGB('rgb(134, 150, 160)', 'rgb(255, 255, 255)', instagramOpacity);
-      if (websiteUiOpacity > 0.5) ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      
+      // Calculate background color dynamically to cover the baked-in placeholder
+      const wBg = [255, 255, 255];
+      const iBg = [242, 242, 242];
+      const webBg = [255, 255, 255];
+      const bgR = wBg[0] * whatsappOpacity + iBg[0] * instagramOpacity + webBg[0] * websiteUiOpacity;
+      const bgG = wBg[1] * whatsappOpacity + iBg[1] * instagramOpacity + webBg[1] * websiteUiOpacity;
+      const bgB = wBg[2] * whatsappOpacity + iBg[2] * instagramOpacity + webBg[2] * websiteUiOpacity;
+      
+      ctx.fillStyle = `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`;
+      
+      // Cover the placeholder
+      const coverX = destX + 52;
+      const coverW = destW - 150;
+      ctx.fillRect(coverX, bottomInputY - 12, coverW, 24);
+      
+      // Blend text color
+      const wText = [17, 27, 33];
+      const iText = [0, 0, 0];
+      const webText = [55, 65, 81];
+      const txR = wText[0] * whatsappOpacity + iText[0] * instagramOpacity + webText[0] * websiteUiOpacity;
+      const txG = wText[1] * whatsappOpacity + iText[1] * instagramOpacity + webText[1] * websiteUiOpacity;
+      const txB = wText[2] * whatsappOpacity + iText[2] * instagramOpacity + webText[2] * websiteUiOpacity;
+      
+      ctx.font = '12px "Inter", -apple-system, sans-serif';
+      ctx.fillStyle = `rgb(${Math.round(txR)}, ${Math.round(txG)}, ${Math.round(txB)})`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      const statusText = state.thinkingText ? (state.thinkingText + ' ' + state.thinkingEmoji) : ('AI is ' + state.thinkingEmoji);
-      ctx.fillText(statusText, screenX + 24, statusY);
+      ctx.fillText(textToDraw, destX + 52, bottomInputY);
       ctx.restore();
     }
+
+    // (Typing indicator is rendered inline as a bouncing-dots bubble above)
+
+    ctx.restore(); // end screen clip
 
   } else {
     ctx.font = '20px "Inter", sans-serif';
@@ -2341,11 +2144,11 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
   }
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    2. LIGHTING
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const mainAmbientLight = new THREE.AmbientLight(0xF5F3EE, 1.8);
-scene.add(mainAmbientLight);  // strong fill ??? screens are pure diffuse
+scene.add(mainAmbientLight);  // strong fill — screens are pure diffuse
 
 const sun = new THREE.DirectionalLight(0xF5F3EE, 0.3);
 sun.position.set(20, 40, 30);
@@ -2356,7 +2159,7 @@ const lightContent = new THREE.PointLight(0xffffff, 1.0, 150);
 lightContent.position.set(0, 8, -90);
 scene.add(lightContent);
 
-const lightWebsites = new THREE.PointLight(0xFFD27D, 1.2, 150);
+const lightWebsites = new THREE.PointLight(0xFFD27D, 1.5, 150); // Increased intensity by 10% for improved ambient visibility
 lightWebsites.position.set(0, 5, -220);
 scene.add(lightWebsites);
 
@@ -2368,9 +2171,9 @@ const lightEco = new THREE.PointLight(0xffffff, 0.7, 120);
 lightEco.position.set(0, 0, -430);
 scene.add(lightEco);
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    3. CAMERA PATH
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   2,   -30),  // t=0.00  Hero
   new THREE.Vector3(10,  3,   -50),  // t=0.05
@@ -2383,7 +2186,7 @@ const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -240), // t=0.36  Website Row 3
   new THREE.Vector3(0,   4.5, -255), // t=0.40  Leaving Row 3
   new THREE.Vector3(0,   4.5, -271), // t=0.44  Transition 1 empty travel (shortened)
-  new THREE.Vector3(0,   4.5, -275), // t=0.48  Calling entry ??? parked at z=-275
+  new THREE.Vector3(0,   4.5, -275), // t=0.48  Calling entry — parked at z=-275
   new THREE.Vector3(0,   4.5, -275), // t=0.52  Parked at Calling
   new THREE.Vector3(0,   4.5, -275), // t=0.55  Parked at Calling
   new THREE.Vector3(0,   4.5, -275), // t=0.58  Calling hold
@@ -2430,11 +2233,11 @@ const LOOK_PATH = new THREE.CatmullRomCurve3([
 ], false, 'catmullrom', 0.5);
 
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    4. SCROLL SYSTEM
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 let scrollRaw = 0;
-let scrollProgress = 0; // smoothed 0???1
+let scrollProgress = 0; // smoothed 0→1
 let hoveredNodeIdx = -1;
 let lastEcoTime = performance.now();
 
@@ -2454,10 +2257,80 @@ window.addEventListener('resize', () => {
 // Strict Section-Based Storyflow Gesture Listeners
 document.body.style.overflow = 'hidden';
 
+// ── WEBSITE EXPERIENCES SCROLL MODE ──
+// Continuous spring-based scroll: wheel events feed velocity into a target,
+// websiteScrollProgress lerps toward it each frame for buttery-smooth inertia.
+let websiteScrollProgress = 0.0;  // smoothed progress 0..1 (drives camera + textures)
+let websiteScrollTarget   = 0.0;  // raw target progress (nudged by wheel/touch)
+let websiteScrollVelocity = 0.0;  // accumulated velocity from wheel events
+let websiteSpringVelocity = 0.0;  // spring velocity for damped spring-scroll physics
+
+function isWebsiteScrollMode() {
+  return currentSectionIdx === 2 && sectionTransitionProgress >= 1.0;
+}
+
+// Called every animate frame while in website mode
+function tickWebsiteScroll(dt) {
+  if (!isWebsiteScrollMode()) return;
+
+  // 1. Friction on the user input scroll velocity (how long the input momentum lasts)
+  websiteScrollVelocity *= Math.pow(0.25, dt); // lower friction for a longer, luxurious glide (was 0.05)
+
+  // 2. Add input velocity to target progress
+  websiteScrollTarget += websiteScrollVelocity * dt;
+
+  // ONE-WAY LOCK: target is clamped to [0, 1.25]. It can NEVER go below 0.
+  // WEBSITE_EXPLORE is a locked state — exit is only forward, never backward.
+  if (websiteScrollTarget < 0) {
+    websiteScrollTarget  = 0;
+    websiteScrollVelocity = 0; // kill negative momentum completely
+  }
+  if (websiteScrollTarget > 1.25) websiteScrollTarget = 1.25;
+
+  // Forward exit: only when user has fully walked through the entire exhibition
+  if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.98) {
+    websiteScrollTarget   = 1.0;
+    websiteScrollProgress = 1.0;
+    websiteScrollVelocity = 0;  // kill all momentum before firing transition
+    websiteSpringVelocity = 0;
+    triggerSectionTransition(currentSectionIdx + 1);
+    return;
+  }
+
+  // 3. Damped Spring Interpolation: websiteScrollProgress chases websiteScrollTarget
+  // Critical damping parameter: omega determines speed, zeta = 1.0 for no oscillation
+  const omega = 6.0; // stiffness
+  const f = 1.0 + omega * dt;
+  const displacement = websiteScrollProgress - websiteScrollTarget;
+
+  // Analytic critical damping update
+  websiteScrollProgress = websiteScrollTarget + (displacement + (websiteSpringVelocity + omega * displacement) * dt) / (f * f);
+  websiteSpringVelocity = (websiteSpringVelocity - omega * omega * displacement * dt) / (f * f);
+
+  // Clamp progress strictly to 0..1
+  websiteScrollProgress = Math.max(0, Math.min(1, websiteScrollProgress));
+}
+
 function handleWheelGesture(e) {
   const now = performance.now();
-  if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: continuous inertial scroll — bypass GESTURE_COOLDOWN entirely
+  if (isWebsiteScrollMode()) {
+    // Normalize delta: pixel mode can give huge values, line mode gives ~3, page mode gives ~1
+    let delta = e.deltaY;
+    if (e.deltaMode === 1) delta *= 30; // line units → pixel-like
+    if (e.deltaMode === 2) delta *= 300; // page units → pixel-like
+    // Add to velocity (scale for a premium 5-7 comfortable scroll experience)
+    const velocityAdd = (delta / 300) * 0.55;
+    websiteScrollVelocity += velocityAdd;
+    // Clamp peak velocity to avoid overshooting on fast flings
+    websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
+    return;
+  }
+
+  if (now - lastGestureTime < GESTURE_COOLDOWN) return;
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (e.deltaY > 5) {
@@ -2483,6 +2356,16 @@ window.addEventListener('touchmove', e => {
   const now = performance.now();
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: continuous inertial touch
+  if (isWebsiteScrollMode()) {
+    const velocityAdd = (deltaY / 300) * 0.55;
+    websiteScrollVelocity += velocityAdd;
+    websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
+    touchStartY = touchEndY; // reset so subsequent moves add delta, not total
+    return;
+  }
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (deltaY > 30) {
@@ -2498,6 +2381,17 @@ window.addEventListener('keydown', e => {
   const now = performance.now();
   if (now - lastGestureTime < GESTURE_COOLDOWN) return;
   if (sectionTransitionProgress < 1.0) return;
+
+  // Website Experiences: keyboard drives velocity too
+  if (isWebsiteScrollMode()) {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      websiteScrollVelocity += 0.8;
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      websiteScrollVelocity -= 0.8;
+    }
+    return;
+  }
+
   if (isSectionLocked(currentSectionIdx)) return;
 
   if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
@@ -2509,18 +2403,18 @@ window.addEventListener('keydown', e => {
   }
 });
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    5. MOUSE
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
 window.addEventListener('mousemove', e => {
   mouse.x = (e.clientX / window.innerWidth  - 0.5) * 2;
   mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
 });
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    6. MATERIAL LIBRARY
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const MAT = {
   phone: new THREE.MeshStandardMaterial({
     color: 0x0F1216, roughness: 0.15, metalness: 0.85,
@@ -2590,9 +2484,9 @@ const MAT = {
   }),
 };
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    LIQUID GOLD GUIDE STREAM (LIVING ELEMENT)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const pTopLeft = new THREE.Vector3(-25, 18.5, -470);
 const pCenter = new THREE.Vector3(0, 4.5, -470);
 const pTopRight = new THREE.Vector3(25, 18.5, -470);
@@ -2643,12 +2537,32 @@ function createGoldMaterial(initialOpacity = 0.0) {
         // Mask to only displace facing center of the tube, tapering at edges
         float edgeMask = abs(vNormal.z);
 
-        // Layered FBM displacement (Low, Medium, High frequencies)
-        float breathing = noise(position * 0.2 + vec3(0.0, -time * 0.4, 0.0)) * 0.08;
-        float waves = noise(position * 0.6 + vec3(0.0, -time * 1.2, 0.0)) * 0.04;
-        float shimmer = noise(position * 1.5 + vec3(0.0, -time * 3.5, 0.0)) * 0.015;
+        // 1. Viscosity changes: slow frequency scaling over time
+        float viscosity = 0.5 + 0.35 * sin(time * 0.4);
+
+        // 2. Organic turbulence: coordinate warping
+        vec3 warp = vec3(
+          noise(position * 0.08 - time * 0.2),
+          noise(position * 0.10 + time * 0.15),
+          noise(position * 0.06 - time * 0.1)
+        ) * 0.45;
+        vec3 warpedPos = position + warp;
+
+        // 3. Layered FBM displacement with viscosity modulation
+        float breathing = noise(warpedPos * (0.16 + 0.04 * viscosity) + vec3(0.0, -time * 0.35, 0.0)) * 0.08;
+        float waves = noise(warpedPos * (0.5 + 0.15 * viscosity) + vec3(0.0, -time * 1.1, 0.0)) * 0.04;
+        float shimmer = noise(warpedPos * 1.6 + vec3(0.0, -time * 3.2, 0.0)) * 0.015;
+
+        // 4. Breathing amplitude pulse every few seconds — subtle, elegant
+        // Primary slow breath: barely noticeable expansion/contraction
+        float breathingPulse = 1.0 + 0.12 * sin(time * 0.55);
+        // Secondary micro-viscosity variation at a different beat
+        float breathSlow = 1.0 + 0.06 * sin(time * 0.22 + position.z * 0.008);
+
+        // 5. Micro pressure pulses traveling along the tube — gentler
+        float pressure = sin(position.y * 2.5 - time * 6.5) * 0.007 * (0.5 + 0.5 * sin(time * 1.2));
         
-        float displacement = (breathing + waves + shimmer) * edgeMask * progress;
+        float displacement = (breathing * breathingPulse * breathSlow + waves + shimmer + pressure) * edgeMask * progress;
         vec3 deformedPosition = position + normal * displacement;
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPosition, 1.0);
@@ -2701,8 +2615,9 @@ function createGoldMaterial(initialOpacity = 0.0) {
           discard;
         }
 
-        // Domain warping coordinates
-        vec3 p = vec3(vUv.y * 2.5, vUv.x * 10.0 - time * 0.5, time * 0.08);
+        // Domain warping coordinates with local flow speed variations
+        float flowTime = time * 0.42 + 0.16 * sin(time * 0.45 + vUv.x * 2.5) + 0.08 * noise(vec3(vUv.x * 3.5, time * 0.7, 0.0));
+        vec3 p = vec3(vUv.y * 2.5, vUv.x * 10.0 - flowTime, time * 0.08);
         
         vec3 q = vec3(
           fbm(p + vec3(0.0)),
@@ -2711,9 +2626,9 @@ function createGoldMaterial(initialOpacity = 0.0) {
         );
         
         vec3 r = vec3(
-          fbm(p + 3.0 * q + vec3(time * 0.1, 0.0, 0.0)),
-          fbm(p + 3.0 * q + vec3(2.5, time * 0.15, 1.2)),
-          fbm(p + 3.0 * q + vec3(0.0, 3.8, time * 0.05))
+          fbm(p + 3.0 * q + vec3(flowTime * 0.2, 0.0, 0.0)),
+          fbm(p + 3.0 * q + vec3(2.5, flowTime * 0.28, 1.2)),
+          fbm(p + 3.0 * q + vec3(0.0, 3.8, flowTime * 0.12))
         );
         
         float veins = fbm(p + 4.0 * r);
@@ -2734,7 +2649,7 @@ function createGoldMaterial(initialOpacity = 0.0) {
         
         // Faux reflection mapping using noise-warped coordinates
         vec3 reflectDir = reflect(-V, N);
-        float reflPattern = fbm(reflectDir * 3.0 + vec3(0.0, time * 0.2, 0.0));
+        float reflPattern = fbm(reflectDir * 3.0 + vec3(0.0, flowTime * 0.35, 0.0));
         vec3 reflColor = mix(richAmber, highlights, reflPattern);
         
         // Fresnel calculation
@@ -2811,54 +2726,56 @@ function updateMeshGeometry(mesh, newGeom) {
 }
 
 // Points for Segment 1: Hero to Content Engine
-// TRANSLATED: dx=+3.5 to shift the entire spline rightward into the corridor center
+// Redesigned to swoop left initially and terminate exactly at the Content Engine parked position (Z = -65.5)
 const ptsHeroToContent = [
-  new THREE.Vector3(11.5,  -8.5, -30),
-  new THREE.Vector3(13.5,  -8.7, -38),
-  new THREE.Vector3(15.5,  -9.3, -46),
-  new THREE.Vector3(14.5, -10.0, -54),
-  new THREE.Vector3(12.5, -10.5, -62),
-  new THREE.Vector3(11.5, -11.0, -70),
-  new THREE.Vector3(12.5, -10.5, -78),
-  new THREE.Vector3(14.5, -10.0, -86),
-  new THREE.Vector3(16.5, -10.5, -94),
-  new THREE.Vector3(15.5, -11.5, -100),
-  new THREE.Vector3(13.5, -13.0, -108),
-  new THREE.Vector3(12.5, -14.5, -114),
-  new THREE.Vector3(13.5, -15.5, -120),
-  new THREE.Vector3(15.5, -14.5, -128),
-  new THREE.Vector3(14.5, -13.0, -136),
-  new THREE.Vector3(13.5, -11.5, -145),
-  new THREE.Vector3(12.5, -10.5, -150),
-  new THREE.Vector3(11.5, -10.0, -155)
+  new THREE.Vector3(-4.5,  -8.5, -30),
+  new THREE.Vector3(-8.5,  -8.7, -38),
+  new THREE.Vector3(-11.5,  -9.3, -46),
+  new THREE.Vector3(-10.5, -10.0, -54),
+  new THREE.Vector3(-6.5, -10.5, -62),
+  new THREE.Vector3(1.5, -11.0, -65.5)
 ];
 
 // Points for Segment 2: Content Engine to Website Experiences
-// TRANSLATED: dx=+3.5 to shift the entire spline rightward into the corridor center
+// Starts exactly at the Content Engine parked position (Z = -65.5) and runs continuously to walkway exit (Z = -272.0)
 const ptsContentToWebsites = [
-  new THREE.Vector3(11.5,  -10.0, -155),       // Connected to Segment 1 end
-  new THREE.Vector3(8.5,   -6.0, -162),
-  new THREE.Vector3(5.5,   -2.0, -170),
-  new THREE.Vector3(3.5,    1.0, -180),        // Enters center corridor gap
-  new THREE.Vector3(2.5,    3.0, -190),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -200),        // Corridor
-  new THREE.Vector3(2.5,    1.0, -210),        // Corridor
-  new THREE.Vector3(4.5,    0.0, -220),        // Corridor
-  new THREE.Vector3(5.5,    2.0, -230),        // Corridor
-  new THREE.Vector3(4.5,    4.0, -240),        // Corridor
-  new THREE.Vector3(2.5,    3.0, -250),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -258),        // Corridor
-  new THREE.Vector3(2.5,    2.8, -266)         // Connects to Segment 3 at x=2.5
+  new THREE.Vector3(1.5, -11.0, -65.5),       // Connected directly to Segment 1 end
+  new THREE.Vector3(5.5, -11.0, -74),
+  new THREE.Vector3(9.5, -10.5, -84),
+  new THREE.Vector3(13.5, -10.0, -94),
+  new THREE.Vector3(15.5, -11.5, -104),
+  new THREE.Vector3(13.5, -13.0, -114),
+  new THREE.Vector3(12.5, -14.5, -124),
+  new THREE.Vector3(13.5, -15.5, -134),
+  new THREE.Vector3(15.5, -14.5, -144),
+  new THREE.Vector3(14.5, -13.0, -154),
+  new THREE.Vector3(11.5, -10.0, -164),
+  new THREE.Vector3(8.5,   -6.0, -174),
+  new THREE.Vector3(5.5,   -2.0, -184),
+  new THREE.Vector3(3.5,    1.0, -194),        // Enters center corridor gap
+  new THREE.Vector3(2.5,    3.0, -204),        // Corridor
+  new THREE.Vector3(1.5,    2.5, -214),        // Corridor
+  new THREE.Vector3(2.5,    1.0, -224),        // Corridor
+  new THREE.Vector3(4.5,    0.0, -234),        // Corridor
+  new THREE.Vector3(5.5,    2.0, -244),        // Corridor
+  new THREE.Vector3(4.5,    4.0, -254),        // Corridor
+  new THREE.Vector3(2.5,    3.0, -260),        // Corridor
+  new THREE.Vector3(1.5,    2.5, -266),        // Corridor
+  new THREE.Vector3(0.0,    4.5, -269),        // Alignment towards center
+  new THREE.Vector3(0.0,    5.7, -272)         // Connects to Segment 3 right in center under the exit
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
+// Starts right in the center (x=0) under the camera exit for zero-jump boarding
 const ptsWebsitesToCalling = [
-  new THREE.Vector3(2.5, 2.8, -266),     // Connects to Segment 2 end in the corridor
-  new THREE.Vector3(-1, 2.5, -271),
-  new THREE.Vector3(-6, 2.2, -276),
-  new THREE.Vector3(-12, 1.8, -281),
-  new THREE.Vector3(-18, 1.5, -296),     // Entry of Calling weave on the left
-  new THREE.Vector3(-15, 4.5, -296),
+  new THREE.Vector3(0.0, 5.7, -272),     // Connects directly under the exit at x=0
+  new THREE.Vector3(-1.0, 5.0, -273.5),
+  new THREE.Vector3(-3.0, 4.2, -274.5),
+  new THREE.Vector3(-6.0, 3.5, -275.0),
+  new THREE.Vector3(-10.0, 2.5, -275.5),
+  new THREE.Vector3(-14.0, 2.0, -285.0),  // Swoop to Calling weave entry
+  new THREE.Vector3(-18.0, 1.5, -296),    // Entry of Calling weave on the left
+  new THREE.Vector3(-15.0, 4.5, -296),
   new THREE.Vector3(-10.5, 2.0, -298),
   new THREE.Vector3(-5.25, 7.5, -296),
   new THREE.Vector3(0.0, 2.0, -298),
@@ -3023,22 +2940,11 @@ const SEGMENT_CUTOFFS = [
   1.00  // Segment 5 cutoff
 ];
 
-// Helper function to return stable segment progress when parked
+// Helper function to return stable segment progress when parked (continuous navigation rail)
 function getParkedSegmentProgress(idx, i, callingAutoplayTime, textingAutoplayTime) {
   const segmentNum = i + 1;
-  if (segmentNum < idx) {
+  if (segmentNum <= idx) {
     return 1.0;
-  }
-  if (segmentNum === idx) {
-    if (idx === 3) { // AI Calling Agents: includes travel and card weave autoplay
-      const autoplayPct = Math.min(1.0, Math.max(0.0, callingAutoplayTime / 2.8));
-      return 0.27 + autoplayPct * 0.73;
-    }
-    if (idx === 4) { // AI Texting Agents: includes travel and phone card weave autoplay
-      const autoplayPct = Math.min(1.0, Math.max(0.0, textingAutoplayTime / 4.0));
-      return 0.35 + autoplayPct * 0.65;
-    }
-    return SEGMENT_CUTOFFS[i];
   }
   return 0.0;
 }
@@ -3054,9 +2960,9 @@ let branchBRMesh = null;
 
 
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   7. PARTICLE SYSTEM ??? Universal void particles
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════
+   7. PARTICLE SYSTEM — Universal void particles
+   ═══════════════════════════════════════════ */
 const VOID_COUNT = 3000;
 const voidGeo    = new THREE.BufferGeometry();
 const voidPos    = new Float32Array(VOID_COUNT * 3);
@@ -3089,9 +2995,9 @@ const voidMat = new THREE.PointsMaterial({
 });
 scene.add(new THREE.Points(voidGeo, voidMat));
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   8. ZONE ??? HERO
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════
+   8. ZONE — HERO
+   ═══════════════════════════════════════════ */
 (function buildHero() {
   // Swirling ring of particles at z=0
   const COUNT = 1800;
@@ -3117,9 +3023,9 @@ scene.add(new THREE.Points(voidGeo, voidMat));
   scene.userData.heroRing = ring;
 })();
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   9. ZONE ??? CONTENT ENGINE  (center z=-100)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════
+   9. ZONE — CONTENT ENGINE  (center z=-100)
+   ═══════════════════════════════════════════ */
 
 (function buildContent() {
   window.isInspecting = false;
@@ -3313,8 +3219,8 @@ scene.add(new THREE.Points(voidGeo, voidMat));
   scene.add(contentGroup);
   scene.userData.contentGroup = contentGroup;
 
-  /* ?????? Card definitions ???????????????????????????????????????????????????????????????????????????????????????????????????????????????
-     Premium semicircle gallery ??? wide curved wall of floating
+  /* ── Card definitions ─────────────────────────────────────
+     Premium semicircle gallery — wide curved wall of floating
      displays. Camera at ~(17.7, 3.8, -65.5) looks toward (-1.5, 0, -104.5).
      
      LARGE hero displays: 01, 02, 03, 10, 11, 12
@@ -3322,7 +3228,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
      
      Coordinates calculated using view-frustum projection math
      to guarantee zero overlaps and zero viewport cutoffs.
-     ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+     ───────────────────────────────────────────────────────── */
   const BORDER = 0.15;             // border thickness (world units)
   const BORDER_COLOR = 0x0A0C10;   // near-black premium border
 
@@ -3395,7 +3301,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
           width: 0,
           x: 0,
           isHovered: false,
-          // Drag state ??? always present, read by updateContent every frame
+          // Drag state — always present, read by updateContent every frame
           dragging: false,
           returning: false,
           marqueePaused: false,
@@ -3565,7 +3471,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
   window.addEventListener('resize', resizeGallery);
   resizeGallery();
 
-  /* ?????? CONTENT PARTICLE FIELD ?????? */
+  /* ── CONTENT PARTICLE FIELD ── */
   const COUNT = 800;
   const geo   = new THREE.BufferGeometry();
   const pos   = new Float32Array(COUNT * 3);
@@ -3583,9 +3489,9 @@ scene.add(new THREE.Points(voidGeo, voidMat));
 
 })();
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   10. ZONE ??? WEBSITE ARCHITECTURE (canyon z=-200 to z=-260)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════
+   10. ZONE — WEBSITE ARCHITECTURE (canyon z=-200 to z=-260)
+   ═══════════════════════════════════════════ */
 // Injected volumetric light beam helper
 function createLightBeam(spotPos, targetPos, color) {
   const direction = new THREE.Vector3().subVectors(targetPos, spotPos);
@@ -3615,23 +3521,51 @@ function createLightBeam(spotPos, targetPos, color) {
   return beam;
 }
 
+function createContactShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.clearRect(0, 0, 512, 128);
+  
+  ctx.save();
+  ctx.translate(256, 64);
+  ctx.scale(4.0, 1.0); // stretch radial gradient to fit width
+  
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.95)');
+  grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.8)');
+  grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  
+  ctx.beginPath();
+  ctx.arc(0, 0, 60, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
 (function buildWebsites() {
 
   const slabDefs = [
-    // Website 1: Michelin Restaurant (Nara Omakase) ??? NO STAND (ground mounted)
-    { x: -16, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
-    // Website 2: Luxury Real Estate (Aurelia) ??? NO STAND (ground mounted)
-    { x: 16, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    // Website 1: Michelin Restaurant (Nara Omakase) — NO STAND (ground mounted)
+    { x: -12.5, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    // Website 2: Luxury Real Estate (Aurelia) — NO STAND (ground mounted)
+    { x: 12.5, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     
-    // Website 3: Luxury Fitness (Apex Performance Lab) ??? SHORT STAND (185%)
-    { x: -19, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
-    // Website 4: Premium Automotive (Verta GT) ??? SHORT STAND (185%)
-    { x: 19, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    // Website 3: Luxury Fitness (Apex Performance Lab) — SHORT STAND (185%)
+    { x: -14.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    // Website 4: Premium Automotive (Verta GT) — SHORT STAND (185%)
+    { x: 14.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     
-    // Website 5: Longevity / Medical (Elevate) ??? FULL STAND (375%)
-    { x: -16, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
-    // Website 6: Premium SaaS / AI (Kllezo Automate) ??? FULL STAND (375%)
-    { x: 16, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
+    // Website 5: Longevity / Medical (Elevate) — FULL STAND (375%)
+    { x: -12.5, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
+    // Website 6: Premium SaaS / AI (Kllezo Automate) — FULL STAND (375%)
+    { x: 12.5, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3731,6 +3665,7 @@ function createLightBeam(spotPos, targetPos, color) {
       new THREE.PlaneGeometry(planeW, planeH),
       webMat
     );
+    webMesh.name = 'screen';
     webMesh.userData.baseOpacity = 1.0;
     webMesh.position.set(0, -0.3, d.d / 2 + 0.03);
     group.add(webMesh);
@@ -3780,6 +3715,22 @@ function createLightBeam(spotPos, targetPos, color) {
       bracket.position.set(0, -d.h / 2 - 0.12, 0);
       group.add(bracket);
     }
+
+    // Soft contact shadow beneath the billboard to ground it visually
+    const shadowGeo = new THREE.PlaneGeometry(d.w * 1.15, d.d * 4.0);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: createContactShadowTexture(),
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false,
+      blending: THREE.NormalBlending
+    });
+    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+    shadowMesh.name = 'shadow';
+    shadowMesh.userData.baseOpacity = 0.85;
+    shadowMesh.position.set(0, -d.h / 2 - d.poleHeight + 0.02, 0);
+    shadowMesh.rotation.x = -Math.PI / 2;
+    group.add(shadowMesh);
 
     const targetYAbsolute = -12 + colHeight + d.h / 2;
     const loweredY = -14.5 - d.h / 2;
@@ -3974,7 +3925,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   scene.add(callingGroup);
   scene.userData.callingGroup = callingGroup;
 
-  /* ?????? 3 CALLING PANELS ??? Voice Call, Live Transcript, Appointment Booked ?????? */
+  /* ── 3 CALLING PANELS — Voice Call, Live Transcript, Appointment Booked ── */
   scene.userData.callingScreens = [];
   const callingCardDefs = [
     { id: 0, name: 'voiceCall',  w: 9.0, h: 10.8, y: 4.5, finalX: -10.5, finalRy: 0.2 },
@@ -4087,7 +4038,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   scene.userData.branches = [];
   scene.userData.msgMat = null;
 
-  /* ?????? SINGLE MORPHING CHAT SCREEN ??? centered, large ?????? */
+  /* ── SINGLE MORPHING CHAT SCREEN — centered, large ── */
   scene.userData.textBubbles = [];
 
   const chatTexture = createDynamicTexture(683, 1024, (ctx, w, h) => {
@@ -4124,9 +4075,9 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    ECOSYSTEM / OUTRO CANVAS TEXTURE HELPERS
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function createDestinationLabelTexture(icon, title) {
   return createDynamicTexture(1024, 512, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
@@ -4484,10 +4435,10 @@ function rebuildEcosystemStreams() {
   });
 })();
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    14. OVERLAY TEXT SYSTEM
    Zone ranges: progress values where text is visible
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const ZONES = [
   { id: 'zt-hero',      from: -0.5,  peak: 0.0,  to: 0.4  },
   { id: 'zt-content',   from: 0.6,   peak: 1.0,  to: 1.6  },
@@ -4495,7 +4446,6 @@ const ZONES = [
   { id: 'zt-calling',   from: 4.8,   peak: 5.5,  to: 6.5  },
   { id: 'zt-texting',   from: 8.8,   peak: 9.5,  to: 10.5 },
   { id: 'zt-ecosystem', from: 12.0,  peak: 13.0, to: 13.5 },
-  { id: 'zt-cta',       from: 12.0,  peak: 13.0, to: 13.5 },
 ];
 
 const NAV_CONTEXTS = [
@@ -4547,30 +4497,30 @@ function updateDescriptionTyping(idx, activeTime) {
 
 function updateOverlay(t) {
   const vp = scrollProgress * 13.0;
-  ZONES.forEach(z => {
+  ZONES.forEach((z, idx) => {
     const el = zoneEls[z.id];
     if (!el) return;
-    let alpha = 0;
-    if (vp >= z.from && vp <= z.to) {
-      if (vp <= z.peak) alpha = (vp - z.from) / (z.peak - z.from);
-      else              alpha = (z.to - vp)   / (z.to - z.peak);
-      alpha = Math.pow(clamp(alpha, 0, 1), 0.7);
-    }
-    el.style.opacity = alpha;
+    el.style.opacity = getSectionOpacity(idx);
   });
 
-  // HTML gallery overlay sync
+  // HTML gallery overlay sync (fades in early from vp = 0.2 to 0.8, stays full to 1.4, fades out to 1.8)
   const galleryOverlay = document.getElementById('content-gallery-overlay');
   if (galleryOverlay) {
-    const contentText = document.getElementById('zt-content');
-    if (contentText) {
-      const op = parseFloat(contentText.style.opacity || '0');
-      galleryOverlay.style.opacity = op;
-      if (op > 0.05) {
-        galleryOverlay.style.pointerEvents = 'auto';
+    let galleryOp = 0.0;
+    if (vp >= 0.2 && vp <= 1.8) {
+      if (vp < 0.8) {
+        galleryOp = (vp - 0.2) / 0.6;
+      } else if (vp > 1.4) {
+        galleryOp = (1.8 - vp) / 0.4;
       } else {
-        galleryOverlay.style.pointerEvents = 'none';
+        galleryOp = 1.0;
       }
+    }
+    galleryOverlay.style.opacity = clamp(galleryOp * getSectionOpacity(1), 0, 1);
+    if (galleryOp > 0.05) {
+      galleryOverlay.style.pointerEvents = 'auto';
+    } else {
+      galleryOverlay.style.pointerEvents = 'none';
     }
   }
 
@@ -4605,10 +4555,10 @@ function updateOverlay(t) {
   if (fill) fill.style.height = `${scrollProgress * 100}%`;
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    15. BACKGROUND COLOUR TRANSITION
-   Beige (hero) ??? deep void (worlds)
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   Beige (hero) → deep void (worlds)
+   ═══════════════════════════════════════════ */
 const BG_START = new THREE.Color(PALETTE.bg);
 const BG_END   = new THREE.Color(PALETTE.bg);
 
@@ -4628,9 +4578,9 @@ function updateBackground(t) {
   }
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    16. CURSOR
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 const curDot  = document.getElementById('cur-dot');
 const curRing = document.getElementById('cur-ring');
 let cx = 0, cy = 0, rx = 0, ry = 0;
@@ -4721,15 +4671,14 @@ function updateCursor() {
   }
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    17. ANIMATION UPDATERS PER ZONE
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 function updateContent(t, time, dt) {
   const vp = scrollProgress * 13.0;
-  const inZone = vp >= 0.6 && vp <= 1.6;
 
   if (scene.userData.contentGroup) {
-    scene.userData.contentGroup.visible = inZone;
+    scene.userData.contentGroup.visible = getSectionOpacity(1) > 0.001;
   }
 
   // Update HTML-based sliding gallery marquee
@@ -4817,31 +4766,15 @@ function updateContent(t, time, dt) {
 }
 
 
-function updateWebsites(t, time) {
-  const vp = scrollProgress * 13.0;
-  const inZone = vp >= 1.9 && vp <= 3.4;
+function updateWebsites(t, time, vpOverride) {
+  const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
+  const envOpacity = getSectionOpacity(2);
 
   if (scene.userData.websitesGroup) {
-    scene.userData.websitesGroup.visible = inZone;
+    scene.userData.websitesGroup.visible = envOpacity > 0.001;
   }
 
-  if (inZone && scene.userData.slabs) {
-    if (scene.userData.websiteStartTime === undefined) {
-      scene.userData.websiteStartTime = performance.now() * 0.001;
-    }
-    const elapsed = (performance.now() * 0.001) - scene.userData.websiteStartTime;
-    
-    let fadeOutFactor = 1.0;
-    if (vp < 2.1) {
-      fadeOutFactor = clamp((vp - 1.9) / 0.2, 0, 1);
-    } else if (vp > 3.2) {
-      fadeOutFactor = clamp((3.4 - vp) / 0.2, 0, 1);
-    }
-
-    const envOpacity = fadeOutFactor;
-
-
-
+  if (scene.userData.websitesGroup && scene.userData.websitesGroup.visible && scene.userData.slabs) {
     if (scene.userData.canyonFloor) {
       scene.userData.canyonFloor.material.opacity = 0.9 * envOpacity;
       scene.userData.canyonFloor.material.transparent = true;
@@ -4863,101 +4796,52 @@ function updateWebsites(t, time) {
     scene.userData.slabs.forEach(g => {
       const idx = g.userData.idx;
       const d = g.userData.d;
-      let delay = 0;
-      if (idx === 0 || idx === 1) {
-        delay = 0.0;
-      } else if (idx === 2 || idx === 3) {
-        delay = 0.4;
-      } else {
-        delay = 0.8;
-      }
-
-      const rowTime = elapsed - delay;
-      const duration = 0.55;
-      const rowProgress = clamp(rowTime / duration, 0, 1);
-      const riseEase = rowProgress * rowProgress * (3 - 2 * rowProgress); // smoothstep
-
       const targetY = g.userData.targetY;
-      const lowY = g.userData.loweredY;
+      const rowIdx = Math.floor(idx / 2);
 
-      // Initialize persistent auto-scroll tick on first activation
-      if (g.userData.lastAutoScrollTick === undefined) {
-        g.userData.lastAutoScrollTick = performance.now() * 0.001;
-        g.userData.autoScrollTime = 0;
-      }
+      // Distance-based fade — radius of 80 units so all rows are visible during the walkthrough
+      const distanceZ = Math.abs(camera.position.z - d.z);
+      const fadeVal = clamp(1.0 - distanceZ / 80.0, 0, 1);
+      const easeFade = 0.5 * (1.0 - Math.cos(fadeVal * Math.PI));
+      const finalOpacity = easeFade * envOpacity;
 
-      // Accumulate time only while active (pauses animation when inactive)
-      const nowSec = performance.now() * 0.001;
-      const deltaTime = nowSec - g.userData.lastAutoScrollTick;
-      g.userData.lastAutoScrollTick = nowSec;
-      g.userData.autoScrollTime += deltaTime;
+      // Position the panel - STRICTLY FIXED structures, never translate or slide
+      g.position.set(d.x, targetY, d.z);
 
-      const repeatY = g.userData.repeatY !== undefined ? g.userData.repeatY : 1.0;
-      const scrollDelays = [0.0, 1.0, 2.0, 3.0, 1.5, 2.5]; // Staggered delays
-      const scrollDelay = scrollDelays[idx] || 0;
+      // Cursor micro-tilt influence for high-end feel (Apple Vision Pro inspired)
+      g.rotation.y = d.ry + mouse.sx * 0.015;
+      g.rotation.x = mouse.sy * 0.012;
 
-      // Scroll speed: 0.02 units of scrollPct per second (slow, luxurious scroll - 30% faster)
-      // Hidden height fraction to scroll: (1.0 - repeatY)
-      // Calculate scroll duration dynamically so speed remains uniform across different webpage lengths
-      const scrollSpeed = 0.02; // 2% of total height per second
-      const scrollDuration = Math.max(4.0, (1.0 - repeatY) / scrollSpeed); // minimum 4s
-      const pauseDuration = 2.0; // 2 seconds pause at top/bottom
-      const totalCycle = 2.0 * scrollDuration + 2.0 * pauseDuration;
+      // Per-billboard independent website scroll driven by camera proximity
+      // Different start/end trigger bounds for even vs odd index billboards ensures they never synchronize identically
+      const startDist = 45 + (idx % 2) * 10;
+      const endDist = -10 - (idx % 2) * 5;
+      const relZ = camera.position.z - d.z;
+      let scrollPct = clamp((startDist - relZ) / (startDist - endDist), 0.0, 1.0);
 
-      const scrollElapsed = Math.max(0, g.userData.autoScrollTime - scrollDelay);
-      const t = scrollElapsed % totalCycle;
-
-      let scrollPct = 0;
-      if (t < pauseDuration) {
-        // Pause at top
-        scrollPct = 0;
-      } else if (t < pauseDuration + scrollDuration) {
-        // Scroll down
-        const progress = (t - pauseDuration) / scrollDuration;
-        scrollPct = 0.5 * (1.0 - Math.cos(progress * Math.PI)); // easeInOutSine
-      } else if (t < 2.0 * pauseDuration + scrollDuration) {
-        // Pause at bottom
-        scrollPct = 1.0;
-      } else if (t < 2.0 * pauseDuration + 2.0 * scrollDuration) {
-        // Scroll back up
-        const progress = (t - (2.0 * pauseDuration + scrollDuration)) / scrollDuration;
-        scrollPct = 1.0 - 0.5 * (1.0 - Math.cos(progress * Math.PI)); // easeInOutSine
-      } else {
-        // Fallback to top pause
-        scrollPct = 0;
-      }
-
-      g.userData.scrollPct = scrollPct;
+      const easeScrollPct = scrollPct * scrollPct * (3 - 2 * scrollPct); // smoothstep
+      g.userData.scrollPct = easeScrollPct;
       if (g.userData.webTexture && g.userData.repeatY !== undefined) {
-        // offset.y goes from (1.0 - repeatY) [top] to 0.0 [bottom]
-        g.userData.webTexture.offset.y = (1.0 - repeatY) * (1.0 - scrollPct);
+        const maxOffset = 1.0 - g.userData.repeatY;
+        // Mouse adds a tiny vertical peek offset inside this billboard
+        const mouseScrollInfluence = mouse.sy * 0.015;
+        // Ensure smooth, forward-only scrolling that fully spans the page
+        const baseOffset = maxOffset * (1.0 - easeScrollPct);
+        g.userData.webTexture.offset.y = clamp(baseOffset + mouseScrollInfluence, 0.0, maxOffset);
+        g.userData.webTexture.needsUpdate = true;
       }
 
-      let yPos;
-      if (rowTime < 0) {
-        yPos = lowY;
-      } else {
-        if (idx === 0 || idx === 1) {
-          // Row 1: physically emerge from below platform to target position (no fade)
-          yPos = lerp(lowY, targetY, riseEase);
-        } else {
-          yPos = lerp(targetY - 4.0, targetY, riseEase);
-        }
-      }
-
-      g.position.y = yPos;
-      g.position.y += Math.sin(time * 0.2 + g.userData.phase) * 0.04 * riseEase;
-      
       // Animate opacity of all meshes in the group
       g.traverse(child => {
         if (child.isMesh && child.material) {
           child.material.transparent = true;
           const baseOpacity = child.userData.baseOpacity !== undefined ? child.userData.baseOpacity : 1.0;
-          if (idx === 0 || idx === 1) {
-            // Row 1: physical emergence, no fading/spawning
-            child.material.opacity = baseOpacity * fadeOutFactor;
-          } else {
-            child.material.opacity = baseOpacity * rowProgress * fadeOutFactor;
+          child.material.opacity = baseOpacity * finalOpacity;
+
+          // Micro-depth parallax on the website screen mesh (Apple Vision Pro inspired 3D layered look)
+          if (child.name === 'screen') {
+            child.position.x = mouse.sx * 0.12;
+            child.position.y = -0.3 + mouse.sy * 0.12;
           }
         }
       });
@@ -5017,21 +4901,14 @@ function updateWebsites(t, time) {
         }
       }
 
-      if (spot1) spot1.intensity = 3.0 * rowProgress * fadeOutFactor; // Brighter luxury spotlights
-      if (spot2) spot2.intensity = 3.0 * rowProgress * fadeOutFactor;
-      if (beam1) beam1.material.opacity = 0.35 * rowProgress * fadeOutFactor;
-      if (beam2) beam2.material.opacity = 0.35 * rowProgress * fadeOutFactor;
-      if (lens1) lens1.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (lens2) lens2.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (fixture1) fixture1.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-      if (fixture2) fixture2.material.opacity = 1.0 * rowProgress * fadeOutFactor;
-
-      // Mild billboard tracking toward camera (??12?? max = ??0.21 rad)
-      const dx = camera.position.x - g.position.x;
-      const dz = camera.position.z - g.userData.d.z;
-      const trackAngle = Math.atan2(dx, -dz);
-      g.rotation.y = clamp(trackAngle, -0.21, 0.21);
-
+      if (spot1) spot1.intensity = 3.0 * finalOpacity;
+      if (spot2) spot2.intensity = 3.0 * finalOpacity;
+      if (beam1) beam1.material.opacity = 0.35 * finalOpacity;
+      if (beam2) beam2.material.opacity = 0.35 * finalOpacity;
+      if (lens1) lens1.material.opacity = 1.0 * finalOpacity;
+      if (lens2) lens2.material.opacity = 1.0 * finalOpacity;
+      if (fixture1) fixture1.material.opacity = 1.0 * finalOpacity;
+      if (fixture2) fixture2.material.opacity = 1.0 * finalOpacity;
     });
 
     // Canyon light pulse
@@ -5039,11 +4916,9 @@ function updateWebsites(t, time) {
       scene.userData.canyonLight.intensity = (0.5 + Math.sin(time * 1.5) * 0.2) * envOpacity;
     }
   } else {
-    scene.userData.websiteStartTime = undefined;
     if (scene.userData.slabs) {
       scene.userData.slabs.forEach(g => {
-        g.position.y = g.userData.loweredY;
-        g.userData.lastAutoScrollTick = undefined;
+        g.position.y = g.userData.targetY; // Keep physically set at targetY
         g.traverse(child => {
           if (child.isMesh && child.material) {
             child.material.opacity = 0;
@@ -5071,13 +4946,12 @@ function updateWebsites(t, time) {
         f.material.opacity = 0;
       });
     }
-    if (scene.userData.canyonFloor) scene.userData.canyonFloor.material.opacity = 0.9;
-    if (scene.userData.canyonFloorWire) scene.userData.canyonFloorWire.material.opacity = 0.04;
+    if (scene.userData.canyonFloor) scene.userData.canyonFloor.material.opacity = 0.0;
+    if (scene.userData.canyonFloorWire) scene.userData.canyonFloorWire.material.opacity = 0.0;
     if (scene.userData.canyonWalls) {
       scene.userData.canyonWalls.forEach((wall, wi) => {
         if (wall.material) {
-          const isWire = wall.material.wireframe;
-          wall.material.opacity = isWire ? (wi === 1 ? 0.03 : 0.02) : 0.9;
+          wall.material.opacity = 0.0;
         }
       });
     }
@@ -5100,10 +4974,10 @@ function updateCalling(t, time) {
   lastCallingTimeUpdate = now;
 
   const vp = scrollProgress * 13.0;
-  // Calling Zone is active strictly between vp = 4.8 and vp = 6.5
   const inZone = vp >= 4.8 && vp <= 6.5;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(3) > 0.001);
 
-  if (inZone) {
+  if (isTransitioningInOrActive) {
     callingZoneTime += dt;
     callingAutoplayTime += dt;
   } else {
@@ -5113,10 +4987,10 @@ function updateCalling(t, time) {
   }
 
   if (scene.userData.callingGroup) {
-    scene.userData.callingGroup.visible = inZone;
+    scene.userData.callingGroup.visible = getSectionOpacity(3) > 0.001;
   }
 
-  if (inZone && scene.userData.callingScreens) {
+  if (isTransitioningInOrActive && scene.userData.callingScreens) {
     const Z = -290;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
@@ -5137,7 +5011,7 @@ function updateCalling(t, time) {
       let rotY = 0;
       let opacity = 0;
 
-      // ????????? CARD 1: voiceCall (si === 0) ?????????
+      // ─── CARD 1: voiceCall (si === 0) ───
       if (si === 0) {
         if (animTime < 0.4) {
           // Centered & hold
@@ -5162,7 +5036,7 @@ function updateCalling(t, time) {
         }
       }
 
-      // ????????? CARD 2: transcript (si === 1) ?????????
+      // ─── CARD 2: transcript (si === 1) ───
       else if (si === 1) {
         if (animTime < 0.4) {
           // Hidden behind Card 1
@@ -5187,7 +5061,7 @@ function updateCalling(t, time) {
         }
       }
 
-      // ????????? CARD 3: confirmed (si === 2) ?????????
+      // ─── CARD 3: confirmed (si === 2) ───
       else if (si === 2) {
         if (animTime < 0.8) {
           // Hidden behind Card 2
@@ -5219,7 +5093,7 @@ function updateCalling(t, time) {
       // Note: NO scroll-driven movement. No parallax card movement.
       mesh.position.set(posX, posY + floatY, posZ);
       mesh.rotation.y = rotY;
-      const finalOpacity = opacity * entryFade * exitFade;
+      const finalOpacity = opacity * entryFade * exitFade * getSectionOpacity(3);
       mesh.material.opacity = finalOpacity;
       mesh.visible = finalOpacity > 0.001;
 
@@ -5262,8 +5136,13 @@ function updateCalling(t, time) {
 function updateEcosystem(t, time) {
   const vp = scrollProgress * 13.0;
   const inZone = vp >= 12.0;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(5) > 0.001);
 
-  if (inZone) {
+  if (scene.userData.ecosystemGroup) {
+    scene.userData.ecosystemGroup.visible = getSectionOpacity(5) > 0.001;
+  }
+
+  if (isTransitioningInOrActive) {
     // 1. Centerpiece logo fades in first between vp = 12.0 and 12.15
     const logoOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
     
@@ -5272,7 +5151,7 @@ function updateEcosystem(t, time) {
 
     // Update centerpiece logo (junctionMesh) opacity and keep its scale completely stable (increased to 1.75)
     if (scene.userData.junctionMesh && scene.userData.junctionMesh.material) {
-      scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95;
+      scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95 * getSectionOpacity(5);
       scene.userData.junctionMesh.renderOrder = 8; // Render behind orbs, above conduits
       scene.userData.junctionMesh.scale.set(1.75, 1.75, 1.75); // Enlarged to 1.75
     }
@@ -5357,7 +5236,7 @@ function updateEcosystem(t, time) {
         const coreMesh = node.children[0];
         if (coreMesh.material) {
           const baseOp = coreMesh.material.userData.baseOpacity !== undefined ? coreMesh.material.userData.baseOpacity : 1.0;
-          const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
+          const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5);
           coreMesh.material.opacity = baseOp * orbZoneOpacity;
           
           // Balanced highlight on hover
@@ -5396,7 +5275,7 @@ function updateEcosystem(t, time) {
       pts.rotation.z = ecoTime * 0.01;
       if (pts.material) {
         const baseOp = pts.material.userData.baseOpacity !== undefined ? pts.material.userData.baseOpacity : 0.25;
-        const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1); // Fades in with centerpiece logo
+        const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5); // Fades in with centerpiece logo
         pts.material.opacity = baseOp * ptsOpacity;
         pts.material.size = 0.08 * payoff; // scale particle size by payoff
       }
@@ -5429,19 +5308,21 @@ function updateTexting(t, time) {
   if (lastTextingTimeUpdate === 0) {
     lastTextingTimeUpdate = now;
   }
-  const dt = now - lastTextingTimeUpdate;
+  const dt = Math.min(0.1, now - lastTextingTimeUpdate);
   lastTextingTimeUpdate = now;
 
   const vp = scrollProgress * 13.0;
   // Texting zone: active strictly from vp = 8.8 to 10.5
   const inZone = vp >= 8.8 && vp <= 10.5;
 
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(4) > 0.001);
+
   if (scene.userData.textingGroup) {
-    scene.userData.textingGroup.visible = inZone;
+    scene.userData.textingGroup.visible = getSectionOpacity(4) > 0.001;
   }
 
   // Phone enters after camera settles at Section 5 (AI Texting Agents)
-  const startEnteringPhone = inZone && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
+  const startEnteringPhone = isTransitioningInOrActive && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
   let phoneOpacity = 1.0;
   if (vp < 9.1) {
     phoneOpacity = clamp((vp - 8.8) / 0.3, 0, 1);
@@ -5469,7 +5350,7 @@ function updateTexting(t, time) {
 
 
 
-  if (inZone) {
+  if (isTransitioningInOrActive) {
     
     // Main river tube (disabled for visual cleanup)
     if (scene.userData.riverTube) {
@@ -5526,7 +5407,7 @@ function updateTexting(t, time) {
         const floatScale = 1.0 + Math.sin(time * 0.2 + b.userData.phase) * 0.015;
         b.scale.set(entryScale * floatScale, entryScale * floatScale, 1.0);
         
-        const finalOpacity = phoneOpacity * 0.98;
+        const finalOpacity = phoneOpacity * 0.98 * getSectionOpacity(4);
         b.material.opacity = finalOpacity;
         b.visible = finalOpacity > 0.001;
 
@@ -5585,9 +5466,51 @@ function updateTexting(t, time) {
 
 
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-   18. MAIN ANIMATION LOOP
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+const goldCurves = [
+  curveHeroToContent,
+  curveContentToWebsites,
+  curveWebsitesToCalling,
+  curveCallingToTexting,
+  curveTextingToEcosystem
+];
+
+const goldCurveTravelLimits = [
+  1.00, // Hero -> Content (fully travels to end of Segment 1 at Z=-65.5)
+  0.63, // Content -> Website (dismounts halfway along Segment 2 at Z=-195)
+  0.33, // Website -> Calling
+  0.60, // Calling -> Texting
+  0.45  // Texting -> Ecosystem
+];
+
+function getSectionOpacity(idx) {
+  if (sectionTransitionProgress >= 1.0) {
+    return (idx === currentSectionIdx) ? 1.0 : 0.0;
+  }
+  const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+
+  // Website Experiences special case:
+  // When LEAVING section 2 forward, keep it fully visible until phase 3 starts (progress >= 0.8)
+  // so there is no black void between the walkthrough and AI Calling.
+  if (idx === 2 && currentSectionIdx === 2 && targetSectionIdx > 2) {
+    if (progress < 0.8) return 1.0;
+    return Math.max(0, 1.0 - (progress - 0.8) / 0.2);
+  }
+
+  if (idx === currentSectionIdx) {
+    if (progress < 0.2) {
+      return 1.0 - (progress / 0.2);
+    }
+    return 0.0;
+  }
+  if (idx === targetSectionIdx) {
+    if (progress < 0.25) {
+      return 0.0;
+    }
+    // Fade in early during travel phase (progress 0.25 to 0.70) so the destination is the hero
+    return clamp((progress - 0.25) / 0.45, 0.0, 1.0);
+  }
+  return 0.0;
+}
 
 const camTarget  = new THREE.Vector3();
 const lookTarget = new THREE.Vector3();
@@ -5599,17 +5522,33 @@ function animate() {
 
   /* -- Smooth snap transitions -- */
   const nowAnimate = performance.now() / 1000.0;
-  const dt = nowAnimate - lastAnimateTime;
+  const dt = Math.min(0.1, nowAnimate - lastAnimateTime); // Clamp delta time to max 0.1s to handle frame lag/suspend safely
   lastAnimateTime = nowAnimate;
 
+  let progressVal = 1.0;
   if (sectionTransitionProgress < 1.0) {
     transitionTimeElapsed += dt;
-    const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-    const ease = progress * progress * (3 - 2 * progress); // smoothstep
-    scrollProgress = lerp(startScrollProgress, targetScrollProgress, ease);
-    if (progress >= 1.0) {
+    progressVal = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+    
+    // Phase 1 (0.0 to 0.2): Fade out departure. Camera does not move yet.
+    if (progressVal < 0.2) {
+      scrollProgress = startScrollProgress;
+    }
+    // Phase 2 (0.2 to 0.8): Travel. Camera moves along spline using t_travel.
+    else if (progressVal <= 0.8) {
+      const t_travel = (progressVal - 0.2) / 0.6;
+      const ease = t_travel * t_travel * (3 - 2 * t_travel); // smoothstep
+      scrollProgress = lerp(startScrollProgress, targetScrollProgress, ease);
+    }
+    // Phase 3 (0.8 to 1.0): Settle. Camera is at destination.
+    else {
+      scrollProgress = targetScrollProgress;
+    }
+
+    if (progressVal >= 1.0) {
       sectionTransitionProgress = 1.0;
       currentSectionIdx = targetSectionIdx;
+      scrollProgress = targetScrollProgress;
     }
   }
 
@@ -5624,34 +5563,38 @@ function animate() {
     }
   }
   
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-  // SCROLL ??? CAMERA PROGRESS REMAPPING
+  // ═══════════════════════════════════════════════════════════════════
+  // SCROLL → CAMERA PROGRESS REMAPPING
   //
-  // Layout (1200vh total scroll ??? minimal travel gaps):
-  //   s 0.00???0.30 ??? t 0.00???0.40  Hero + Content + Websites     (360vh)
-  //   s 0.30???0.32 ??? t 0.40???0.44  Travel: website ??? calling     ( 24vh ??? minimal)
-  //   s 0.32???0.64 ??? t 0.44???0.615 CALLING AGENTS                (384vh)
-  //   s 0.64???0.67 ??? t 0.615???0.67 Travel: calling ??? texting     ( 36vh ??? 0.5 viewport)
-  //   s 0.67???0.87 ??? t 0.67???0.82  TEXTING AGENTS                (240vh)
-  //   s 0.87???0.89 ??? t 0.82???0.86  Travel: texting ??? ecosystem   ( 24vh ??? minimal)
-  //   s 0.89???1.00 ??? t 0.86???max   ECOSYSTEM                     (132vh)
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+  // Layout (1200vh total scroll — minimal travel gaps):
+  //   s 0.00–0.30 → t 0.00–0.40  Hero + Content + Websites     (360vh)
+  //   s 0.30–0.32 → t 0.40–0.44  Travel: website → calling     ( 24vh — minimal)
+  //   s 0.32–0.64 → t 0.44–0.615 CALLING AGENTS                (384vh)
+  //   s 0.64–0.67 → t 0.615–0.67 Travel: calling → texting     ( 36vh — 0.5 viewport)
+  //   s 0.67–0.87 → t 0.67–0.82  TEXTING AGENTS                (240vh)
+  //   s 0.87–0.89 → t 0.82–0.86  Travel: texting → ecosystem   ( 24vh — minimal)
+  //   s 0.89–1.00 → t 0.86–max   ECOSYSTEM                     (132vh)
+  // ═══════════════════════════════════════════════════════════════════
   const vp = scrollProgress * 13.0;
+  let activeVp = vp;
+  if (isWebsiteScrollMode()) {
+    activeVp = 2.0 + websiteScrollProgress * 1.4; // maps websiteScrollProgress 0..1 to activeVp 2.0..3.4
+  }
   let t = 0;
-  if (vp < 3.0) {
-    t = (vp / 3.0) * 0.38;
-  } else if (vp < 4.0) {
-    t = 0.38 + (vp - 3.0) * 0.10;
-  } else if (vp < 7.0) {
-    t = 0.48 + ((vp - 4.0) / 3.0) * 0.10;
-  } else if (vp < 7.75) {
-    t = 0.58 + ((vp - 7.0) / 0.75) * 0.10;
-  } else if (vp < 11.25) {
-    t = 0.68 + ((vp - 7.75) / 3.5) * 0.12;
-  } else if (vp < 11.75) {
-    t = 0.80 + ((vp - 11.25) / 0.5) * 0.08;
+  if (activeVp < 3.0) {
+    t = (activeVp / 3.0) * 0.38;
+  } else if (activeVp < 4.0) {
+    t = 0.38 + (activeVp - 3.0) * 0.10;
+  } else if (activeVp < 7.0) {
+    t = 0.48 + ((activeVp - 4.0) / 3.0) * 0.10;
+  } else if (activeVp < 7.75) {
+    t = 0.58 + ((activeVp - 7.0) / 0.75) * 0.10;
+  } else if (activeVp < 11.25) {
+    t = 0.68 + ((activeVp - 7.75) / 3.5) * 0.12;
+  } else if (activeVp < 11.75) {
+    t = 0.80 + ((activeVp - 11.25) / 0.5) * 0.08;
   } else {
-    t = 0.88 + clamp((vp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
+    t = 0.88 + clamp((activeVp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
   }
   t = clamp(t, 0, maxSafeT);
 
@@ -5663,140 +5606,288 @@ function animate() {
   mouse.sx = lerp(mouse.sx, mouse.x, 0.04);
   mouse.sy = lerp(mouse.sy, mouse.y, 0.04);
 
-  /* -- Camera along spline -- FORWARD ONLY, no reversals -- */
-  const camPoint = CAM_PATH.getPoint(t);
-  const lookAheadDist = 8.0;
-  const targetLook = LOOK_PATH.getPoint(t);
-  const dist = targetLook.distanceTo(camPoint);
-  let lookPoint;
-  if (dist > 0.001) {
-    const lookDir = new THREE.Vector3().subVectors(targetLook, camPoint).normalize();
-    lookPoint = camPoint.clone().add(lookDir.multiplyScalar(lookAheadDist));
-  } else {
-    lookPoint = targetLook.clone();
+  /* -- Helper for stationary camera state at each section -- */
+  function getStationCamera(sectionIdx, webProgress) {
+    if (sectionIdx === 2) {
+      // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
+      const camZ = lerp(-195.0, -272.0, webProgress);
+      // Non-linear elevation ramp: starting lower (Row 1), eye-level (Row 2), elevated overlook (Row 3)
+      const easeY = Math.pow(webProgress, 1.5);
+      const camY = 1.8 + easeY * 9.5; // Starts at 1.8 and rises up to 11.3 (highest point) for a visible overlooked vantage
+      const pos = new THREE.Vector3(0.0, camY, camZ);
+      // Look target tilts subtly downward over the exhibition as we rise
+      const look = new THREE.Vector3(0.0, camY - easeY * 2.5, camZ - 20.0);
+      return { pos, look };
+    } else {
+      // Normal sections: evaluate CAM_PATH and LOOK_PATH at their fixed station positions
+      const secVp = SECTIONS[sectionIdx].vp;
+      let secT = 0;
+      if (secVp < 3.0) {
+        secT = (secVp / 3.0) * 0.38;
+      } else if (secVp < 4.0) {
+        secT = 0.38 + (secVp - 3.0) * 0.10;
+      } else if (secVp < 7.0) {
+        secT = 0.48 + ((secVp - 4.0) / 3.0) * 0.10;
+      } else if (secVp < 7.75) {
+        secT = 0.58 + ((secVp - 7.0) / 0.75) * 0.10;
+      } else if (secVp < 11.25) {
+        secT = 0.68 + ((secVp - 7.75) / 3.5) * 0.12;
+      } else if (secVp < 11.75) {
+        secT = 0.80 + ((secVp - 11.25) / 0.5) * 0.08;
+      } else {
+        secT = 0.88 + clamp((secVp - 11.75) / 1.25, 0, 1) * (maxSafeT - 0.88);
+      }
+      secT = clamp(secT, 0, maxSafeT);
+      const pos = CAM_PATH.getPoint(secT);
+      const look = LOOK_PATH.getPoint(secT);
+      return { pos, look };
+    }
   }
 
-  // Mouse parallax offset ??? suppressed during transition gaps, and disabled in the ecosystem section
+  // Determine mouse parallax scaling based on location
   const inTunnel = (t >= 0.40 && t <= 0.48);
   const isEcosystem = (t >= 0.82);
   const parallaxScale = isEcosystem ? 0.0 : (inTunnel ? 0.15 : 1.0);
   const parallaxX = mouse.sx * 1.8 * parallaxScale;
   const parallaxY = mouse.sy * 0.8 * parallaxScale;
 
-  camTarget.set(
-    camPoint.x + parallaxX,
-    camPoint.y + parallaxY,
-    camPoint.z
-  );
+  const finalCamTarget = new THREE.Vector3();
+  const finalLookTarget = new THREE.Vector3();
 
-  // Calculate gravitational suction strength envelope peaking at t=0.755
-  const suctionProgress = clamp((t - 0.78) / 0.05, 0, 1);
-  const suctionStrength = Math.sin(suctionProgress * Math.PI); // 0 -> 1 -> 0
+  const fromIdx = currentSectionIdx;
+  const toIdx = targetSectionIdx;
 
-  // Vertigo-like space-time FOV compression (narrowing FOV pulls viewer forward and squashes depth)
-  const fovWarp = 68 - 12 * suctionStrength;
-  if (camera.fov !== fovWarp) {
-    camera.fov = fovWarp;
-    camera.updateProjectionMatrix();
-  }
+  if (sectionTransitionProgress < 1.0) {
+    // ── STATE 1: ROLLER COASTER TRAVEL ──
+    const startState = getStationCamera(fromIdx, fromIdx === 2 ? websiteScrollProgress : 0.0);
+    const endState = getStationCamera(toIdx, toIdx === 2 ? websiteScrollProgress : 0.0);
 
-  // Cinematic lighting pull: ambient light dimming down to simulate gravitational capture
-  if (typeof mainAmbientLight !== 'undefined') {
-    mainAmbientLight.intensity = 1.8 - 1.2 * suctionStrength;
-  }
+    if (progressVal < 0.2) {
+      // Phase 1: Departure hold
+      finalCamTarget.copy(startState.pos);
+      finalLookTarget.copy(startState.look);
+    } else if (progressVal > 0.8) {
+      // Phase 3: Settle hold
+      finalCamTarget.copy(endState.pos);
+      finalLookTarget.copy(endState.look);
+    } else {
+      // Phase 2: Traveling on tube
+      const t_travel = (progressVal - 0.2) / 0.6; // 0..1
+      const minIdx = Math.min(fromIdx, toIdx);
+      const followCurve = goldCurves[minIdx];
+      let limit = goldCurveTravelLimits[minIdx];
+      if (minIdx === 1) {
+        limit = 0.63; // Dismount at Z = -195 (Gallery entry)
+      }
 
-  // Cinematic follow camera logic where the camera acts as a direct rider ON the spline
-  let followActive = false;
-  let followCurve = null;
-  let followProgress = 0.0;
+      let finalCamTargetTube = new THREE.Vector3();
+      let finalLookTargetTube = new THREE.Vector3();
 
-  if (t >= 0.405 && t <= 0.435) {
-    followActive = true;
-    followCurve = curveWebsitesToCalling;
-    const ratio = (t - 0.405) / 0.03;
-    followProgress = ratio * 0.33; // Detaches before entering calling card weaves
-  } else if (t >= 0.585 && t <= 0.655) {
-    followActive = true;
-    followCurve = curveCallingToTexting;
-    const ratio = (t - 0.585) / 0.07;
-    followProgress = ratio * 0.60; // Detaches before wrapping texting phone
-  } else if (t >= 0.805 && t <= 0.855) {
-    followActive = true;
-    followCurve = curveTextingToEcosystem;
-    const ratio = (t - 0.805) / 0.05;
-    followProgress = ratio * 0.45; // Detaches before entering ecosystem showcase
-  }
+      if (toIdx === 2) {
+        // ── 1. PHYSICAL DISMOUNT SEQUENCE (Content → Website) ──
+        // Decelerate travel progress along the tube gradually
+        const t_travel_eased = Math.sin(t_travel * Math.PI / 2);
+        const followProgress = t_travel_eased * limit;
 
-  if (scene.userData.followBlend === undefined) {
-    scene.userData.followBlend = 0.0;
-  }
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
 
-  const dtSafe = Math.min(dt, 0.1);
-  if (followActive) {
-    scene.userData.followBlend = Math.min(1.0, scene.userData.followBlend + dtSafe / 0.6);
-  } else {
-    scene.userData.followBlend = Math.max(0.0, scene.userData.followBlend - dtSafe / 0.6);
-  }
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
+        }
 
-  if (followActive && followCurve) {
-    const pTube = followCurve.getPointAt(followProgress);
-    const tangent = followCurve.getTangentAt(followProgress).normalize();
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
 
-    const upVec = new THREE.Vector3(0, 1, 0);
-    const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
-    const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+        const dismountStart = 0.5; // Dismount starts halfway through the transition
+        if (t_travel > dismountStart) {
+          const dismountT = (t_travel - dismountStart) / (1.0 - dismountStart); // 0..1
+          const easeDismount = dismountT * dismountT * (3 - 2 * dismountT); // smoothstep
 
-    // Subtle Frenet frame banking (2???5?? roll)
-    const bankAngle = clamp(rightVec.y * 0.15, -0.05, 0.05); // 0.05 rad ??? 3 degrees
-    if (Math.abs(bankAngle) > 0.001) {
-      actualUp.applyAxisAngle(tangent, bankAngle);
+          // Camera lifts slightly and drops gently (sine wave offset)
+          const liftOffset = Math.sin(dismountT * Math.PI) * 2.2;
+
+          // Separate camera horizontally to the walkway center (X=0) and settle Y/Z
+          finalCamTarget.lerpVectors(tubeCamPos, endState.pos, easeDismount);
+          finalCamTarget.y += liftOffset;
+
+          finalLookTarget.lerpVectors(tubeLookPos, endState.look, easeDismount);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
+        }
+      } else if (fromIdx === 2 && toIdx === 3) {
+        // ── 2. PHYSICAL BOARDING SEQUENCE (Website → Calling) ──
+        // Start slowly (camera slows), then accelerate along the curve
+        const t_travel_eased = Math.pow(t_travel, 2.5);
+        const followProgress = t_travel_eased * limit;
+
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
+        }
+
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+        const boardEnd = 0.5; // Boarding takes the first 50% of the transition
+        if (t_travel < boardEnd) {
+          const boardT = t_travel / boardEnd; // 0..1
+          const easeBoard = boardT * boardT * (3 - 2 * boardT); // smoothstep
+
+          // Lift above the tube before dropping down to board it
+          const liftOffset = Math.sin(boardT * Math.PI) * 1.8;
+
+          finalCamTarget.lerpVectors(startState.pos, tubeCamPos, easeBoard);
+          finalCamTarget.y += liftOffset;
+
+          finalLookTarget.lerpVectors(startState.look, tubeLookPos, easeBoard);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
+        }
+      } else {
+        // ── 3. STANDARD CURVE TRAVEL (Other transitions) ──
+        let followProgress = 0.0;
+        if (toIdx > fromIdx) {
+          followProgress = t_travel * limit;
+        } else {
+          followProgress = (1.0 - t_travel) * limit;
+        }
+
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
+        }
+
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+        const blendRange = 0.35;
+        if (t_travel < blendRange) {
+          const boardBlend = t_travel / blendRange;
+          const easeBlend = 0.5 * (1.0 - Math.cos(boardBlend * Math.PI));
+          finalCamTarget.copy(startState.pos).lerp(tubeCamPos, easeBlend);
+          finalLookTarget.copy(startState.look).lerp(tubeLookPos, easeBlend);
+        } else if (t_travel > (1.0 - blendRange)) {
+          const dismountBlend = (1.0 - t_travel) / blendRange;
+          const easeBlend = 0.5 * (1.0 - Math.cos(dismountBlend * Math.PI));
+          finalCamTarget.copy(endState.pos).lerp(tubeCamPos, easeBlend);
+          finalLookTarget.copy(endState.look).lerp(tubeLookPos, easeBlend);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
+        }
+      }
     }
 
-    // Direct rider positioning: +0.20 units vertically above the tube surface
-    const followCamPos = pTube.clone().addScaledVector(actualUp, 0.20);
+    // TRAVELING: always use lerp
+    finalCamTarget.x += parallaxX;
+    finalCamTarget.y += parallaxY;
+    finalLookTarget.x += parallaxX * 0.3;
+    finalLookTarget.y += parallaxY * 0.3;
+    camera.position.lerp(finalCamTarget, 0.12);
+    lookTarget.lerp(finalLookTarget, 0.12);
+    camera.lookAt(lookTarget);
 
-    // Look ahead 4.5 units along the travel path (lookAt target)
-    const followLookTarget = pTube.clone()
-      .addScaledVector(tangent, 4.5)
-      .addScaledVector(actualUp, 0.20);
+  } else {
+    // ── STATE 2 & 3: PARKED / STATIONARY ──
+    scene.userData.followBlend = 0.0;
+    const currentState = getStationCamera(currentSectionIdx, currentSectionIdx === 2 ? websiteScrollProgress : 0.0);
+    finalCamTarget.copy(currentState.pos);
+    finalLookTarget.copy(currentState.look);
 
-    scene.userData.followCamPos = followCamPos;
-    scene.userData.followLookTarget = followLookTarget;
+    if (currentSectionIdx === 2) {
+      // ── WEBSITE EXPERIENCES EXHIBITION MODE ──
+      // Camera is exclusively owned here. Smooth lerp so progress changes glide.
+      finalCamTarget.x += parallaxX;
+      finalCamTarget.y += parallaxY;
+      finalLookTarget.x += parallaxX * 0.3;
+      finalLookTarget.y += parallaxY * 0.3;
+      // Lerp at ~0.08 per frame for a gentle glide — progress changes are already smoothed
+      camera.position.lerp(finalCamTarget, 0.08);
+      lookTarget.lerp(finalLookTarget, 0.08);
+      camera.lookAt(lookTarget);
+    } else {
+      // ── ALL OTHER PARKED SECTIONS ──
+      finalCamTarget.x += parallaxX;
+      finalCamTarget.y += parallaxY;
+      finalLookTarget.x += parallaxX * 0.3;
+      finalLookTarget.y += parallaxY * 0.3;
+      camera.position.lerp(finalCamTarget, 0.12);
+      lookTarget.lerp(finalLookTarget, 0.12);
+      camera.lookAt(lookTarget);
+    }
   }
-
-  const targetLookFinal = new THREE.Vector3(lookPoint.x + parallaxX * 0.3, lookPoint.y, lookPoint.z);
-
-  let finalCamTarget = camTarget.clone();
-  let finalLookTarget = targetLookFinal.clone();
-
-  if (scene.userData.followBlend > 0.001 && scene.userData.followCamPos && scene.userData.followLookTarget) {
-    const easeBlend = 0.5 * (1 - Math.cos(scene.userData.followBlend * Math.PI));
-    finalCamTarget.lerp(scene.userData.followCamPos, easeBlend);
-    finalLookTarget.lerp(scene.userData.followLookTarget, easeBlend);
-  }
-
-  camera.position.lerp(finalCamTarget, 0.12);
-  lookTarget.lerp(finalLookTarget, 0.12);
-  camera.lookAt(lookTarget);
 
   /* -- Zone updates -- */
   updateContent(t, time, dt);
-  
-  updateWebsites(t, time);
+
+  // ── WEBSITE EXPERIENCES SCROLL MODE ──
+  // Only tick and render websites when section 2 is active (parked OR transitioning).
+  // This prevents website geometry from receiving conflicting updates during other sections.
+  const websiteIsActive = (currentSectionIdx === 2 || targetSectionIdx === 2);
+  if (websiteIsActive) {
+    if (isWebsiteScrollMode()) {
+      // Parked at section 2: use spring-scroll controlled vp
+      tickWebsiteScroll(dt);
+      updateWebsites(t, time, activeVp);
+    } else {
+      // Transitioning to/from section 2: website visible but scroll frozen
+      updateWebsites(t, time, activeVp);
+    }
+  } else {
+    // Fully outside website section: ensure scroll state is clean
+    if (currentSectionIdx > 2) {
+      if (websiteScrollProgress !== 1.0) {
+        websiteScrollProgress = 1.0;
+        websiteScrollTarget   = 1.0;
+        websiteScrollVelocity = 0;
+        websiteSpringVelocity = 0;
+      }
+    } else if (currentSectionIdx < 2) {
+      if (websiteScrollProgress !== 0.0) {
+        websiteScrollProgress = 0.0;
+        websiteScrollTarget   = 0.0;
+        websiteScrollVelocity = 0;
+        websiteSpringVelocity = 0;
+      }
+    }
+    // Still update websites for opacity fade-out to complete cleanly
+    updateWebsites(t, time);
+  }
   updateCalling(t, time);
   updateTexting(t, time);
   updateEcosystem(t, time);
 
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+  // ═══════════════════════════════════════════
   // PROGRESSIVE LIQUID GOLD GUIDE STREAM GENERATION (REAL-TIME SCROLL REVEAL)
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════
   // PROGRESSIVE LIQUID GOLD GUIDE STREAMS GENERATION (SECTION-OWNED STREAMS)
-  // ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+  // ═══════════════════════════════════════════
   // vp is already defined above in animate() scope
 
-  // 1. Dual-Mesh Gold Stream Progression (completed permanent road + active growing road)
-  // 1. Dual-Mesh Gold Stream Progression (completed permanent road + active growing road using independent segment meshes)
+  // ── PROGRESSIVE LIQUID GOLD GUIDE STREAMS GENERATION (SECTION-OWNED STREAMS) ──
   if (goldMeshes && goldMeshes.length === 5) {
     let fromIdx = currentSectionIdx;
     let toIdx = targetSectionIdx;
@@ -5818,60 +5909,79 @@ function animate() {
       }
     } else {
       // Transitioning
-      const transProgress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-      const progressRatio = (toIdx > fromIdx) ? transProgress : (1.0 - transProgress);
-
-      const A = minIdx; // Lower section index in transition
-
-      for (let i = 0; i < 5; i++) {
-        if (i < A - 1) {
-          segmentProgresses[i] = 1.0;
-        } else if (i > A) {
-          segmentProgresses[i] = 0.0;
-        } else {
-          // Zone of active transition: Segment A-1 and Segment A
-          if (i === A - 1) {
-            // Segment A-1 grows from its cutoff up to 1.0
-            if (progressRatio < 0.3) {
-              segmentProgresses[i] = SEGMENT_CUTOFFS[i] + (progressRatio / 0.3) * (1.0 - SEGMENT_CUTOFFS[i]);
+      const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+      if (progress < 0.2) {
+        // Phase 1: departure fades out. Tube is still at departure parked state
+        for (let i = 0; i < 5; i++) {
+          segmentProgresses[i] = getParkedSegmentProgress(fromIdx, i, callingAutoplayTime, textingAutoplayTime);
+        }
+      } else if (progress > 0.8) {
+        // Phase 3: destination fades in. Tube is at destination parked state
+        for (let i = 0; i < 5; i++) {
+          segmentProgresses[i] = getParkedSegmentProgress(toIdx, i, callingAutoplayTime, textingAutoplayTime);
+        }
+      } else {
+        // Phase 2: active travel along curveIdx
+        const curveIdx = minIdx;
+        const t_travel = (progress - 0.2) / 0.6;
+        for (let i = 0; i < 5; i++) {
+          if (i < curveIdx) {
+            segmentProgresses[i] = 1.0;
+          } else if (i > curveIdx) {
+            segmentProgresses[i] = 0.0;
+          } else {
+            // Active segment: grows ahead of the camera's travel progress so the rail is already aligned when camera arrives
+            if (toIdx > fromIdx) {
+              segmentProgresses[i] = clamp(t_travel * 1.35, 0.0, 1.0);
             } else {
-              segmentProgresses[i] = 1.0;
-            }
-          } else if (i === A) {
-            // Segment A grows from 0.0 to its target cutoff/weave progress
-            const targetCutoff = getParkedSegmentProgress(A + 1, i, callingAutoplayTime, textingAutoplayTime);
-            if (A === 0) {
-              // From Hero to Content: grow Segment 1 over the full transition
-              segmentProgresses[i] = progressRatio * targetCutoff;
-            } else {
-              // Other transitions: grow Segment i over the second phase (0.3 to 1.0)
-              if (progressRatio < 0.3) {
-                segmentProgresses[i] = 0.0;
-              } else {
-                segmentProgresses[i] = ((progressRatio - 0.3) / 0.7) * targetCutoff;
-              }
+              segmentProgresses[i] = clamp(1.0 - (1.0 - t_travel) * 1.35, 0.0, 1.0);
             }
           }
         }
       }
     }
 
-    // Master opacity envelope matching the main scroll journey
-    let masterOpacity = clamp(vp / 0.5, 0.0, 1.0);
-    if (vp > 12.8) {
-      masterOpacity *= clamp((13.5 - vp) / 0.7, 0.0, 1.0);
+    // Master opacity envelope matching the snap transition phases.
+    // The gold tube is ALWAYS visible during travel and parked at sections 2, 3, 4, 5.
+    // It is only invisible when parked at sections 0 (Hero) or 1 (Content).
+    let goldTubeMasterOpacity = 0.0;
+    if (sectionTransitionProgress >= 1.0) {
+      // Parked: tube visible for Website Experiences + all downstream sections
+      goldTubeMasterOpacity = (currentSectionIdx >= 2) ? 1.0 : 0.0;
+    } else {
+      // Transitioning
+      const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
+      // Both source and destination are downstream (idx >= 2): keep tube fully visible
+      const bothDownstream = (currentSectionIdx >= 2 && targetSectionIdx >= 2);
+      if (bothDownstream) {
+        goldTubeMasterOpacity = 1.0;
+      } else if (progress < 0.2) {
+        goldTubeMasterOpacity = 0.0;
+      } else if (progress >= 0.2 && progress < 0.35) {
+        goldTubeMasterOpacity = (progress - 0.2) / 0.15; // Fade in
+      } else if (progress >= 0.35 && progress <= 0.65) {
+        goldTubeMasterOpacity = 1.0;
+      } else if (progress > 0.65 && progress <= 0.8) {
+        if (targetSectionIdx >= 2) {
+          goldTubeMasterOpacity = 1.0; // Stays visible for Website+ sections
+        } else {
+          goldTubeMasterOpacity = (0.8 - progress) / 0.15; // Fade out
+        }
+      } else {
+        goldTubeMasterOpacity = (targetSectionIdx >= 2) ? 1.0 : 0.0;
+      }
     }
 
     // Update each of the 5 segment meshes
     for (let i = 0; i < 5; i++) {
       const mesh = goldMeshes[i];
       mesh.material.uniforms.time.value = time;
-      mesh.material.uniforms.opacity.value = masterOpacity;
+      mesh.material.uniforms.opacity.value = goldTubeMasterOpacity;
 
-      const progress = segmentProgresses[i];
-      mesh.material.uniforms.progress.value = progress;
+      const progressVal = segmentProgresses[i];
+      mesh.material.uniforms.progress.value = progressVal;
 
-      if (progress > 0.001) {
+      if (progressVal > 0.001) {
         mesh.visible = true;
       } else {
         mesh.visible = false;
@@ -5914,6 +6024,8 @@ function animate() {
         // Disappear once ecosystem section ends (CTA phase)
         branchOpacity *= clamp((13.5 - vp) / 0.7, 0.0, 1.0);
       }
+      branchOpacity *= getSectionOpacity(5); // Apply transition fade
+      
       branchTLMesh.material.uniforms.opacity.value = branchOpacity;
       branchTRMesh.material.uniforms.opacity.value = branchOpacity;
       branchBLMesh.material.uniforms.opacity.value = branchOpacity;
@@ -5932,7 +6044,18 @@ function animate() {
   }
 
   /* -- Void particles drift -- */
-  scene.userData.heroRing && (scene.userData.heroRing.rotation.z = time * 0.03);
+  const heroOpacityVal = getSectionOpacity(0);
+  if (scene.userData.heroRing) {
+    scene.userData.heroRing.visible = heroOpacityVal > 0.001;
+    if (scene.userData.heroRing.visible && scene.userData.heroRing.material) {
+      scene.userData.heroRing.rotation.z = time * 0.03;
+      scene.userData.heroRing.material.transparent = true;
+      if (scene.userData.heroRing.material.userData.baseOpacity === undefined) {
+        scene.userData.heroRing.material.userData.baseOpacity = scene.userData.heroRing.material.opacity;
+      }
+      scene.userData.heroRing.material.opacity = scene.userData.heroRing.material.userData.baseOpacity * heroOpacityVal;
+    }
+  }
 
   if (voidGeo) {
     const posAttr = voidGeo.getAttribute('position');
@@ -5989,12 +6112,22 @@ function animate() {
   // Centralized scroll instruction manager
   const scrollInstruction = document.getElementById('scroll-instruction');
   if (scrollInstruction) {
-    if (currentSectionIdx === 3 && callingAutoplayTime >= 2.8) {
-      scrollInstruction.textContent = "Continue Scrolling";
-      scrollInstruction.style.opacity = '1';
-    } else if (currentSectionIdx === 4 && textingAutoplayTime >= 4.0) {
-      scrollInstruction.textContent = "Continue Scrolling";
-      scrollInstruction.style.opacity = '1';
+    if (currentSectionIdx === 3) {
+      if (callingAutoplayTime < 2.8) {
+        scrollInstruction.textContent = "Scroll resumes automatically after the interaction.";
+        scrollInstruction.style.opacity = '0.5';
+      } else {
+        scrollInstruction.textContent = "Continue Scrolling";
+        scrollInstruction.style.opacity = '1';
+      }
+    } else if (currentSectionIdx === 4) {
+      if (textingAutoplayTime < 12.0) {
+        scrollInstruction.textContent = "Finish exploring this conversation to continue scrolling.";
+        scrollInstruction.style.opacity = '0.5';
+      } else {
+        scrollInstruction.textContent = "Continue Scrolling";
+        scrollInstruction.style.opacity = '1';
+      }
     } else {
       scrollInstruction.style.opacity = '0';
     }
@@ -6006,9 +6139,8 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-/* ?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+/* ═══════════════════════════════════════════
    19. START
-   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? */
+   ═══════════════════════════════════════════ */
 document.getElementById('scroll-driver').style.height = '1400vh';
 animate();
-
