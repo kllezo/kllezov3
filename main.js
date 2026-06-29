@@ -89,6 +89,12 @@ const SECTIONS = [
 ];
 
 function isSectionLocked(idx) {
+  // WEBSITE_EXPLORE is a one-way locked state. While parked at section 2
+  // and the transition is complete, NO section transition may fire backward.
+  // The only valid exit is forward (to Calling) after completing the walkthrough.
+  if (idx === 2 && sectionTransitionProgress >= 1.0) {
+    return true; // locked inside — exit only via tickWebsiteScroll forward trigger
+  }
   if (idx === 3) { // AI Calling Agents
     return callingAutoplayTime < 2.8;
   }
@@ -2269,25 +2275,22 @@ function tickWebsiteScroll(dt) {
   websiteScrollTarget += websiteScrollVelocity * dt;
   websiteScrollVelocity *= Math.pow(0.05, dt); // exponential friction — quick stop
 
-  // Clamp target within legal range
-  if (websiteScrollTarget < 0)   websiteScrollTarget = 0;
-  if (websiteScrollTarget > 1.3) websiteScrollTarget = 1.3; // 1.0 = exit, 1.3 gives exit threshold
+  // ── ONE-WAY LOCK ──
+  // Target is clamped to [0, 1.3]. It can NEVER go below 0.
+  // This ensures the user can never accidentally scroll back to Content Engine.
+  // WEBSITE_EXPLORE is a locked state — exit is only forward.
+  if (websiteScrollTarget < 0) {
+    websiteScrollTarget  = 0;
+    websiteScrollVelocity = 0; // kill negative momentum completely
+  }
+  if (websiteScrollTarget > 1.3) websiteScrollTarget = 1.3;
 
-  // Trigger exit when target exceeds 1.0
+  // Forward exit: only when user has fully walked through the entire exhibition
   if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.95) {
-    websiteScrollTarget  = 1.0;
-    websiteScrollProgress = 1.0;
+    websiteScrollTarget   = 0.0; // reset for re-entry if user comes back
+    websiteScrollProgress = 0.0;
     websiteScrollVelocity = 0;
     triggerSectionTransition(currentSectionIdx + 1);
-    return;
-  }
-
-  // Trigger reverse exit when target goes below 0
-  if (websiteScrollTarget <= 0 && websiteScrollProgress <= 0.05) {
-    websiteScrollTarget  = 0;
-    websiteScrollProgress = 0;
-    websiteScrollVelocity = 0;
-    triggerSectionTransition(currentSectionIdx - 1);
     return;
   }
 
