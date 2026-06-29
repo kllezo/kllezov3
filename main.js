@@ -1760,11 +1760,11 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     // ── SCREEN CLIPPING: enforce curved edges of the phone display ──
     ctx.save();
     ctx.beginPath();
-    const screenX = destX + 12;
-    const screenY = destY + 12;
-    const screenW = destW - 24;
-    const screenH = destH - 24;
-    const screenR = 40;
+    const screenX = destX + 6;
+    const screenY = destY + 6;
+    const screenW = destW - 12;
+    const screenH = destH - 12;
+    const screenR = 25; // Slightly reduced curvature for a natural fit
     ctx.moveTo(screenX + screenR, screenY);
     ctx.arcTo(screenX + screenW, screenY,            screenX + screenW, screenY + screenH, screenR);
     ctx.arcTo(screenX + screenW, screenY + screenH,  screenX,           screenY + screenH, screenR);
@@ -1899,22 +1899,22 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     });
 
     // Chat area dimensions
-    let activeMinY = destY + 135;
-    let activeMaxY = destY + destH - 125; // Raised bottom limit to respect input bar and padding
-    let activeW = destW - 64;             // 32px screen margin padding on left/right (was 16px)
-    let activeX = destX + 32;
+    let activeMinY = destY + 125;
+    let activeMaxY = destY + destH - 110; // Raised bottom limit to respect input bar and padding
+    let activeW = destW - 48;             // 24px screen margin padding on left/right for wider layout
+    let activeX = destX + 24;
 
     if (websiteUiOpacity > 0.001) {
-      activeMinY = lerp(destY + 135, destY + 175, websiteUiOpacity);
-      activeMaxY = lerp(destY + destH - 125, destY + destH - 140, websiteUiOpacity);
-      activeW = lerp(destW - 64, destW - 80, websiteUiOpacity);
-      activeX = lerp(destX + 32, destX + 40, websiteUiOpacity);
+      activeMinY = lerp(destY + 125, destY + 165, websiteUiOpacity);
+      activeMaxY = lerp(destY + destH - 110, destY + destH - 130, websiteUiOpacity);
+      activeW = lerp(destW - 48, destW - 64, websiteUiOpacity);
+      activeX = lerp(destX + 24, destX + 32, websiteUiOpacity);
     }
 
-    const chatContentMinY = activeMinY + 16;
-    const chatContentMaxY = activeMaxY - 16;
+    const chatContentMinY = activeMinY + 10;
+    const chatContentMaxY = activeMaxY - 10;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
-    const maxBubbleWidth = 230;            // Reduced bubble width to match real messaging look and prevent bezel clip
+    const maxBubbleWidth = 270;            // Increased bubble width for realistic responsive message bubbles
 
     let bubblesToDraw = [];
     let totalHeight = 0;
@@ -2159,7 +2159,7 @@ const lightContent = new THREE.PointLight(0xffffff, 1.0, 150);
 lightContent.position.set(0, 8, -90);
 scene.add(lightContent);
 
-const lightWebsites = new THREE.PointLight(0xFFD27D, 1.35, 150); // Increased intensity by 12.5% for improved readability
+const lightWebsites = new THREE.PointLight(0xFFD27D, 1.5, 150); // Increased intensity by 10% for improved ambient visibility
 lightWebsites.position.set(0, 5, -220);
 scene.add(lightWebsites);
 
@@ -2321,8 +2321,8 @@ function handleWheelGesture(e) {
     let delta = e.deltaY;
     if (e.deltaMode === 1) delta *= 30; // line units → pixel-like
     if (e.deltaMode === 2) delta *= 300; // page units → pixel-like
-    // Add to velocity (scale so a comfortable scroll = 0.18 progress units/scroll)
-    const velocityAdd = (delta / 300) * 1.2;
+    // Add to velocity (scale for a premium 5-7 comfortable scroll experience)
+    const velocityAdd = (delta / 300) * 0.55;
     websiteScrollVelocity += velocityAdd;
     // Clamp peak velocity to avoid overshooting on fast flings
     websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
@@ -2359,7 +2359,7 @@ window.addEventListener('touchmove', e => {
 
   // Website Experiences: continuous inertial touch
   if (isWebsiteScrollMode()) {
-    const velocityAdd = (deltaY / 300) * 1.2;
+    const velocityAdd = (deltaY / 300) * 0.55;
     websiteScrollVelocity += velocityAdd;
     websiteScrollVelocity = Math.max(-3.0, Math.min(3.0, websiteScrollVelocity));
     touchStartY = touchEndY; // reset so subsequent moves add delta, not total
@@ -2726,15 +2726,15 @@ function updateMeshGeometry(mesh, newGeom) {
 }
 
 // Points for Segment 1: Hero to Content Engine
-// TRANSLATED: dx=+3.5 to shift the entire spline rightward into the corridor center
+// Redesigned to swoop left initially towards Content Engine
 const ptsHeroToContent = [
-  new THREE.Vector3(11.5,  -8.5, -30),
-  new THREE.Vector3(13.5,  -8.7, -38),
-  new THREE.Vector3(15.5,  -9.3, -46),
-  new THREE.Vector3(14.5, -10.0, -54),
-  new THREE.Vector3(12.5, -10.5, -62),
-  new THREE.Vector3(11.5, -11.0, -70),
-  new THREE.Vector3(12.5, -10.5, -78),
+  new THREE.Vector3(-4.5,  -8.5, -30),
+  new THREE.Vector3(-8.5,  -8.7, -38),
+  new THREE.Vector3(-11.5,  -9.3, -46),
+  new THREE.Vector3(-10.5, -10.0, -54),
+  new THREE.Vector3(-6.5, -10.5, -62),
+  new THREE.Vector3(1.5, -11.0, -70),
+  new THREE.Vector3(8.5, -10.5, -78),
   new THREE.Vector3(14.5, -10.0, -86),
   new THREE.Vector3(16.5, -10.5, -94),
   new THREE.Vector3(15.5, -11.5, -100),
@@ -2749,7 +2749,7 @@ const ptsHeroToContent = [
 ];
 
 // Points for Segment 2: Content Engine to Website Experiences
-// TRANSLATED: dx=+3.5 to shift the entire spline rightward into the corridor center
+// Aligned at the end to exit exactly in the center (x=0) under the camera for seamless boarding
 const ptsContentToWebsites = [
   new THREE.Vector3(11.5,  -10.0, -155),       // Connected to Segment 1 end
   new THREE.Vector3(8.5,   -6.0, -162),
@@ -2763,17 +2763,21 @@ const ptsContentToWebsites = [
   new THREE.Vector3(4.5,    4.0, -240),        // Corridor
   new THREE.Vector3(2.5,    3.0, -250),        // Corridor
   new THREE.Vector3(1.5,    2.5, -258),        // Corridor
-  new THREE.Vector3(2.5,    2.8, -266)         // Connects to Segment 3 at x=2.5
+  new THREE.Vector3(0.0,    4.5, -266),        // Alignment towards center
+  new THREE.Vector3(0.0,    5.7, -272)         // Connects to Segment 3 right in center under the exit
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
+// Starts right in the center (x=0) under the camera exit for zero-jump boarding
 const ptsWebsitesToCalling = [
-  new THREE.Vector3(2.5, 2.8, -266),     // Connects to Segment 2 end in the corridor
-  new THREE.Vector3(-1, 2.5, -271),
-  new THREE.Vector3(-6, 2.2, -276),
-  new THREE.Vector3(-12, 1.8, -281),
-  new THREE.Vector3(-18, 1.5, -296),     // Entry of Calling weave on the left
-  new THREE.Vector3(-15, 4.5, -296),
+  new THREE.Vector3(0.0, 5.7, -272),     // Connects directly under the exit at x=0
+  new THREE.Vector3(-1.0, 5.0, -273.5),
+  new THREE.Vector3(-3.0, 4.2, -274.5),
+  new THREE.Vector3(-6.0, 3.5, -275.0),
+  new THREE.Vector3(-10.0, 2.5, -275.5),
+  new THREE.Vector3(-14.0, 2.0, -285.0),  // Swoop to Calling weave entry
+  new THREE.Vector3(-18.0, 1.5, -296),    // Entry of Calling weave on the left
+  new THREE.Vector3(-15.0, 4.5, -296),
   new THREE.Vector3(-10.5, 2.0, -298),
   new THREE.Vector3(-5.25, 7.5, -296),
   new THREE.Vector3(0.0, 2.0, -298),
@@ -3521,19 +3525,27 @@ function createLightBeam(spotPos, targetPos, color) {
 
 function createContactShadowTexture() {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 64;
+  canvas.width = 512;
+  canvas.height = 128;
   const ctx = canvas.getContext('2d');
   
-  ctx.clearRect(0, 0, 256, 64);
+  ctx.clearRect(0, 0, 512, 128);
   
-  // Soft rectangular/elliptical contact shadow gradient
-  const grad = ctx.createRadialGradient(128, 32, 0, 128, 32, 120);
-  grad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
-  grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.65)');
+  ctx.save();
+  ctx.translate(256, 64);
+  ctx.scale(4.0, 1.0); // stretch radial gradient to fit width
+  
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.95)');
+  grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.8)');
+  grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 64);
+  
+  ctx.beginPath();
+  ctx.arc(0, 0, 60, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
   
   const texture = new THREE.CanvasTexture(canvas);
   return texture;
@@ -3543,19 +3555,19 @@ function createContactShadowTexture() {
 
   const slabDefs = [
     // Website 1: Michelin Restaurant (Nara Omakase) — NO STAND (ground mounted)
-    { x: -14.2, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    { x: -12.5, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     // Website 2: Luxury Real Estate (Aurelia) — NO STAND (ground mounted)
-    { x: 14.2, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    { x: 12.5, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     
     // Website 3: Luxury Fitness (Apex Performance Lab) — SHORT STAND (185%)
-    { x: -16.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    { x: -14.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     // Website 4: Premium Automotive (Verta GT) — SHORT STAND (185%)
-    { x: 16.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    { x: 14.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     
     // Website 5: Longevity / Medical (Elevate) — FULL STAND (375%)
-    { x: -14.2, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
+    { x: -12.5, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
     // Website 6: Premium SaaS / AI (Kllezo Automate) — FULL STAND (375%)
-    { x: 14.2, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
+    { x: 12.5, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3711,13 +3723,13 @@ function createContactShadowTexture() {
     const shadowMat = new THREE.MeshBasicMaterial({
       map: createContactShadowTexture(),
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.85,
       depthWrite: false,
       blending: THREE.NormalBlending
     });
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     shadowMesh.name = 'shadow';
-    shadowMesh.userData.baseOpacity = 0.5;
+    shadowMesh.userData.baseOpacity = 0.85;
     shadowMesh.position.set(0, -d.h / 2 - d.poleHeight + 0.02, 0);
     shadowMesh.rotation.x = -Math.PI / 2;
     group.add(shadowMesh);
@@ -4809,16 +4821,14 @@ function updateWebsites(t, time, vpOverride) {
       const relZ = camera.position.z - d.z;
       let scrollPct = clamp((startDist - relZ) / (startDist - endDist), 0.0, 1.0);
 
-      // Per-billboard proximity weight — closest billboard scrolls most
-      const proximityWeight = clamp(1.0 - distanceZ / 45.0, 0.25, 1.0);
-
       const easeScrollPct = scrollPct * scrollPct * (3 - 2 * scrollPct); // smoothstep
       g.userData.scrollPct = easeScrollPct;
       if (g.userData.webTexture && g.userData.repeatY !== undefined) {
         const maxOffset = 1.0 - g.userData.repeatY;
         // Mouse adds a tiny vertical peek offset inside this billboard
-        const mouseScrollInfluence = mouse.sy * 0.015 * proximityWeight;
-        const baseOffset = maxOffset * (1.0 - easeScrollPct * proximityWeight);
+        const mouseScrollInfluence = mouse.sy * 0.015;
+        // Ensure smooth, forward-only scrolling that fully spans the page
+        const baseOffset = maxOffset * (1.0 - easeScrollPct);
         g.userData.webTexture.offset.y = clamp(baseOffset + mouseScrollInfluence, 0.0, maxOffset);
         g.userData.webTexture.needsUpdate = true;
       }
