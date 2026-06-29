@@ -3614,6 +3614,7 @@ function createLightBeam(spotPos, targetPos, color) {
       new THREE.PlaneGeometry(planeW, planeH),
       webMat
     );
+    webMesh.name = 'screen';
     webMesh.userData.baseOpacity = 1.0;
     webMesh.position.set(0, -0.3, d.d / 2 + 0.03);
     group.add(webMesh);
@@ -4772,6 +4773,12 @@ function updateWebsites(t, time, vpOverride) {
           child.material.transparent = true;
           const baseOpacity = child.userData.baseOpacity !== undefined ? child.userData.baseOpacity : 1.0;
           child.material.opacity = baseOpacity * finalOpacity;
+
+          // Micro-depth parallax on the website screen mesh (Apple Vision Pro inspired 3D layered look)
+          if (child.name === 'screen') {
+            child.position.x = mouse.sx * 0.12;
+            child.position.y = -0.3 + mouse.sy * 0.12;
+          }
         }
       });
 
@@ -5530,9 +5537,11 @@ function animate() {
     if (sectionIdx === 2) {
       // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
       const camZ = lerp(-195.0, -272.0, webProgress);
-      const camY = 1.2 + webProgress * 8.0; // gentle architectural ramp
+      // Non-linear elevation ramp: starting lower (Row 1), eye-level (Row 2), elevated overlook (Row 3)
+      const easeY = Math.pow(webProgress, 1.5);
+      const camY = 1.2 + easeY * 8.0;
       const pos = new THREE.Vector3(0.0, camY, camZ);
-      const look = new THREE.Vector3(0.0, camY + webProgress * 2.0, camZ - 20.0); // look slightly upward as we rise
+      const look = new THREE.Vector3(0.0, camY + easeY * 2.0, camZ - 20.0); // look slightly upward as we rise
       return { pos, look };
     } else {
       // Normal sections: evaluate CAM_PATH and LOOK_PATH at their fixed station positions
@@ -5619,26 +5628,27 @@ function animate() {
       const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
       const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
 
-      // Blend boarding (starts Phase 2) and dismounting (ends Phase 2)
-      if (t_travel < 0.2) {
-        const boardBlend = t_travel / 0.2;
+      // Extended transition boarding/dismounting blend ranges (35% of travel) for deliberate moving walkway dismount/boarding feel
+      const blendRange = 0.35;
+      if (t_travel < blendRange) {
+        const boardBlend = t_travel / blendRange;
         const easeBlend = 0.5 * (1.0 - Math.cos(boardBlend * Math.PI));
         finalCamTarget.copy(startState.pos).lerp(tubeCamPos, easeBlend);
         finalLookTarget.copy(startState.look).lerp(tubeLookPos, easeBlend);
 
         if (fromIdx === 2) {
-          // Boarding from Website Exhibition: lift camera vertically above tube
+          // Boarding: lift camera vertically above tube
           const liftOffset = Math.sin(boardBlend * Math.PI) * 1.5;
           finalCamTarget.y += liftOffset;
         }
-      } else if (t_travel > 0.8) {
-        const dismountBlend = (1.0 - t_travel) / 0.2;
+      } else if (t_travel > (1.0 - blendRange)) {
+        const dismountBlend = (1.0 - t_travel) / blendRange;
         const easeBlend = 0.5 * (1.0 - Math.cos(dismountBlend * Math.PI));
         finalCamTarget.copy(endState.pos).lerp(tubeCamPos, easeBlend);
         finalLookTarget.copy(endState.look).lerp(tubeLookPos, easeBlend);
 
         if (toIdx === 2) {
-          // Dismounting to Website Exhibition: lift camera above tube then drop gently onto ramp
+          // Dismounting: lift camera above tube then drop gently onto ramp
           const liftOffset = Math.sin((1.0 - dismountBlend) * Math.PI) * 1.5;
           finalCamTarget.y += liftOffset;
         }
