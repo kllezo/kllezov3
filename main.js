@@ -17,11 +17,11 @@
 /* ═══════════════════════════════════════════
    HELPERS
    ═══════════════════════════════════════════ */
-const lerp  = (a, b, t) => a + (b - a) * t;
+const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const rand  = (lo, hi) => lo + Math.random() * (hi - lo);
-const PI    = Math.PI;
-const TAU   = PI * 2;
+const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+const PI = Math.PI;
+const TAU = PI * 2;
 
 function alignCylinder(cylinder, pointA, pointB) {
   const direction = new THREE.Vector3().subVectors(pointB, pointA);
@@ -80,12 +80,12 @@ const GESTURE_COOLDOWN = 1400; // cooldown in ms
 let lastAnimateTime = performance.now() / 1000.0;
 
 const SECTIONS = [
-  { name: 'Kllezo Hero',          vp: 0.0 },
-  { name: 'Content Creation',     vp: 0.7 },
-  { name: 'Website Experiences',  vp: 2.0 },
-  { name: 'AI Calling Agents',    vp: 5.0 },
-  { name: 'AI Texting Agents',    vp: 9.0 },
-  { name: 'Kllezo Ecosystem',     vp: 13.0 }
+  { name: 'Kllezo Hero', vp: 0.0 },
+  { name: 'Content Creation', vp: 0.7 },
+  { name: 'Website Experiences', vp: 2.0 },
+  { name: 'AI Calling Agents', vp: 5.0 },
+  { name: 'AI Texting Agents', vp: 9.0 },
+  { name: 'Kllezo Ecosystem', vp: 13.0 }
 ];
 
 function isSectionLocked(idx) {
@@ -112,11 +112,11 @@ function triggerSectionTransition(nextIdx) {
   if (nextIdx === 2) {
     if (currentSectionIdx < 2) {
       websiteScrollProgress = 0.0;
-      websiteScrollTarget   = 0.0;
+      websiteScrollTarget = 0.0;
       websiteScrollVelocity = 0;
     } else if (currentSectionIdx > 2) {
       websiteScrollProgress = 1.0;
-      websiteScrollTarget   = 1.0;
+      websiteScrollTarget = 1.0;
       websiteScrollVelocity = 0;
     }
   }
@@ -133,7 +133,7 @@ function triggerSectionTransition(nextIdx) {
 /* ═══════════════════════════════════════════
    1. RENDERER SETUP
    ═══════════════════════════════════════════ */
-const canvas   = document.getElementById('universe');
+const canvas = document.getElementById('universe');
 const renderer = new THREE.WebGLRenderer({
   canvas,
   antialias: true,
@@ -142,12 +142,12 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(PALETTE.bg, 1);
-renderer.toneMapping        = THREE.LinearToneMapping;
+renderer.toneMapping = THREE.LinearToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.localClippingEnabled = true;
 
-const scene  = new THREE.Scene();
-scene.fog    = new THREE.FogExp2(PALETTE.bg, 0.0015);
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(PALETTE.bg, 0.0015);
 
 const camera = new THREE.PerspectiveCamera(
   68, window.innerWidth / window.innerHeight, 0.1, 800
@@ -217,19 +217,19 @@ function createDynamicTexture(width, height, drawFn, isStatic = false) {
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = false;
-  
+
   const entry = { canvas, ctx, width, height, drawFn, texture };
   if (!isStatic) {
     dynamicTextures.push(entry);
   }
-  
+
   try {
     drawFn(ctx, width, height);
     texture.needsUpdate = true;
-  } catch(e) {
+  } catch (e) {
     console.error("Error in initial canvas draw:", e);
   }
-  
+
   return texture;
 }
 
@@ -238,14 +238,14 @@ function redrawDynamicTextures() {
     try {
       item.drawFn(item.ctx, item.width, item.height);
       item.texture.needsUpdate = true;
-    } catch(e) {
+    } catch (e) {
       console.error("Error in canvas redraw:", e);
     }
   });
   if (typeof scene !== 'undefined' && scene.userData && scene.userData.updateOrbTextures) {
     try {
       scene.userData.updateOrbTextures();
-    } catch(e) {
+    } catch (e) {
       console.error("Error in ecosystem orb update:", e);
     }
   }
@@ -269,7 +269,7 @@ function tickDynamicTextures() {
           try {
             item.drawFn(item.ctx, item.width, item.height);
             item.texture.needsUpdate = true;
-          } catch(e) {
+          } catch (e) {
             console.error("Error in dynamic canvas tick:", e);
           }
         }
@@ -347,7 +347,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
   // Clear background
   ctx.fillStyle = '#050608'; // Pure Void Black
   ctx.fillRect(0, 0, w, h);
-  
+
   const img = IMAGES['niche' + (idx + 1)];
   if (!img || !img.complete || img.naturalWidth === 0) {
     // Elegant fallback during loading
@@ -356,8 +356,8 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     g.addColorStop(1, '#050608');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    
-    drawText(ctx, 'L O A D I N G  E X P E R I E N C E...', w/2, h/2, '300 24px "Inter", sans-serif', '#C7A66B', 'center');
+
+    drawText(ctx, 'L O A D I N G  E X P E R I E N C E...', w / 2, h / 2, '300 24px "Inter", sans-serif', '#C7A66B', 'center');
     return;
   }
 
@@ -491,10 +491,10 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
 
     // Hero content overlay (drifts faster for parallax)
     const heroContentY = 320 - currentScrollY + drift1 * 1.5;
-    drawText(ctx, 'E L E V A T E   C L I N I C', w/2, heroContentY, 'bold 16px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, 'Natural Beauty.', w/2, heroContentY + 90, '300 72px "Cormorant Garamond", serif', '#F7F3EB', 'center');
-    drawText(ctx, 'Elevated Confidence.', w/2, heroContentY + 180, 'italic 300 72px "Cormorant Garamond", serif', '#C7A66B', 'center');
-    drawText(ctx, 'EXQUISITE COSMETIC SANCTUARY  ·  BEVERLY HILLS · DUBAI · MONACO', w/2, heroContentY + 260, '14px "Inter", sans-serif', '#8A94A0', 'center');
+    drawText(ctx, 'E L E V A T E   C L I N I C', w / 2, heroContentY, 'bold 16px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'Natural Beauty.', w / 2, heroContentY + 90, '300 72px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawText(ctx, 'Elevated Confidence.', w / 2, heroContentY + 180, 'italic 300 72px "Cormorant Garamond", serif', '#C7A66B', 'center');
+    drawText(ctx, 'EXQUISITE COSMETIC SANCTUARY  ·  BEVERLY HILLS · DUBAI · MONACO', w / 2, heroContentY + 260, '14px "Inter", sans-serif', '#8A94A0', 'center');
 
     // Hero CTA buttons
     const btnY = heroContentY + 340;
@@ -502,22 +502,22 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.save();
     ctx.shadowColor = 'rgba(199, 166, 107, 0.35)';
     ctx.shadowBlur = 20;
-    drawRoundRect(ctx, w/2 - 250, btnY, 230, 56, 28, '#C7A66B');
-    drawText(ctx, 'BOOK CONSULTATION', w/2 - 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#050608', 'center');
+    drawRoundRect(ctx, w / 2 - 250, btnY, 230, 56, 28, '#C7A66B');
+    drawText(ctx, 'BOOK CONSULTATION', w / 2 - 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#050608', 'center');
     ctx.restore();
 
     // View Treatments (Outline)
-    drawRoundRect(ctx, w/2 + 20, btnY, 230, 56, 28, 'rgba(255,255,255,0.02)', 'rgba(255, 255, 255, 0.25)');
-    drawText(ctx, 'VIEW TREATMENTS ➔', w/2 + 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawRoundRect(ctx, w / 2 + 20, btnY, 230, 56, 28, 'rgba(255,255,255,0.02)', 'rgba(255, 255, 255, 0.25)');
+    drawText(ctx, 'VIEW TREATMENTS ➔', w / 2 + 135, btnY + 28, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
 
     // Section 2: Treatments Grid (y = 1200 to 2300)
     const sec2Y = 1200 - currentScrollY;
     ctx.fillStyle = '#050608';
     ctx.fillRect(0, sec2Y, w, 1100);
 
-    drawText(ctx, 'SIGNATURE CLINICAL TREATMENTS', w/2, sec2Y + 100, 'bold 12px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, 'Cosmetic Artistry Meets Epigenetics', w/2, sec2Y + 160, '300 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
-    drawLine(ctx, w/2 - 80, sec2Y + 200, w/2 + 80, sec2Y + 200, 'rgba(199, 166, 107, 0.3)', 2);
+    drawText(ctx, 'SIGNATURE CLINICAL TREATMENTS', w / 2, sec2Y + 100, 'bold 12px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'Cosmetic Artistry Meets Epigenetics', w / 2, sec2Y + 160, '300 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawLine(ctx, w / 2 - 80, sec2Y + 200, w / 2 + 80, sec2Y + 200, 'rgba(199, 166, 107, 0.3)', 2);
 
     // 4 Luxury Treatment Cards (floating slightly with drift1 and drift2)
     const services = [
@@ -529,9 +529,9 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
 
     services.forEach((s, i) => {
       const isLeft = i % 2 === 0;
-      const cardX = isLeft ? 150 : w/2 + 50;
+      const cardX = isLeft ? 150 : w / 2 + 50;
       const cardValY = sec2Y + 250 + Math.floor(i / 2) * 360 + (isLeft ? drift1 * 0.4 : drift2 * 0.4);
-      const cardW = w/2 - 200;
+      const cardW = w / 2 - 200;
       const cardH = 300;
 
       // Dark card body
@@ -545,7 +545,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
       drawText(ctx, `0${i + 1}  /  THERAPY`, cardX + 40, cardValY + 50, 'bold 10px "Inter", sans-serif', '#C7A66B');
       drawText(ctx, s.t, cardX + 40, cardValY + 100, '300 28px "Cormorant Garamond", serif', '#F7F3EB');
       drawText(ctx, s.p, cardX + cardW - 40, cardValY + 50, 'bold 11px "Inter", sans-serif', '#C7A66B', 'right');
-      
+
       // Multi-line description text wrapping
       const words = s.d.split(' ');
       let line = '';
@@ -572,25 +572,25 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.fillStyle = '#0f1115'; // Warm dark charcoal
     ctx.fillRect(0, sec3Y, w, 700);
 
-    drawText(ctx, 'THE SANCTUARY PHILOSOPHY', w/2, sec3Y + 120, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, '“Cosmetic science is the pursuit of personal symmetry.”', w/2, sec3Y + 220, 'italic 300 38px "Cormorant Garamond", serif', '#F7F3EB', 'center');
-    
+    drawText(ctx, 'THE SANCTUARY PHILOSOPHY', w / 2, sec3Y + 120, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, '“Cosmetic science is the pursuit of personal symmetry.”', w / 2, sec3Y + 220, 'italic 300 38px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+
     // Detailed about paragraphs
     ctx.font = '300 16px "Inter", sans-serif';
     ctx.fillStyle = '#8A94A0';
     ctx.textAlign = 'center';
-    ctx.fillText('Elevate Sanctuary was established with a singular vision: to unify medical precision with elite artistic aesthetics.', w/2, sec3Y + 310);
-    ctx.fillText('Operating private clinics in Beverly Hills, Dubai, Monaco, and Singapore, we formulate customized protocols', w/2, sec3Y + 345);
-    ctx.fillText('based on real-time epigenetic biomarker mapping and advanced cellular density diagnostics.', w/2, sec3Y + 380);
+    ctx.fillText('Elevate Sanctuary was established with a singular vision: to unify medical precision with elite artistic aesthetics.', w / 2, sec3Y + 310);
+    ctx.fillText('Operating private clinics in Beverly Hills, Dubai, Monaco, and Singapore, we formulate customized protocols', w / 2, sec3Y + 345);
+    ctx.fillText('based on real-time epigenetic biomarker mapping and advanced cellular density diagnostics.', w / 2, sec3Y + 380);
 
     // Dynamic bronze crosshair scanning animation
     ctx.strokeStyle = 'rgba(199, 166, 107, 0.25)';
     ctx.lineWidth = 1.5;
     const centerScanY = sec3Y + 480 + Math.sin(time * 2.0) * 40;
-    drawLine(ctx, w/2 - 250, centerScanY, w/2 + 250, centerScanY);
+    drawLine(ctx, w / 2 - 250, centerScanY, w / 2 + 250, centerScanY);
     ctx.fillStyle = '#C7A66B';
     ctx.beginPath();
-    ctx.arc(w/2 + Math.cos(time * 3.0) * 150, centerScanY, 5, 0, Math.PI * 2);
+    ctx.arc(w / 2 + Math.cos(time * 3.0) * 150, centerScanY, 5, 0, Math.PI * 2);
     ctx.fill();
 
     // Section 4: Before/After & Testimonials (y = 3000 to 4000)
@@ -598,8 +598,8 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.fillStyle = '#050608';
     ctx.fillRect(0, sec4Y, w, 1000);
 
-    drawText(ctx, 'CLINICAL EFFICACY & TESTIMONIALS', w/2, sec4Y + 100, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
-    
+    drawText(ctx, 'CLINICAL EFFICACY & TESTIMONIALS', w / 2, sec4Y + 100, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
+
     // Staggered testimonial cards (left/right)
     const quotes = [
       { q: "“The absolute zenith of aesthetic medicine. My skin elasticity restored by 42% in twelve weeks. A masterpiece of clinical results.”", a: "MONACO RESIDENT  ·  AGE 46" },
@@ -607,10 +607,10 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ];
 
     quotes.forEach((q, i) => {
-      const qx = i === 0 ? 150 : w/2 + 50;
+      const qx = i === 0 ? 150 : w / 2 + 50;
       const qy = sec4Y + 180 + (i * 120) + drift2 * 0.4;
-      const qw = w/2 - 200;
-      
+      const qw = w / 2 - 200;
+
       ctx.save();
       drawRoundRect(ctx, qx, qy, qw, 200, 12, 'rgba(15,23,42,0.5)', 'rgba(199,166,107,0.12)');
       ctx.restore();
@@ -619,7 +619,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
       ctx.font = 'italic 16px "Cormorant Garamond", serif';
       ctx.fillStyle = '#F7F3EB';
       ctx.textAlign = 'left';
-      
+
       const qWords = q.q.split(' ');
       let qLine = '';
       let qLineY = qy + 45;
@@ -646,7 +646,7 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.restore();
 
     drawText(ctx, 'PATIENT BIOMARKER DECAY DECELERATION', 190, progY + 50, 'bold 11px "Inter", sans-serif', '#C7A66B');
-    
+
     // Progress Bar 1
     drawText(ctx, 'Cellular DNA Methylation Age Reduction', 190, progY + 100, '13px "Inter", sans-serif', '#8A94A0');
     drawRoundRect(ctx, 190, progY + 120, w - 380, 10, 5, 'rgba(255,255,255,0.05)');
@@ -664,9 +664,9 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.fillStyle = '#0f1115';
     ctx.fillRect(0, sec5Y, w, 700);
 
-    drawText(ctx, 'CLINICAL LEADERSHIP', w/2, sec5Y + 100, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, 'Dr. Evelyn Ross, MD, PhD', w/2, sec5Y + 160, '300 44px "Cormorant Garamond", serif', '#F7F3EB', 'center');
-    drawText(ctx, 'CHIEF OF CELLULAR LONGEVITY  ·  FORMER HARVARD CLINICAL DIAGNOSTICS FELLOW', w/2, sec5Y + 205, 'bold 9px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'CLINICAL LEADERSHIP', w / 2, sec5Y + 100, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'Dr. Evelyn Ross, MD, PhD', w / 2, sec5Y + 160, '300 44px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawText(ctx, 'CHIEF OF CELLULAR LONGEVITY  ·  FORMER HARVARD CLINICAL DIAGNOSTICS FELLOW', w / 2, sec5Y + 205, 'bold 9px "Inter", sans-serif', '#C7A66B', 'center');
 
     const profileW = w - 300;
     const profileH = 340;
@@ -692,17 +692,17 @@ function drawWebsiteCanvas(idx, ctx, w, h) {
     ctx.fillStyle = '#050608';
     ctx.fillRect(0, sec6Y, w, 500);
 
-    drawText(ctx, 'BEGIN YOUR PROTOCOL', w/2, sec6Y + 120, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
-    drawText(ctx, 'Experience aesthetic refinement.', w/2, sec6Y + 175, '300 32px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawText(ctx, 'BEGIN YOUR PROTOCOL', w / 2, sec6Y + 120, 'bold 11px "Inter", sans-serif', '#C7A66B', 'center');
+    drawText(ctx, 'Experience aesthetic refinement.', w / 2, sec6Y + 175, '300 32px "Cormorant Garamond", serif', '#F7F3EB', 'center');
 
     ctx.save();
     ctx.shadowColor = 'rgba(199, 166, 107, 0.35)';
     ctx.shadowBlur = 30;
-    drawRoundRect(ctx, w/2 - 250, sec6Y + 240, 500, 60, 30, '#C7A66B');
-    drawText(ctx, 'REQUEST PRIVATE CONSULTATION', w/2, sec6Y + 273, 'bold 11px "Inter", sans-serif', '#050608', 'center');
+    drawRoundRect(ctx, w / 2 - 250, sec6Y + 240, 500, 60, 30, '#C7A66B');
+    drawText(ctx, 'REQUEST PRIVATE CONSULTATION', w / 2, sec6Y + 273, 'bold 11px "Inter", sans-serif', '#050608', 'center');
     ctx.restore();
 
-    drawText(ctx, '© ELEVATE CLINIC SANCTUARY 2026. ALL RIGHTS CONFIDENTIAL. COMPLIANT WITH MONACO SPA REGULATIONS', w/2, sec6Y + 440, '9px "Inter", sans-serif', '#475569', 'center');
+    drawText(ctx, '© ELEVATE CLINIC SANCTUARY 2026. ALL RIGHTS CONFIDENTIAL. COMPLIANT WITH MONACO SPA REGULATIONS', w / 2, sec6Y + 440, '9px "Inter", sans-serif', '#475569', 'center');
   }
 
   // Draw fixed Header/Navbar at the very top of each canvas
@@ -717,15 +717,15 @@ function drawHeaderNavbar(idx, ctx, w, h) {
   ctx.shadowColor = 'rgba(5, 6, 8, 0.25)';
   ctx.shadowBlur = 15;
   ctx.shadowOffsetY = 4;
-  
+
   // Draw blurred backdrop for the fixed header
   ctx.fillStyle = isLight ? 'rgba(248, 250, 252, 0.96)' : 'rgba(11, 13, 16, 0.96)';
   ctx.fillRect(0, 0, w, 80);
-  
+
   // Draw the image's own header crop on top of the backdrop to keep it 100% authentic
   const cropH = 80 * (img.naturalWidth / w);
   ctx.drawImage(img, 0, 0, img.naturalWidth, cropH, 0, 0, w, 80);
-  
+
   // Dynamic glow line below header
   drawLine(ctx, 0, 80, w, 80, isLight ? 'rgba(16, 185, 129, 0.25)' : 'rgba(199, 166, 107, 0.25)', 2);
   ctx.restore();
@@ -743,7 +743,7 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
 
   for (let i = 0; i < 3; i++) {
     const itemY = i * itemHeight - scrollY;
-    
+
     // Draw feed item background
     drawRoundRect(ctx, 10, itemY + 10, w - 20, itemHeight - 20, 16, '#0F1216', 'rgba(255,255,255,0.06)');
 
@@ -768,7 +768,7 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
     drawRoundRect(ctx, 30, itemY + 480, 32, 32, 16, '#23453F');
     drawText(ctx, 'K', 46, itemY + 496, 'bold 12px "Inter", sans-serif', '#F7F3EB', 'center');
     drawText(ctx, '@kllezo_media', 72, itemY + 496, 'bold 11px "Inter", sans-serif', '#F7F3EB');
-    
+
     const captions = i === 0 ? [
       "Qualifying 14 high-ticket leads in 24 hours",
       "using AI Texting Agents. Scaled to $45k/mo.",
@@ -807,7 +807,7 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
   ctx.fillStyle = 'rgba(11, 13, 16, 0.88)';
   ctx.fillRect(0, 0, w, 60);
   drawText(ctx, '9:41', 30, 30, 'bold 11px "Inter", sans-serif', '#F7F3EB');
-  drawText(ctx, 'KLLEZO FEED', w/2, 30, 'bold 11px "Inter", sans-serif', '#BFA27A', 'center');
+  drawText(ctx, 'KLLEZO FEED', w / 2, 30, 'bold 11px "Inter", sans-serif', '#BFA27A', 'center');
   drawText(ctx, '📶 🔋 100%', w - 30, 30, '10px "Inter", sans-serif', '#F7F3EB', 'right');
   drawLine(ctx, 0, 60, w, 60, 'rgba(255,255,255,0.06)');
 
@@ -815,10 +815,10 @@ function drawMobileFeedCanvas(ctx, w, h, time) {
   ctx.fillStyle = 'rgba(11, 13, 16, 0.9)';
   ctx.fillRect(0, h - 60, w, 60);
   drawLine(ctx, 0, h - 60, w, h - 60, 'rgba(255,255,255,0.06)');
-  
+
   const navs = ['Home', 'Search', 'Post', 'Activity', 'Profile'];
   navs.forEach((nv, ni) => {
-    const nx = 40 + ni * (w - 80)/4;
+    const nx = 40 + ni * (w - 80) / 4;
     drawText(ctx, nv === 'Post' ? '⊕' : nv[0], nx, h - 30, 'bold 12px "Inter", sans-serif', nv === 'Home' ? '#1A9E8F' : '#7D8A94', 'center');
   });
 }
@@ -839,14 +839,14 @@ function drawReelCanvas(idx, ctx, w, h) {
     // Editing Timeline
     drawText(ctx, 'Editing Timeline', 15, 30, 'bold 11px "Inter", sans-serif', '#BFA27A');
     drawText(ctx, 'KLLEZO_Reel_v3.mp4', 15, 50, '9px "Inter", sans-serif', '#7D8A94');
-    
+
     // Tracks
     const tracks = ['Video', 'Audio', 'Captions'];
     tracks.forEach((tr, i) => {
       const ty = 80 + i * 45;
       drawRoundRect(ctx, 15, ty, w - 30, 32, 4, '#13171D', 'rgba(255,255,255,0.04)');
       drawText(ctx, tr, 25, ty + 16, 'bold 9px "Inter", sans-serif', '#7D8A94');
-      
+
       if (i === 0) {
         drawRoundRect(ctx, 70, ty + 4, 80, 24, 2, '#23453F');
         drawRoundRect(ctx, 160, ty + 4, 60, 24, 2, '#7D8A94');
@@ -856,8 +856,8 @@ function drawReelCanvas(idx, ctx, w, h) {
         ctx.beginPath();
         for (let x = 70; x < 200; x += 4) {
           const wh = 4 + Math.sin(x * 0.2) * 8;
-          ctx.moveTo(x, ty + 16 - wh/2);
-          ctx.lineTo(x, ty + 16 + wh/2);
+          ctx.moveTo(x, ty + 16 - wh / 2);
+          ctx.lineTo(x, ty + 16 + wh / 2);
         }
         ctx.stroke();
       } else {
@@ -867,9 +867,9 @@ function drawReelCanvas(idx, ctx, w, h) {
     });
 
     // Playhead
-    drawLine(ctx, w/2, 70, w/2, 210, '#D4A853', 1.5);
+    drawLine(ctx, w / 2, 70, w / 2, 210, '#D4A853', 1.5);
     drawText(ctx, 'Export: 1080x1920 60FPS', 15, 235, '9px "Inter", sans-serif', '#7D8A94');
-  } 
+  }
   else if (idx === 1) {
     // Content Calendar
     drawText(ctx, 'Content Calendar', 15, 30, 'bold 11px "Inter", sans-serif', '#BFA27A');
@@ -889,11 +889,11 @@ function drawReelCanvas(idx, ctx, w, h) {
         }
       }
     }
-  } 
+  }
   else if (idx === 2) {
     // Podcast Quote
-    drawRoundRect(ctx, w/2 - 24, 35, 48, 48, 24, '#23453F');
-    drawText(ctx, '“', w/2, 65, 'bold 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+    drawRoundRect(ctx, w / 2 - 24, 35, 48, 48, 24, '#23453F');
+    drawText(ctx, '“', w / 2, 65, 'bold 36px "Cormorant Garamond", serif', '#F7F3EB', 'center');
 
     const quotes = [
       "“Systems scale",
@@ -902,11 +902,11 @@ function drawReelCanvas(idx, ctx, w, h) {
       "for missing pipeline.”",
     ];
     quotes.forEach((q, i) => {
-      drawText(ctx, q, w/2, 115 + i * 24, 'light 14px "Cormorant Garamond", serif', '#F7F3EB', 'center');
+      drawText(ctx, q, w / 2, 115 + i * 24, 'light 14px "Cormorant Garamond", serif', '#F7F3EB', 'center');
     });
 
-    drawText(ctx, 'EP. 42 - THE KLLEZO METHOD', w/2, 230, 'bold 8px "Inter", sans-serif', '#BFA27A', 'center');
-  } 
+    drawText(ctx, 'EP. 42 - THE KLLEZO METHOD', w / 2, 230, 'bold 8px "Inter", sans-serif', '#BFA27A', 'center');
+  }
   else if (idx === 3) {
     // Product Shoot Layout
     drawText(ctx, 'RAW CAMERA STREAM', 15, 30, 'bold 9px "Inter", sans-serif', '#7D8A94');
@@ -915,10 +915,10 @@ function drawReelCanvas(idx, ctx, w, h) {
     ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 1;
     ctx.strokeRect(20, 60, w - 40, 150);
-    drawLine(ctx, w/2 - 10, 135, w/2 + 10, 135, 'rgba(255,255,255,0.3)');
-    drawLine(ctx, w/2, 125, w/2, 145, 'rgba(255,255,255,0.3)');
+    drawLine(ctx, w / 2 - 10, 135, w / 2 + 10, 135, 'rgba(255,255,255,0.3)');
+    drawLine(ctx, w / 2, 125, w / 2, 145, 'rgba(255,255,255,0.3)');
 
-    drawText(ctx, '4K 60FPS · ISO 100 · F/2.8', w/2, 230, 'bold 9px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, '4K 60FPS · ISO 100 · F/2.8', w / 2, 230, 'bold 9px "Inter", sans-serif', '#F7F3EB', 'center');
   }
   else if (idx === 4) {
     // Social Feed Post Mock
@@ -927,7 +927,7 @@ function drawReelCanvas(idx, ctx, w, h) {
     drawText(ctx, 'kllezo_media', 48, 42, 'bold 10px "Inter", sans-serif', '#F7F3EB');
 
     drawRoundRect(ctx, 15, 70, w - 30, 110, 6, '#13171D');
-    drawText(ctx, '[Video Preview]', w/2, 125, '10px "Inter", sans-serif', '#7D8A94', 'center');
+    drawText(ctx, '[Video Preview]', w / 2, 125, '10px "Inter", sans-serif', '#7D8A94', 'center');
 
     drawText(ctx, 'Likes: 14.8K  ·  Comments: 421', 15, 200, 'bold 9px "Inter", sans-serif', '#1A9E8F');
     drawText(ctx, 'Scaling Apex Athletics to $1.2M...', 15, 225, '9px "Inter", sans-serif', '#F7F3EB');
@@ -961,17 +961,17 @@ function drawReelCanvas(idx, ctx, w, h) {
       const bx = 30 + i * 35;
       drawRoundRect(ctx, bx, 200 - bh, 20, bh, 2, '#1A9E8F');
     }
-    drawText(ctx, 'VIEWS: 2.4M', w/2, 230, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, 'VIEWS: 2.4M', w / 2, 230, 'bold 11px "Inter", sans-serif', '#F7F3EB', 'center');
   }
   else {
     // Thumbnails Lab
     drawText(ctx, 'THUMBNAILS LAB', 15, 30, 'bold 10px "Inter", sans-serif', '#BFA27A');
-    
+
     drawRoundRect(ctx, 20, 60, w - 40, 75, 4, '#1c1f26', 'rgba(255,255,255,0.1)');
-    drawText(ctx, 'SECRET TO $100K/MO', w/2, 97, 'bold 10px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, 'SECRET TO $100K/MO', w / 2, 97, 'bold 10px "Inter", sans-serif', '#F7F3EB', 'center');
 
     drawRoundRect(ctx, 20, 145, w - 40, 75, 4, '#23453F', 'rgba(255,255,255,0.1)');
-    drawText(ctx, 'AI TEXTING SYSTEM', w/2, 182, 'bold 10px "Inter", sans-serif', '#F7F3EB', 'center');
+    drawText(ctx, 'AI TEXTING SYSTEM', w / 2, 182, 'bold 10px "Inter", sans-serif', '#F7F3EB', 'center');
   }
 }
 
@@ -997,7 +997,7 @@ function drawFootageCanvas(idx, ctx, w, h) {
       ctx.fillStyle = 'rgba(255,255,255,0.02)';
       ctx.fillRect(20, ty, w - 40, 50);
       drawText(ctx, tr, 35, ty + 25, 'bold 10px "Inter", sans-serif', '#7D8A94');
-      
+
       if (i === 0) {
         drawRoundRect(ctx, 120, ty + 5, 180, 40, 4, '#23453F');
         drawText(ctx, 'A_ROLL_Main.mp4', 135, ty + 25, 'bold 10px "Inter", sans-serif', '#F7F3EB');
@@ -1021,14 +1021,14 @@ function drawFootageCanvas(idx, ctx, w, h) {
     // Podcast interview
     drawText(ctx, 'LIVE PODCAST INTERVIEW SCREEN', 20, 30, 'bold 11px "Inter", sans-serif', '#7D8A94');
     drawText(ctx, '“Scale systems, not your manual input.”', 20, 60, 'bold 20px "Cormorant Garamond", serif', '#F7F3EB');
-    
+
     ctx.strokeStyle = '#BFA27A';
     ctx.lineWidth = 3;
     ctx.beginPath();
     for (let x = 20; x < w - 20; x += 12) {
       const wh = 10 + Math.sin(x * 0.1) * 120 * rand(0.3, 1.0);
-      ctx.moveTo(x, h/2 + 50 - wh/2);
-      ctx.lineTo(x, h/2 + 50 + wh/2);
+      ctx.moveTo(x, h / 2 + 50 - wh / 2);
+      ctx.lineTo(x, h / 2 + 50 + wh / 2);
     }
     ctx.stroke();
 
@@ -1101,13 +1101,13 @@ function wrapText(ctx, text, maxWidth) {
   for (let i = 0; i < words.length; i++) {
     let w = words[i];
     const wWidth = ctx.measureText(w).width;
-    
+
     if (wWidth > maxWidth) {
       if (currentLine) {
         lines.push(currentLine);
         currentLine = '';
       }
-      
+
       let temp = '';
       for (let j = 0; j < w.length; j++) {
         const char = w[j];
@@ -1182,7 +1182,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     ctx.beginPath(); ctx.arc(887, 139, 10, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = `rgba(34, 197, 94, ${0.15 + pulse * 0.15})`;
     ctx.beginPath(); ctx.arc(887, 139, 20, 0, Math.PI * 2); ctx.fill();
-    
+
     ctx.font = 'bold 24px "Inter", sans-serif';
     ctx.fillStyle = '#22c55e';
     ctx.textAlign = 'left';
@@ -1216,11 +1216,11 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     }
 
     for (let i = 0; i < barCount; i++) {
-      const dist = Math.abs(i - barCount/2) / (barCount/2);
+      const dist = Math.abs(i - barCount / 2) / (barCount / 2);
       const envelope = Math.max(0.1, 1.0 - dist * dist);
       const barNoise = Math.abs(Math.sin(callingZoneTime * 3.5 - i * 0.35)) * 0.5 + 0.5;
       const hVal = (30 + envelope * 120) * (0.08 + activeAmp * barNoise * 0.92);
-      drawRoundRect(ctx, startX + i * spacing, 590 - hVal/2, barW, hVal, 3, '#D4A853');
+      drawRoundRect(ctx, startX + i * spacing, 590 - hVal / 2, barW, hVal, 3, '#D4A853');
     }
 
     // Subtle Golden Energy Particles flowing through waveform
@@ -1236,7 +1236,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
         });
       }
     }
-    
+
     ctx.fillStyle = 'rgba(212, 168, 83, 0.45)';
     ctx.particles.forEach(p => {
       p.x += p.speed;
@@ -1250,7 +1250,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
       ctx.fill();
     });
 
-  } 
+  }
   else if (idx === 1) {
     // ─── CARD 2: LIVE TRANSCRIPT CONVERSATION ───
     // Mask original transcript bubbles (Y: 460-1175, X: 47-1075) - preserves card borders (X=1078+)
@@ -1261,7 +1261,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     // Mask static timer "00:02" (Y: 160-190, X: 970-1040)
     ctx.fillStyle = '#080808';
     ctx.fillRect(960, 160, 90, 30);
-    
+
     // Draw dynamic timer
     let displaySecs = Math.floor(cycleTime) + 2;
     const mins = Math.floor(displaySecs / 60);
@@ -1322,7 +1322,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
 
     const startY = 480;
     const maxChatHeight = 650; // Taller scrolling area matching the Y:460-1175 viewport
-    
+
     let bubbleLayouts = [];
     let currentLayoutY = 0;
 
@@ -1381,7 +1381,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
         ctx.shadowColor = 'rgba(212, 168, 83, 0.22)';
         ctx.shadowBlur = 25;
       }
-      
+
       ctx.fillStyle = isRight ? 'rgba(212, 168, 83, 0.09)' : 'rgba(255, 255, 255, 0.04)';
       ctx.strokeStyle = isRight ? 'rgba(212, 168, 83, 0.22)' : 'rgba(255, 255, 255, 0.07)';
       drawRoundRect(ctx, x, drawY, clampedW, bub.h, 16, ctx.fillStyle, ctx.strokeStyle);
@@ -1453,7 +1453,7 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     const dotSpacing = 20;
     const startDotX = 210;
     const dotY = 1311;
-    
+
     const dotSequence = [1, 2, 3, 4, 3, 2];
     const seqIdx = Math.floor(callingZoneTime * 2.5) % dotSequence.length;
     const numVisibleDots = dotSequence[seqIdx];
@@ -1475,10 +1475,10 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     ctx.fillStyle = '#3b82f6';
 
     const isSpeakingText = currentStatus.includes('speaking') || currentStatus.includes('responding');
-    let activeAmp = isSpeakingText 
-      ? (0.4 + 0.6 * Math.abs(Math.sin(callingZoneTime * 5.0))) 
+    let activeAmp = isSpeakingText
+      ? (0.4 + 0.6 * Math.abs(Math.sin(callingZoneTime * 5.0)))
       : 0.15; // idle hum
-    
+
     // Occasional spikes when speaking
     if (isSpeakingText && Math.sin(callingZoneTime * 1.5) > 0.7) {
       activeAmp *= 1.4;
@@ -1487,9 +1487,9 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     for (let i = 0; i < waveBarCount; i++) {
       const waveVal = Math.sin(callingZoneTime * 15.0 - i * 1.2) * 0.5 + 0.5;
       const hVal = (4 + 16 * activeAmp * waveVal);
-      drawRoundRect(ctx, waveStartX + i * waveSpacing, waveCenterY - hVal/2, waveBarW, hVal, 1.5, '#3b82f6');
+      drawRoundRect(ctx, waveStartX + i * waveSpacing, waveCenterY - hVal / 2, waveBarW, hVal, 1.5, '#3b82f6');
     }
-  } 
+  }
   else if (idx === 2) {
     // ─── CARD 3: APPOINTMENT SECURED Checklist ───
     const maskBgColors = ['#141310', '#131210', '#13120f', '#12120e', '#10110d'];
@@ -1501,17 +1501,17 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     }
 
     const stepTimes = [1.1, 1.4, 1.7, 2.0, 2.3];
-    
+
     for (let s = 0; s < 5; s++) {
       if (cycleTime >= stepTimes[s]) {
         const stepAge = cycleTime - stepTimes[s];
         const scale = Math.min(1.0, stepAge / 0.25);
         const cy = checkCentersY[s];
-        
+
         ctx.save();
         ctx.translate(865, cy);
         ctx.scale(scale, scale);
-        
+
         ctx.fillStyle = 'rgba(212, 168, 83, 0.16)';
         ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
 
@@ -1535,15 +1535,15 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     if (cycleTime >= 1.1 && cycleTime < 2.4) {
       const lineProgress = (cycleTime - 1.1) / 1.3;
       const pulseY = 540 + lineProgress * (950 - 540);
-      
+
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      
+
       const radGrad = ctx.createRadialGradient(351, pulseY, 0, 351, pulseY, 25);
       radGrad.addColorStop(0.0, 'rgba(255, 220, 120, 0.95)');
       radGrad.addColorStop(0.3, 'rgba(212, 168, 83, 0.65)');
       radGrad.addColorStop(1.0, 'rgba(212, 168, 83, 0.0)');
-      
+
       ctx.fillStyle = radGrad;
       ctx.beginPath();
       ctx.arc(351, pulseY, 25, 0, Math.PI * 2);
@@ -1554,17 +1554,17 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
     if (cycleTime >= 2.5 && cycleTime < 2.8) {
       const shimmerProgress = (cycleTime - 2.5) / 0.3;
       const gradX = -w + shimmerProgress * (w * 3);
-      
+
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      
+
       const grad = ctx.createLinearGradient(gradX, 0, gradX + w, h);
       grad.addColorStop(0.0, 'rgba(255, 255, 255, 0.0)');
       grad.addColorStop(0.45, 'rgba(255, 255, 255, 0.0)');
       grad.addColorStop(0.5, 'rgba(212, 168, 83, 0.22)');
       grad.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)');
       grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
-      
+
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
       ctx.restore();
@@ -1583,11 +1583,11 @@ function drawCallingScreenCanvas(idx, ctx, w, h, img, isLoaded) {
 // Platform morphs: WhatsApp (msgs 1-2) → Instagram (msgs 3-4) → Kllezo Bot (msgs 5-6)
 const CONVERSATION_SCRIPT = [
   { sender: 'customer', text: "Hi! I saw your website." },
-  { sender: 'ai',       text: "Hey! Thanks for reaching out 👋 What kind of business do you run?" },
+  { sender: 'ai', text: "Hey! Thanks for reaching out 👋 What kind of business do you run?" },
   { sender: 'customer', text: "A local restaurant. We miss too many calls." },
-  { sender: 'ai',       text: "We can fix that. Our AI handles every missed call automatically. Want to see how?" },
+  { sender: 'ai', text: "We can fix that. Our AI handles every missed call automatically. Want to see how?" },
   { sender: 'customer', text: "Yes! How fast can you set it up?" },
-  { sender: 'ai',       text: "Usually 24–48 hours 🚀 I'll send you a setup link right now." }
+  { sender: 'ai', text: "Usually 24–48 hours 🚀 I'll send you a setup link right now." }
 ];
 
 function easeOutBack(t) {
@@ -1776,10 +1776,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     const screenH = destH - 12;
     const screenR = 25; // Slightly reduced curvature for a natural fit
     ctx.moveTo(screenX + screenR, screenY);
-    ctx.arcTo(screenX + screenW, screenY,            screenX + screenW, screenY + screenH, screenR);
-    ctx.arcTo(screenX + screenW, screenY + screenH,  screenX,           screenY + screenH, screenR);
-    ctx.arcTo(screenX,           screenY + screenH,  screenX,           screenY,           screenR);
-    ctx.arcTo(screenX,           screenY,            screenX + screenW, screenY,           screenR);
+    ctx.arcTo(screenX + screenW, screenY, screenX + screenW, screenY + screenH, screenR);
+    ctx.arcTo(screenX + screenW, screenY + screenH, screenX, screenY + screenH, screenR);
+    ctx.arcTo(screenX, screenY + screenH, screenX, screenY, screenR);
+    ctx.arcTo(screenX, screenY, screenX + screenW, screenY, screenR);
     ctx.closePath();
     ctx.clip();
 
@@ -2016,10 +2016,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     const customerTextColor = blend(wCustT, iCustT, webCustT);
     const aiBubbleColor = blend(wAiC, iAiC, webAiC);
     const aiTextColor = blend(wAiT, iAiT, webAiT);
-    
-    const styleBorderRadius = wStyle.borderRadius * whatsappOpacity + 
-                              iStyle.borderRadius * instagramOpacity + 
-                              webStyle.borderRadius * websiteUiOpacity;
+
+    const styleBorderRadius = wStyle.borderRadius * whatsappOpacity +
+      iStyle.borderRadius * instagramOpacity +
+      webStyle.borderRadius * websiteUiOpacity;
 
     // RENDER MESSAGE BUBBLES
     let renderY = chatContentMinY - state.scrollOffset;
@@ -2044,7 +2044,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const bubbleColor = (b.sender === 'customer') ? customerBubbleColor : aiBubbleColor;
         const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
         drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
-        
+
         ctx.font = '500 14px "Inter", -apple-system, sans-serif';
         ctx.fillStyle = textColor;
         ctx.textAlign = 'left';
@@ -2106,10 +2106,10 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     const bottomInputY = destY + destH - 77;
     const cursorStr = (state.state === 'customer_typing' && Math.floor(state.time * 4.0) % 2 === 0) ? '|' : '';
     const textToDraw = (state.state === 'customer_typing' || state.state === 'customer_pause') ? (state.inputText + cursorStr) : '';
-    
+
     if (textToDraw) {
       ctx.save();
-      
+
       // Calculate background color dynamically to cover the baked-in placeholder
       const wBg = [255, 255, 255];
       const iBg = [242, 242, 242];
@@ -2117,14 +2117,14 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       const bgR = wBg[0] * whatsappOpacity + iBg[0] * instagramOpacity + webBg[0] * websiteUiOpacity;
       const bgG = wBg[1] * whatsappOpacity + iBg[1] * instagramOpacity + webBg[1] * websiteUiOpacity;
       const bgB = wBg[2] * whatsappOpacity + iBg[2] * instagramOpacity + webBg[2] * websiteUiOpacity;
-      
+
       ctx.fillStyle = `rgb(${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`;
-      
+
       // Cover the placeholder
       const coverX = destX + 52;
       const coverW = destW - 150;
       ctx.fillRect(coverX, bottomInputY - 12, coverW, 24);
-      
+
       // Blend text color
       const wText = [17, 27, 33];
       const iText = [0, 0, 0];
@@ -2132,7 +2132,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       const txR = wText[0] * whatsappOpacity + iText[0] * instagramOpacity + webText[0] * websiteUiOpacity;
       const txG = wText[1] * whatsappOpacity + iText[1] * instagramOpacity + webText[1] * websiteUiOpacity;
       const txB = wText[2] * whatsappOpacity + iText[2] * instagramOpacity + webText[2] * websiteUiOpacity;
-      
+
       ctx.font = '12px "Inter", -apple-system, sans-serif';
       ctx.fillStyle = `rgb(${Math.round(txR)}, ${Math.round(txG)}, ${Math.round(txB)})`;
       ctx.textAlign = 'left';
@@ -2195,22 +2195,22 @@ const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -215), // t=0.32  Website Row 2
   new THREE.Vector3(0,   4.5, -240), // t=0.36  Website Row 3
   new THREE.Vector3(0,   4.5, -255), // t=0.40  Leaving Row 3
-  new THREE.Vector3(0,   4.5, -271), // t=0.44  Transition 1 empty travel (shortened)
-  new THREE.Vector3(0,   4.5, -275), // t=0.48  Calling entry — parked at z=-275
-  new THREE.Vector3(0,   4.5, -275), // t=0.52  Parked at Calling
-  new THREE.Vector3(0,   4.5, -275), // t=0.55  Parked at Calling
-  new THREE.Vector3(0,   4.5, -275), // t=0.58  Calling hold
-  new THREE.Vector3(0,   4.5, -295), // t=0.61  Calling hold end / transition 2 starts
-  new THREE.Vector3(0,   4.5, -330), // t=0.65  Transition 2 travel
-  new THREE.Vector3(0,   4.5, -365), // t=0.68  Texting entry
-  new THREE.Vector3(0,   4.5, -365), // t=0.72  Parked at Texting
-  new THREE.Vector3(0,   4.5, -365), // t=0.75  Texting hold
-  new THREE.Vector3(0,   4.5, -365), // t=0.78  Exit Texting
-  new THREE.Vector3(0,   4.5, -365), // t=0.80  Website Bot hold
-  new THREE.Vector3(0,   4.5, -385), // t=0.84  Transition 3 travel space (absorb phone)
-  new THREE.Vector3(0,   4.5, -410), // t=0.88  Ecosystem entry (fading in centerpiece logo)
-  new THREE.Vector3(0,   4.5, -420), // t=0.93  Ecosystem orbs reveal
-  new THREE.Vector3(0,   4.5, -420), // t=1.00  Final framing
+  new THREE.Vector3(0,   4.5, -286), // t=0.44  Transition 1 empty travel (increased spacing)
+  new THREE.Vector3(0,   4.5, -290), // t=0.48  Calling entry — parked at z=-290
+  new THREE.Vector3(0,   4.5, -290), // t=0.52  Parked at Calling
+  new THREE.Vector3(0,   4.5, -290), // t=0.55  Parked at Calling
+  new THREE.Vector3(0,   4.5, -290), // t=0.58  Calling hold
+  new THREE.Vector3(0,   4.5, -310), // t=0.61  Calling hold end / transition 2 starts
+  new THREE.Vector3(0,   4.5, -345), // t=0.65  Transition 2 travel
+  new THREE.Vector3(0,   4.5, -380), // t=0.68  Texting entry — parked at z=-380
+  new THREE.Vector3(0,   4.5, -380), // t=0.72  Parked at Texting
+  new THREE.Vector3(0,   4.5, -380), // t=0.75  Texting hold
+  new THREE.Vector3(0,   4.5, -380), // t=0.78  Exit Texting
+  new THREE.Vector3(0,   4.5, -380), // t=0.80  Website Bot hold
+  new THREE.Vector3(0,   4.5, -400), // t=0.84  Transition 3 travel space (absorb phone)
+  new THREE.Vector3(0,   4.5, -425), // t=0.88  Ecosystem entry (fading in centerpiece logo)
+  new THREE.Vector3(0,   4.5, -435), // t=0.93  Ecosystem orbs reveal
+  new THREE.Vector3(0,   4.5, -435), // t=1.00  Final framing
 ], false, 'catmullrom', 0.5);
 
 const LOOK_PATH = new THREE.CatmullRomCurve3([
@@ -2223,23 +2223,23 @@ const LOOK_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -220),  // t=0.28  Look ahead into canyon
   new THREE.Vector3(0,   4.5, -250),  // t=0.32  Through Row 2
   new THREE.Vector3(0,   4.5, -270),  // t=0.36  Through Row 3
-  new THREE.Vector3(0,   4.5, -290),  // t=0.40  Leaving Row 3
-  new THREE.Vector3(0,   4.5, -291),  // t=0.44  Transition 1 travel
-  new THREE.Vector3(0,   4.5, -295),  // t=0.48  Look at Calling screens (positioned at z=-290)
-  new THREE.Vector3(0,   4.5, -295),  // t=0.52
-  new THREE.Vector3(0,   4.5, -295),  // t=0.55
-  new THREE.Vector3(0,   4.5, -295),  // t=0.58
-  new THREE.Vector3(0,   4.5, -315),  // t=0.61  Transition 2 travel starts
-  new THREE.Vector3(0,   4.5, -350),  // t=0.65  Transition 2 travel mid
-  new THREE.Vector3(0,   4.5, -375.2),// t=0.68  Look at Texting phone
-  new THREE.Vector3(0,   4.5, -375.2),// t=0.72
-  new THREE.Vector3(0,   4.5, -375.2),// t=0.75
-  new THREE.Vector3(0,   4.5, -375.2),// t=0.78
-  new THREE.Vector3(0,   4.5, -375.2),// t=0.80  Look at texting phone
-  new THREE.Vector3(0,   4.5, -430),  // t=0.84  Look ahead to ecosystem
-  new THREE.Vector3(0,   4.5, -470),  // t=0.88  Ecosystem framing
-  new THREE.Vector3(0,   4.5, -470),  // t=0.93
-  new THREE.Vector3(0,   4.5, -470),  // t=1.00  Final frame
+  new THREE.Vector3(0,   4.5, -305),  // t=0.40  Leaving Row 3
+  new THREE.Vector3(0,   4.5, -306),  // t=0.44  Transition 1 travel
+  new THREE.Vector3(0,   4.5, -320),  // t=0.48  Look at Calling screens (positioned at z=-320)
+  new THREE.Vector3(0,   4.5, -320),  // t=0.52
+  new THREE.Vector3(0,   4.5, -320),  // t=0.55
+  new THREE.Vector3(0,   4.5, -320),  // t=0.58
+  new THREE.Vector3(0,   4.5, -330),  // t=0.61  Transition 2 travel starts
+  new THREE.Vector3(0,   4.5, -365),  // t=0.65  Transition 2 travel mid
+  new THREE.Vector3(0,   4.5, -395),  // t=0.68  Look at Texting phone (positioned at z=-395)
+  new THREE.Vector3(0,   4.5, -395),  // t=0.72
+  new THREE.Vector3(0,   4.5, -395),  // t=0.75
+  new THREE.Vector3(0,   4.5, -395),  // t=0.78
+  new THREE.Vector3(0,   4.5, -395),  // t=0.80  Look at texting phone
+  new THREE.Vector3(0,   4.5, -445),  // t=0.84  Look ahead to ecosystem
+  new THREE.Vector3(0,   4.5, -485),  // t=0.88  Ecosystem framing (logo at z=-485)
+  new THREE.Vector3(0,   4.5, -485),  // t=0.93
+  new THREE.Vector3(0,   4.5, -485),  // t=1.00  Final frame
 ], false, 'catmullrom', 0.5);
 
 
@@ -2271,7 +2271,7 @@ document.body.style.overflow = 'hidden';
 // Continuous spring-based scroll: wheel events feed velocity into a target,
 // websiteScrollProgress lerps toward it each frame for buttery-smooth inertia.
 let websiteScrollProgress = 0.0;  // smoothed progress 0..1 (drives camera + textures)
-let websiteScrollTarget   = 0.0;  // raw target progress (nudged by wheel/touch)
+let websiteScrollTarget = 0.0;  // raw target progress (nudged by wheel/touch)
 let websiteScrollVelocity = 0.0;  // accumulated velocity from wheel events
 let websiteSpringVelocity = 0.0;  // spring velocity for damped spring-scroll physics
 
@@ -2292,14 +2292,14 @@ function tickWebsiteScroll(dt) {
   // ONE-WAY LOCK: target is clamped to [0, 1.25]. It can NEVER go below 0.
   // WEBSITE_EXPLORE is a locked state — exit is only forward, never backward.
   if (websiteScrollTarget < 0) {
-    websiteScrollTarget  = 0;
+    websiteScrollTarget = 0;
     websiteScrollVelocity = 0; // kill negative momentum completely
   }
   if (websiteScrollTarget > 1.25) websiteScrollTarget = 1.25;
 
   // Forward exit: only when user has fully walked through the entire exhibition
   if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.98) {
-    websiteScrollTarget   = 1.0;
+    websiteScrollTarget = 1.0;
     websiteScrollProgress = 1.0;
     websiteScrollVelocity = 0;  // kill all momentum before firing transition
     websiteSpringVelocity = 0;
@@ -2418,7 +2418,7 @@ window.addEventListener('keydown', e => {
    ═══════════════════════════════════════════ */
 const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
 window.addEventListener('mousemove', e => {
-  mouse.x = (e.clientX / window.innerWidth  - 0.5) * 2;
+  mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
   mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
 });
 
@@ -2497,11 +2497,11 @@ const MAT = {
 /* ═══════════════════════════════════════════
    LIQUID GOLD GUIDE STREAM (LIVING ELEMENT)
    ═══════════════════════════════════════════ */
-const pTopLeft = new THREE.Vector3(-25, 18.5, -470);
-const pCenter = new THREE.Vector3(0, 4.5, -470);
-const pTopRight = new THREE.Vector3(25, 18.5, -470);
-const pBottomRight = new THREE.Vector3(25, -9.5, -470);
-const pBottomLeft = new THREE.Vector3(-25, -9.5, -470);
+const pTopLeft = new THREE.Vector3(-25, 18.5, -485);
+const pCenter = new THREE.Vector3(0, 4.5, -485);
+const pTopRight = new THREE.Vector3(25, 18.5, -485);
+const pBottomRight = new THREE.Vector3(25, -9.5, -485);
+const pBottomLeft = new THREE.Vector3(-25, -9.5, -485);
 
 // Helper function to create separate procedural molten gold shader material copies for each stream
 function createGoldMaterial(initialOpacity = 0.0) {
@@ -2738,9 +2738,9 @@ function updateMeshGeometry(mesh, newGeom) {
 // Points for Segment 1: Hero to Content Engine
 // Redesigned to swoop left initially and terminate exactly at the Content Engine parked position (Z = -65.5)
 const ptsHeroToContent = [
-  new THREE.Vector3(-4.5,  -8.5, -30),
-  new THREE.Vector3(-8.5,  -8.7, -38),
-  new THREE.Vector3(-11.5,  -9.3, -46),
+  new THREE.Vector3(-4.5, -8.5, -30),
+  new THREE.Vector3(-8.5, -8.7, -38),
+  new THREE.Vector3(-11.5, -9.3, -46),
   new THREE.Vector3(-10.5, -10.0, -54),
   new THREE.Vector3(-6.5, -10.5, -62),
   new THREE.Vector3(1.5, -11.0, -65.5)
@@ -2760,69 +2760,53 @@ const ptsContentToWebsites = [
   new THREE.Vector3(15.5, -14.5, -144),
   new THREE.Vector3(14.5, -13.0, -154),
   new THREE.Vector3(11.5, -10.0, -164),
-  new THREE.Vector3(8.5,   -6.0, -174),
-  new THREE.Vector3(5.5,   -2.0, -184),
-  new THREE.Vector3(3.5,    1.0, -194),        // Enters center corridor gap
-  new THREE.Vector3(2.5,    3.0, -204),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -214),        // Corridor
-  new THREE.Vector3(2.5,    1.0, -224),        // Corridor
-  new THREE.Vector3(4.5,    0.0, -234),        // Corridor
-  new THREE.Vector3(5.5,    2.0, -244),        // Corridor
-  new THREE.Vector3(4.5,    4.0, -254),        // Corridor
-  new THREE.Vector3(2.5,    3.0, -260),        // Corridor
-  new THREE.Vector3(1.5,    2.5, -266),        // Corridor
-  new THREE.Vector3(0.0,    4.5, -269),        // Alignment towards center
-  new THREE.Vector3(0.0,    5.7, -272)         // Connects to Segment 3 right in center under the exit
+  new THREE.Vector3(8.5, -6.0, -174),
+  new THREE.Vector3(5.5, -2.0, -184),
+  new THREE.Vector3(3.5, 1.0, -194),        // Enters center corridor gap
+  new THREE.Vector3(2.5, 3.0, -204),        // Corridor
+  new THREE.Vector3(1.5, 2.5, -214),        // Corridor
+  new THREE.Vector3(2.5, 1.0, -224),        // Corridor
+  new THREE.Vector3(4.5, 0.0, -234),        // Corridor
+  new THREE.Vector3(5.5, 2.0, -244),        // Corridor
+  new THREE.Vector3(4.5, 4.0, -254),        // Corridor
+  new THREE.Vector3(2.5, 3.0, -260),        // Corridor
+  new THREE.Vector3(1.5, 2.5, -266),        // Corridor
+  new THREE.Vector3(0.0, 4.5, -269),        // Alignment towards center
+  new THREE.Vector3(0.0, 5.7, -272)         // Connects to Segment 3 right in center under the exit
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
 // Starts right in the center (x=0) under the camera exit for zero-jump boarding
 const ptsWebsitesToCalling = [
-  new THREE.Vector3(0.0, 5.7, -272),     // Connects directly under the exit at x=0
-  new THREE.Vector3(-1.0, 5.0, -273.5),
-  new THREE.Vector3(-3.0, 4.2, -274.5),
-  new THREE.Vector3(-6.0, 3.5, -275.0),
-  new THREE.Vector3(-10.0, 2.5, -275.5),
-  new THREE.Vector3(-14.0, 2.0, -285.0),  // Swoop to Calling weave entry
-  new THREE.Vector3(-18.0, 1.5, -296),    // Entry of Calling weave on the left
-  new THREE.Vector3(-15.0, 4.5, -296),
-  new THREE.Vector3(-10.5, 2.0, -298),
-  new THREE.Vector3(-5.25, 7.5, -296),
-  new THREE.Vector3(0.0, 2.0, -298),
-  new THREE.Vector3(5.25, 7.5, -296),
-  new THREE.Vector3(10.5, 2.0, -298),
-  new THREE.Vector3(16.5, 7.5, -296),
-  new THREE.Vector3(22.0, 2.5, -296)
+  new THREE.Vector3(0.0, 5.7, -272.0),
+  new THREE.Vector3(0.0, 4.0, -280.0),
+  new THREE.Vector3(0.0, 2.5, -288.0),
+  new THREE.Vector3(0.0, 1.5, -296.0),
+  new THREE.Vector3(0.0, 1.0, -305.0)
 ];
 
-// Points for Segment 4: AI Calling Agents to AI Texting Agents (Reverted to original 15 points)
+// Points for Segment 4: AI Calling Agents to AI Texting Agents
 const ptsCallingToTexting = [
-  new THREE.Vector3(22.0, 2.5, -296),
-  new THREE.Vector3(14.0, -5.0, -300),
-  new THREE.Vector3(6.0, -15.0, -315),
-  new THREE.Vector3(-2.0, -18.0, -330),
-  new THREE.Vector3(-8.0, -15.0, -345),
-  new THREE.Vector3(-12.0, -5.0, -360),
-  new THREE.Vector3(-7.5, -2.0, -370),
-  new THREE.Vector3(-3.5, 0.1, -374),
-  new THREE.Vector3(5.5, 2.2, -376),      // Turn 1 Right Apex (fixed position)
-  new THREE.Vector3(-5.5, 4.2, -375),     // Turn 2 Left Apex (fixed position)
-  new THREE.Vector3(5.0, 6.2, -376),      // Turn 3 Right Apex (fixed position)
-  new THREE.Vector3(-4.5, 8.2, -375),     // Turn 4 Left Apex (fixed position)
-  new THREE.Vector3(1.0, 10.2, -376),
-  new THREE.Vector3(1.0, 19.0, -378),
-  new THREE.Vector3(1.0, 28.0, -380)
+  new THREE.Vector3(0.0, 1.0, -305.0),
+  new THREE.Vector3(-4.0, 1.5, -315.0),
+  new THREE.Vector3(0.0, 2.0, -325.0),
+  new THREE.Vector3(4.0, 2.5, -335.0),
+  new THREE.Vector3(0.0, 2.8, -345.0),
+  new THREE.Vector3(-3.0, 2.5, -355.0),
+  new THREE.Vector3(0.0, 2.0, -365.0),
+  new THREE.Vector3(3.0, 1.5, -375.0),
+  new THREE.Vector3(0.0, 1.0, -380.0)
 ];
 
 // Points for Segment 5: AI Texting Agents to Ecosystem Center Logo
 const ptsTextingToEcosystem = [
-  new THREE.Vector3(1.0, 28.0, -380),     // Starts off-screen at Segment 4's exit
-  new THREE.Vector3(0.0, 10.0, -410),     // Descends straight down behind phone
-  new THREE.Vector3(0.0, -10.0, -440),    // Deep behind canyon
-  new THREE.Vector3(0.0, -32.0, -470),    // Arrives at vertical supply start
-  new THREE.Vector3(0.0, -18.0, -470),    // Perfect vertical rise
-  new THREE.Vector3(0.0, -6.0, -470),
-  new THREE.Vector3(0.0, 4.5, -470)       // Enters Logo center
+  new THREE.Vector3(0.0, 1.0, -380.0),
+  new THREE.Vector3(0.0, -5.0, -410.0),
+  new THREE.Vector3(0.0, -15.0, -440.0),
+  new THREE.Vector3(0.0, -32.0, -485.0),
+  new THREE.Vector3(0.0, -18.0, -485.0),
+  new THREE.Vector3(0.0, -6.0, -485.0),
+  new THREE.Vector3(0.0, 4.5, -485.0)
 ];
 
 // Custom Cubic Hermite Spline Curve implementation for precise tangent/handle control
@@ -2892,53 +2876,7 @@ const curveHeroToContent = new THREE.CatmullRomCurve3(ptsHeroToContent, false, '
 const curveContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
 const curveWebsitesToCalling = new THREE.CatmullRomCurve3(ptsWebsitesToCalling, false, 'centripetal');
 
-// Manually-authored spline using exact Vector3 control points and constant-radius circular bends
-const allPointsCallingToTexting = [];
-
-// 1. Entry Swoop (smoothly travel from Calling to the start of Weave)
-const entryPtsCallingToTexting = [
-  new THREE.Vector3(22.0, 2.5, -296),
-  new THREE.Vector3(14.0, -5.0, -300),
-  new THREE.Vector3(6.0, -15.0, -315),
-  new THREE.Vector3(-2.0, -18.0, -330),
-  new THREE.Vector3(-8.0, -15.0, -345),
-  new THREE.Vector3(-12.0, -5.0, -360),
-  new THREE.Vector3(-7.5, -2.0, -370),
-  new THREE.Vector3(-3.5, 0.1, -374),
-  new THREE.Vector3(1.0, 1.2, -380) // smooth blend to organic weave start
-];
-const entryCurveCallingToTexting = new THREE.CatmullRomCurve3(entryPtsCallingToTexting, false, 'centripetal');
-for (let i = 0; i < 100; i++) {
-  allPointsCallingToTexting.push(entryCurveCallingToTexting.getPoint(i / 100));
-}
-
-// ----------------------------------------------------
-// NEW SMOOTH ORGANIC WEAVE
-// ----------------------------------------------------
-const weavePoints = [
-  new THREE.Vector3( 1.0, 1.2, -380),
-  new THREE.Vector3( 3.2, 2.5, -378),
-  new THREE.Vector3( 5.2, 3.6, -374),
-  new THREE.Vector3( 3.0, 4.8, -370),
-  new THREE.Vector3(-1.0, 5.8, -368),
-  new THREE.Vector3(-4.8, 6.9, -370),
-  new THREE.Vector3(-6.2, 8.0, -374),
-  new THREE.Vector3(-4.5, 9.2, -378),
-  new THREE.Vector3(-1.0, 10.2, -380),
-  new THREE.Vector3( 3.5, 11.6, -378),
-  new THREE.Vector3( 6.2, 13.4, -373),
-  new THREE.Vector3( 4.0, 15.5, -369),
-  new THREE.Vector3( 0.0, 17.5, -368),
-  new THREE.Vector3(-3.8, 19.2, -370),
-  new THREE.Vector3(-5.8, 21.2, -374),
-  new THREE.Vector3(-4.2, 23.0, -378),
-  new THREE.Vector3( 1.0, 28.0, -380)
-];
-const smoothCurve = new THREE.CatmullRomCurve3( weavePoints, false, "centripetal", 0.25 );
-const weavePointsSampled = smoothCurve.getPoints(400);
-allPointsCallingToTexting.push(...weavePointsSampled);
-
-const curveCallingToTexting = new LinearPathCurve(allPointsCallingToTexting);
+const curveCallingToTexting = new THREE.CatmullRomCurve3(ptsCallingToTexting, false, 'centripetal');
 const curveTextingToEcosystem = new THREE.CatmullRomCurve3(ptsTextingToEcosystem, false, 'centripetal');
 
 // The exact cutoff points for each segment when parked at that section's destination
@@ -2974,30 +2912,30 @@ let branchBRMesh = null;
    7. PARTICLE SYSTEM — Universal void particles
    ═══════════════════════════════════════════ */
 const VOID_COUNT = 3000;
-const voidGeo    = new THREE.BufferGeometry();
-const voidPos    = new Float32Array(VOID_COUNT * 3);
-const voidCol    = new Float32Array(VOID_COUNT * 3);
+const voidGeo = new THREE.BufferGeometry();
+const voidPos = new Float32Array(VOID_COUNT * 3);
+const voidCol = new Float32Array(VOID_COUNT * 3);
 for (let i = 0; i < VOID_COUNT; i++) {
-  const r     = rand(10, 80);
+  const r = rand(10, 80);
   const theta = rand(0, TAU);
-  const phi   = rand(0, PI);
-  voidPos[i*3]   = r * Math.sin(phi) * Math.cos(theta) * rand(0.5, 2.0);
-  voidPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta) * rand(0.3, 1.2);
-  voidPos[i*3+2] = rand(-470, 10);
+  const phi = rand(0, PI);
+  voidPos[i * 3] = r * Math.sin(phi) * Math.cos(theta) * rand(0.5, 2.0);
+  voidPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * rand(0.3, 1.2);
+  voidPos[i * 3 + 2] = rand(-485, 10);
   // Luxury tech colors: Champagne, Steel Gray, Gold
   const rColor = Math.random();
   let colorHex;
-  if (rColor < 0.4)      colorHex = PALETTE.champagne;
+  if (rColor < 0.4) colorHex = PALETTE.champagne;
   else if (rColor < 0.7) colorHex = PALETTE.steel;
-  else                   colorHex = PALETTE.gold;
+  else colorHex = PALETTE.gold;
   const color = new THREE.Color(colorHex);
   const bright = rand(0.5, 1.0);
-  voidCol[i*3]   = color.r * bright;
-  voidCol[i*3+1] = color.g * bright;
-  voidCol[i*3+2] = color.b * bright;
+  voidCol[i * 3] = color.r * bright;
+  voidCol[i * 3 + 1] = color.g * bright;
+  voidCol[i * 3 + 2] = color.b * bright;
 }
 voidGeo.setAttribute('position', new THREE.BufferAttribute(voidPos, 3));
-voidGeo.setAttribute('color',    new THREE.BufferAttribute(voidCol, 3));
+voidGeo.setAttribute('color', new THREE.BufferAttribute(voidCol, 3));
 const voidMat = new THREE.PointsMaterial({
   size: 0.12, vertexColors: true,
   transparent: true, opacity: 0.20,
@@ -3011,15 +2949,15 @@ scene.add(new THREE.Points(voidGeo, voidMat));
 (function buildHero() {
   // Swirling ring of particles at z=0
   const COUNT = 1800;
-  const geo   = new THREE.BufferGeometry();
-  const pos   = new Float32Array(COUNT * 3);
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(COUNT * 3);
   for (let i = 0; i < COUNT; i++) {
     const angle = (i / COUNT) * TAU + rand(-0.3, 0.3);
-    const r     = rand(12, 30);
+    const r = rand(12, 30);
     const layer = Math.floor(i / 600);
-    pos[i*3]   = Math.cos(angle) * r;
-    pos[i*3+1] = Math.sin(angle) * r * 0.3 + layer * 5 - 5 + rand(-1, 1);
-    pos[i*3+2] = rand(-8, 8);
+    pos[i * 3] = Math.cos(angle) * r;
+    pos[i * 3 + 1] = Math.sin(angle) * r * 0.3 + layer * 5 - 5 + rand(-1, 1);
+    pos[i * 3 + 2] = rand(-8, 8);
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const mat = new THREE.PointsMaterial({
@@ -3183,7 +3121,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
         originalCard.style.opacity = '1';
         originalCard.style.pointerEvents = 'auto';
         originalCard.classList.remove('inspected-original');
-        
+
         // Reset states
         window.isInspecting = false;
         window.inspectedCardObj = null;
@@ -3249,7 +3187,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
       direction: 'right',
       speedMultiplier: 1.0,
       files: [
-        { name: '1a-1d', aspect: 1672/941 },
+        { name: '1a-1d', aspect: 1672 / 941 },
         { name: '2', aspect: 1.5 },
         { name: '3', aspect: 1.5 },
         { name: '4', aspect: 1.5 }
@@ -3260,7 +3198,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
       direction: 'left',
       speedMultiplier: 0.8,
       files: [
-        { name: '5', aspect: 1477/1065 },
+        { name: '5', aspect: 1477 / 1065 },
         { name: '6', aspect: 1.5 },
         { name: '7', aspect: 1.5 },
         { name: '8', aspect: 1.5 }
@@ -3296,11 +3234,11 @@ scene.add(new THREE.Points(voidGeo, voidMat));
 
         const innerEl = document.createElement('div');
         innerEl.className = 'gallery-card-inner';
-        
+
         const img = document.createElement('img');
         img.src = `assets/content creation/${fileInfo.name}.png`;
         img.loading = 'lazy';
-        
+
         innerEl.appendChild(img);
         cardEl.appendChild(innerEl);
         container.appendChild(cardEl);
@@ -3349,7 +3287,7 @@ scene.add(new THREE.Points(voidGeo, voidMat));
           cardObj.dragZ = 20; // Lift slightly toward camera
           cardObj.dragScale = 1.08; // Hover scale
           cardObj.dragRotation = 0;
-          
+
           startX = e.clientX;
           startY = e.clientY;
           cardObj.pointerDx = 0;
@@ -3483,12 +3421,12 @@ scene.add(new THREE.Points(voidGeo, voidMat));
 
   /* ── CONTENT PARTICLE FIELD ── */
   const COUNT = 800;
-  const geo   = new THREE.BufferGeometry();
-  const pos   = new Float32Array(COUNT * 3);
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(COUNT * 3);
   for (let i = 0; i < COUNT; i++) {
-    pos[i*3]   = rand(-40, 40);
-    pos[i*3+1] = rand(-20, 20);
-    pos[i*3+2] = rand(-150, -60);
+    pos[i * 3] = rand(-40, 40);
+    pos[i * 3 + 1] = rand(-20, 20);
+    pos[i * 3 + 2] = rand(-150, -60);
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
@@ -3536,25 +3474,25 @@ function createContactShadowTexture() {
   canvas.width = 512;
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
-  
+
   ctx.clearRect(0, 0, 512, 128);
-  
+
   ctx.save();
   ctx.translate(256, 64);
   ctx.scale(4.0, 1.0); // stretch radial gradient to fit width
-  
+
   const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
   grad.addColorStop(0, 'rgba(0, 0, 0, 0.95)');
   grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.8)');
   grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
-  
+
   ctx.beginPath();
   ctx.arc(0, 0, 60, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  
+
   const texture = new THREE.CanvasTexture(canvas);
   return texture;
 }
@@ -3566,12 +3504,12 @@ function createContactShadowTexture() {
     { x: -12.5, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     // Website 2: Luxury Real Estate (Aurelia) — NO STAND (ground mounted)
     { x: 12.5, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
-    
+
     // Website 3: Luxury Fitness (Apex Performance Lab) — SHORT STAND (185%)
     { x: -14.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     // Website 4: Premium Automotive (Verta GT) — SHORT STAND (185%)
     { x: 14.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
-    
+
     // Website 5: Longevity / Medical (Elevate) — FULL STAND (375%)
     { x: -12.5, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
     // Website 6: Premium SaaS / AI (Kllezo Automate) — FULL STAND (375%)
@@ -3605,7 +3543,7 @@ function createContactShadowTexture() {
     bodyMat.emissiveIntensity = 0;
     bodyMat.roughness = 0.95;
     bodyMat.metalness = 0.05;
-    bodyMat.clippingPlanes = [ floorClippingPlane ];
+    bodyMat.clippingPlanes = [floorClippingPlane];
     bodyMat.clipShadows = true;
     const slab = new THREE.Mesh(
       new THREE.BoxGeometry(d.w, d.h, d.d),
@@ -3617,7 +3555,7 @@ function createContactShadowTexture() {
     // Browser chrome bar at top
     const chromeMat = new THREE.MeshStandardMaterial({
       color: 0x22252a, roughness: 0.9, metalness: 0.1,
-      clippingPlanes: [ floorClippingPlane ],
+      clippingPlanes: [floorClippingPlane],
       clipShadows: true,
       transparent: true,
       opacity: 1.0
@@ -3633,7 +3571,7 @@ function createContactShadowTexture() {
     // URL bar indicator
     const urlBarMat = new THREE.MeshStandardMaterial({
       color: 0x131518, roughness: 1.0, metalness: 0.0,
-      clippingPlanes: [ floorClippingPlane ],
+      clippingPlanes: [floorClippingPlane],
       clipShadows: true,
       transparent: true,
       opacity: 1.0
@@ -3666,7 +3604,7 @@ function createContactShadowTexture() {
       emissiveIntensity: 1.0, // High-end premium self-illumination
       roughness: 0.15,
       metalness: 0.05,
-      clippingPlanes: [ floorClippingPlane ],
+      clippingPlanes: [floorClippingPlane],
       transparent: true,
       opacity: 1.0
     });
@@ -3704,7 +3642,7 @@ function createContactShadowTexture() {
       color: 0x1a1c1f,
       roughness: 0.55,
       metalness: 0.6,
-      clippingPlanes: [ floorClippingPlane ],
+      clippingPlanes: [floorClippingPlane],
       clipShadows: true,
       transparent: true,
       opacity: 1.0
@@ -3748,6 +3686,8 @@ function createContactShadowTexture() {
     group.rotation.y = d.ry;
 
     group.userData = {
+
+
       targetY: targetYAbsolute,
       d,
       idx,
@@ -3863,57 +3803,57 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   const indices = [];
   const uvs = [];
   const normals = [];
-  
+
   // Compute Frenet frames along the curve
   const frames = curve.computeFrenetFrames(tubularSegments, false);
-  
+
   for (let i = 0; i <= tubularSegments; i++) {
     const u = i / tubularSegments;
     const pt = curve.getPointAt(u);
     const tangent = frames.tangents[i];
     const normal = frames.normals[i];
     const binormal = frames.binormals[i];
-    
+
     // Narrows slightly in the middle (min scale 0.65 = 35% narrowing)
     const radiusScale = 1.0 - 0.35 * Math.sin(u * Math.PI);
     const r = baseRadius * radiusScale;
-    
+
     for (let j = 0; j <= radialSegments; j++) {
       const v = j / radialSegments;
       const angle = v * Math.PI * 2;
-      
+
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
-      
+
       const vertex = new THREE.Vector3()
         .copy(pt)
         .addScaledVector(normal, cos * r)
         .addScaledVector(binormal, sin * r);
-        
+
       points.push(vertex.x, vertex.y, vertex.z);
-      
+
       const norm = new THREE.Vector3()
         .copy(normal).multiplyScalar(cos)
         .addScaledVector(binormal, sin)
         .normalize();
       normals.push(norm.x, norm.y, norm.z);
-      
+
       uvs.push(u, v);
     }
   }
-  
+
   for (let i = 0; i < tubularSegments; i++) {
     for (let j = 0; j < radialSegments; j++) {
       const a = i * (radialSegments + 1) + j;
       const b = i * (radialSegments + 1) + j + 1;
       const c = (i + 1) * (radialSegments + 1) + j;
       const d = (i + 1) * (radialSegments + 1) + j + 1;
-      
+
       indices.push(a, c, b);
       indices.push(b, c, d);
     }
   }
-  
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
@@ -3927,7 +3867,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildCalling() {
-  const Z = -290;
+  const Z = -320;
 
   const callingGroup = new THREE.Group();
   scene.add(callingGroup);
@@ -3936,9 +3876,9 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   /* ── 3 CALLING PANELS — Voice Call, Live Transcript, Appointment Booked ── */
   scene.userData.callingScreens = [];
   const callingCardDefs = [
-    { id: 0, name: 'voiceCall',  w: 9.0, h: 10.8, y: 4.5, finalX: -10.5, finalRy: 0.2 },
-    { id: 1, name: 'transcript', w: 9.0, h: 10.8, y: 4.5, finalX: 0.0,  finalRy: 0.0 },
-    { id: 2, name: 'confirmed',  w: 9.0, h: 10.8, y: 4.5, finalX: 10.5,  finalRy: -0.2 }
+    { id: 0, name: 'voiceCall', w: 9.0, h: 10.8, y: 4.5, finalX: -10.5, finalRy: 0.2 },
+    { id: 1, name: 'transcript', w: 9.0, h: 10.8, y: 4.5, finalX: 0.0, finalRy: 0.0 },
+    { id: 2, name: 'confirmed', w: 9.0, h: 10.8, y: 4.5, finalX: 10.5, finalRy: -0.2 }
   ];
 
   callingCardDefs.forEach((s, si) => {
@@ -3947,7 +3887,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
     canvas.width = 400; // temporary default size
     canvas.height = 480;
     const ctx = canvas.getContext('2d');
-    
+
     // Create THREE.CanvasTexture
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
@@ -3974,7 +3914,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
     mesh.position.set(0, s.y, Z - si * 0.5);
     mesh.rotation.y = 0;
     mesh.scale.set(0.80, 0.80, 1.0);
-    
+
     // Set renderOrder: Card 2 (index 1) has highest to be on top of others when emerging
     mesh.renderOrder = (si === 1) ? 12 : 10;
     mesh.userData = {
@@ -4036,7 +3976,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildTexting() {
-  const Z = -365;
+  const Z = -395;
 
   const textingGroup = new THREE.Group();
   scene.add(textingGroup);
@@ -4089,23 +4029,23 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 function createDestinationLabelTexture(icon, title) {
   return createDynamicTexture(1024, 512, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
-    
+
     // Glassmorphic panel background with thick gold border
     ctx.lineWidth = 10;
     drawRoundRect(ctx, 24, 24, w - 48, h - 48, 56, 'rgba(5, 6, 8, 0.85)', 'rgba(199, 166, 107, 0.45)');
-    
+
     // Draw icon (substantially larger)
     ctx.font = '140px "Segoe UI Emoji", "Arial"';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(icon, w / 2, 150);
-    
+
     // Draw title (substantially larger, bold, readable)
     ctx.font = 'bold 54px "Inter", sans-serif';
     ctx.fillStyle = '#F7F3EB';
     ctx.textAlign = 'center';
     ctx.fillText(title.toUpperCase(), w / 2, 320);
-    
+
     // Accent electric blue line (thicker)
     ctx.beginPath();
     ctx.moveTo(w / 2 - 120, 420);
@@ -4119,11 +4059,11 @@ function createDestinationLabelTexture(icon, title) {
 function createCentralTitleTexture() {
   return createDynamicTexture(512, 128, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
-    
+
     // Subtly dark glassmorphic background
     ctx.fillStyle = 'rgba(5, 6, 8, 0.65)';
     drawRoundRect(ctx, 4, 4, w - 8, h - 8, 12, 'rgba(5, 6, 8, 0.65)', 'rgba(199, 166, 107, 0.15)');
-    
+
     // Title
     ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.fillStyle = '#C7A66B'; // Gold/Champagne
@@ -4147,7 +4087,7 @@ function createCentralTitleTexture() {
 function createGlowTexture() {
   return createDynamicTexture(256, 256, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
-    const grad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/2);
+    const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
     grad.addColorStop(0, 'rgba(123, 47, 190, 0.35)');  // Brand purple (lower intensity)
     grad.addColorStop(0.35, 'rgba(103, 169, 255, 0.20)'); // Electric Cyan
     grad.addColorStop(0.7, 'rgba(123, 47, 190, 0.05)');
@@ -4176,7 +4116,7 @@ function loadAndTintLogo(url, tintColorHex, callback) {
 
     for (let i = 0; i < data.length; i += 4) {
       if (data[i + 3] > 5) {
-        data[i]     = rTint;
+        data[i] = rTint;
         data[i + 1] = gTint;
         data[i + 2] = bTint;
       }
@@ -4198,25 +4138,25 @@ function loadAndTintLogo(url, tintColorHex, callback) {
     {
       name: 'Content Creation',
       imgKey: 'f1',
-      pos: [-59, 29.5, -470],
+      pos: [-59, 29.5, -485],
       radius: 12.0
     },
     {
       name: 'Website Experiences',
       imgKey: 'f2',
-      pos: [59, 29.5, -470],
+      pos: [59, 29.5, -485],
       radius: 12.0
     },
     {
       name: 'AI Calling Agents',
       imgKey: 'callingOrb',
-      pos: [-59, -29.5, -470],
+      pos: [-59, -29.5, -485],
       radius: 12.0
     },
     {
       name: 'AI Texting Agents',
       imgKey: 'f4',
-      pos: [59, -29.5, -470],
+      pos: [59, -29.5, -485],
       radius: 12.0
     }
   ];
@@ -4225,13 +4165,13 @@ function loadAndTintLogo(url, tintColorHex, callback) {
 
   destinations.forEach((dest, i) => {
     const node = new THREE.Group();
-    
+
     // Core stable body (golden orb with transparency) loaded directly from the RGBA PNG files
     const texture = new THREE.Texture(IMAGES[dest.imgKey]);
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = false;
-    
+
     const coreMat = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
@@ -4241,10 +4181,10 @@ function loadAndTintLogo(url, tintColorHex, callback) {
       alphaTest: 0.05
     });
     coreMat.userData.baseOpacity = 1.0;
-    
+
     const planeH = 16.8; // 20% larger orbs for premium corner anchors
     const planeW = 16.8; // Perfectly square plane
-    
+
     const coreMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(planeW, planeH),
       coreMat
@@ -4260,7 +4200,7 @@ function loadAndTintLogo(url, tintColorHex, callback) {
       basePos: dest.pos.slice(),
       texture
     };
-    
+
     scene.userData.ecoNodes.push(node);
     ecosystemGroup.add(node);
   });
@@ -4268,7 +4208,7 @@ function loadAndTintLogo(url, tintColorHex, callback) {
   // Dynamic image loader with high fidelity preservation
   function updateOrbTextures() {
     if (!IMAGES.f1.complete || !IMAGES.f2.complete || !IMAGES.f4.complete || !IMAGES.callingOrb.complete) return;
-    
+
     scene.userData.ecoNodes.forEach((node) => {
       if (node.userData && node.userData.texture) {
         node.userData.texture.needsUpdate = true;
@@ -4294,9 +4234,9 @@ function loadAndTintLogo(url, tintColorHex, callback) {
   const ecoGeo = new THREE.BufferGeometry();
   const ecoPos = new Float32Array(ECO_COUNT * 3);
   for (let i = 0; i < ECO_COUNT; i++) {
-    ecoPos[i*3]   = rand(-40, 40);
-    ecoPos[i*3+1] = rand(-25, 25);
-    ecoPos[i*3+2] = -540 + rand(-40, 40);
+    ecoPos[i * 3] = rand(-40, 40);
+    ecoPos[i * 3 + 1] = rand(-25, 25);
+    ecoPos[i * 3 + 2] = -540 + rand(-40, 40);
   }
   ecoGeo.setAttribute('position', new THREE.BufferAttribute(ecoPos, 3));
   const pts = new THREE.Points(ecoGeo, new THREE.PointsMaterial({
@@ -4313,45 +4253,45 @@ function loadAndTintLogo(url, tintColorHex, callback) {
 })();
 
 function rebuildEcosystemStreams() {
-  const logoCenter = new THREE.Vector3(0, 4.5, -470);
-  
+  const logoCenter = new THREE.Vector3(0, 4.5, -485);
+
   // Diagonal curves: originate from logoCenter and flow to orbs
   // Top-Left (Content Creation) - arched upwards
   const tlPoints = [
     logoCenter,
-    new THREE.Vector3(-8, 14.0, -470),
-    new THREE.Vector3(-18, 18.0, -470),
+    new THREE.Vector3(-8, 14.0, -485),
+    new THREE.Vector3(-18, 18.0, -485),
     pTopLeft
   ];
   const tlCurve = new THREE.CatmullRomCurve3(tlPoints, false, 'centripetal');
-  
+
   // Top-Right (Website Experiences) - arched upwards
   const trPoints = [
     logoCenter,
-    new THREE.Vector3(8, 14.0, -470),
-    new THREE.Vector3(18, 18.0, -470),
+    new THREE.Vector3(8, 14.0, -485),
+    new THREE.Vector3(18, 18.0, -485),
     pTopRight
   ];
   const trCurve = new THREE.CatmullRomCurve3(trPoints, false, 'centripetal');
-  
+
   // Bottom-Left (AI Calling) - bowed downwards
   const blPoints = [
     logoCenter,
-    new THREE.Vector3(-8, -6.0, -470),
-    new THREE.Vector3(-18, -9.0, -470),
+    new THREE.Vector3(-8, -6.0, -485),
+    new THREE.Vector3(-18, -9.0, -485),
     pBottomLeft
   ];
   const blCurve = new THREE.CatmullRomCurve3(blPoints, false, 'centripetal');
-  
+
   // Bottom-Right (AI Texting) - bowed downwards
   const brPoints = [
     logoCenter,
-    new THREE.Vector3(8, -6.0, -470),
-    new THREE.Vector3(18, -9.0, -470),
+    new THREE.Vector3(8, -6.0, -485),
+    new THREE.Vector3(18, -9.0, -485),
     pBottomRight
   ];
   const brCurve = new THREE.CatmullRomCurve3(brPoints, false, 'centripetal');
-  
+
   scene.userData.branchTLCurve = tlCurve;
   scene.userData.branchTRCurve = trCurve;
   scene.userData.branchBLCurve = blCurve;
@@ -4370,7 +4310,7 @@ function rebuildEcosystemStreams() {
 }
 
 (function buildConnectionPipe() {
-  const vStart = new THREE.Vector3(0, 4.5, -470);
+  const vStart = new THREE.Vector3(0, 4.5, -485);
   const curves = [
     curveHeroToContent,
     curveContentToWebsites,
@@ -4398,12 +4338,12 @@ function rebuildEcosystemStreams() {
   branchTRMesh = new THREE.Mesh(dummyGeom.clone(), createGoldMaterial(0.0));
   branchBLMesh = new THREE.Mesh(dummyGeom.clone(), createGoldMaterial(0.0));
   branchBRMesh = new THREE.Mesh(dummyGeom.clone(), createGoldMaterial(0.0));
-  
+
   branchTLMesh.renderOrder = 7;
   branchTRMesh.renderOrder = 7;
   branchBLMesh.renderOrder = 7;
   branchBRMesh.renderOrder = 7;
-  
+
   scene.add(branchTLMesh);
   scene.add(branchTRMesh);
   scene.add(branchBLMesh);
@@ -4423,7 +4363,7 @@ function rebuildEcosystemStreams() {
     texture.magFilter = THREE.LinearFilter;
     texture.anisotropy = renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 16;
     const aspect = texture.image.width / texture.image.height;
-    
+
     // Set centerpiece logo plane size (scaled to 18.0 units for breathing room)
     const logoGeo = new THREE.PlaneGeometry(18.0 * aspect, 18.0);
     const logoMat = new THREE.MeshBasicMaterial({
@@ -4434,7 +4374,7 @@ function rebuildEcosystemStreams() {
       depthTest: true,
       side: THREE.DoubleSide
     });
-    
+
     const logoMesh = new THREE.Mesh(logoGeo, logoMat);
     logoMesh.position.copy(vStart);
     logoMesh.renderOrder = 8; // Render on top of gold conduits (renderOrder=4), behind orbs (renderOrder=10)
@@ -4448,21 +4388,21 @@ function rebuildEcosystemStreams() {
    Zone ranges: progress values where text is visible
    ═══════════════════════════════════════════ */
 const ZONES = [
-  { id: 'zt-hero',      from: -0.5,  peak: 0.0,  to: 0.4  },
-  { id: 'zt-content',   from: 0.6,   peak: 1.0,  to: 1.6  },
-  { id: 'zt-websites',  from: 1.9,   peak: 2.5,  to: 3.4  },
-  { id: 'zt-calling',   from: 4.8,   peak: 5.5,  to: 6.5  },
-  { id: 'zt-texting',   from: 8.8,   peak: 9.5,  to: 10.5 },
-  { id: 'zt-ecosystem', from: 12.0,  peak: 13.0, to: 13.5 },
+  { id: 'zt-hero', from: -0.5, peak: 0.0, to: 0.4 },
+  { id: 'zt-content', from: 0.6, peak: 1.0, to: 1.6 },
+  { id: 'zt-websites', from: 1.9, peak: 2.5, to: 3.4 },
+  { id: 'zt-calling', from: 4.8, peak: 5.5, to: 6.5 },
+  { id: 'zt-texting', from: 8.8, peak: 9.5, to: 10.5 },
+  { id: 'zt-ecosystem', from: 12.0, peak: 13.0, to: 13.5 },
 ];
 
 const NAV_CONTEXTS = [
-  { from: 0.00,  to: 0.5,   text: '' },
-  { from: 0.5,   to: 2.0,   text: 'Content Engine' },
-  { from: 2.0,   to: 3.5,   text: 'Website Experiences' },
-  { from: 3.5,   to: 7.0,   text: 'AI Calling Agents' },
-  { from: 7.0,   to: 11.25, text: 'AI Texting Agents' },
-  { from: 11.25, to: 14.0,  text: 'The Ecosystem' },
+  { from: 0.00, to: 0.5, text: '' },
+  { from: 0.5, to: 2.0, text: 'Content Engine' },
+  { from: 2.0, to: 3.5, text: 'Website Experiences' },
+  { from: 3.5, to: 7.0, text: 'AI Calling Agents' },
+  { from: 7.0, to: 11.25, text: 'AI Texting Agents' },
+  { from: 11.25, to: 14.0, text: 'The Ecosystem' },
 ];
 
 const zoneEls = {};
@@ -4488,17 +4428,17 @@ function updateDescriptionTyping(idx, activeTime) {
   const el = descElements[idx];
   const fullText = descOriginalTexts[idx];
   if (!el || !fullText) return;
-  
+
   const duration = 2.8; // 2.8s typing reveal (within 2-4s)
   const progress = clamp(activeTime / duration, 0, 1);
   const numChars = Math.floor(progress * fullText.length);
-  
+
   let typed = fullText.slice(0, numChars);
   if (progress < 1.0) {
     const flash = Math.floor(performance.now() / 150) % 2 === 0;
     typed += flash ? '|' : '';
   }
-  
+
   el.innerHTML = typed.replace(/\n/g, '<br>');
   el.style.opacity = 0.4 + 0.6 * progress;
 }
@@ -4602,7 +4542,7 @@ function updateOverlay(t) {
    Beige (hero) → deep void (worlds)
    ═══════════════════════════════════════════ */
 const BG_START = new THREE.Color(PALETTE.bg);
-const BG_END   = new THREE.Color(PALETTE.bg);
+const BG_END = new THREE.Color(PALETTE.bg);
 
 const _targetColor = new THREE.Color();
 
@@ -4612,7 +4552,7 @@ function updateBackground(t) {
 
   if (!scene.userData.currBg) scene.userData.currBg = new THREE.Color(PALETTE.bg);
   scene.userData.currBg.lerp(_targetColor, 0.04);
-  
+
   renderer.setClearColor(scene.userData.currBg, 1);
   if (scene.fog) {
     scene.fog.color.copy(scene.userData.currBg);
@@ -4623,7 +4563,7 @@ function updateBackground(t) {
 /* ═══════════════════════════════════════════
    16. CURSOR
    ═══════════════════════════════════════════ */
-const curDot  = document.getElementById('cur-dot');
+const curDot = document.getElementById('cur-dot');
 const curRing = document.getElementById('cur-ring');
 let cx = 0, cy = 0, rx = 0, ry = 0;
 let hoveringHtml = false;
@@ -4652,7 +4592,7 @@ window.addEventListener('click', (event) => {
     const clickMouse = new THREE.Vector2();
     clickMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     clickMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
+
     raycaster.setFromCamera(clickMouse, camera);
     const spheres = [];
     scene.userData.ecoNodes.forEach((node, idx) => {
@@ -4661,7 +4601,7 @@ window.addEventListener('click', (event) => {
         spheres.push(node.children[0]);
       }
     });
-    
+
     const intersects = raycaster.intersectObjects(spheres);
     if (intersects.length > 0) {
       const idx = intersects[0].object.userData.nodeIndex;
@@ -4681,10 +4621,10 @@ window.addEventListener('click', (event) => {
 function updateCursor() {
   rx = lerp(rx, cx, 0.1);
   ry = lerp(ry, cy, 0.1);
-  curDot.style.left  = cx + 'px';
-  curDot.style.top   = cy + 'px';
+  curDot.style.left = cx + 'px';
+  curDot.style.top = cy + 'px';
   curRing.style.left = rx + 'px';
-  curRing.style.top  = ry + 'px';
+  curRing.style.top = ry + 'px';
 
   // Hover detection for 3D ecosystem spheres
   let isHoveringNode = false;
@@ -4761,12 +4701,12 @@ function updateContent(t, time, dt) {
         const screenCenterX = viewportWidth / 2;
         const currentCardXOnScreen = card.x + (card.dragX || 0) + card.width / 2;
         const normalizedDist = (currentCardXOnScreen - screenCenterX) / (viewportWidth / 2); // -1.5 to 1.5 approx
-        
+
         // Soft arc: Translate card back in depth (Z) as it gets further from the screen center,
         // and rotateY slightly inward to point toward the center.
         const arcZ = -40 * Math.pow(Math.abs(normalizedDist), 2); // soft max 40px depth push back
         const arcRotateY = -6 * normalizedDist; // soft max 6deg inward Y rotation
-        
+
         // SINGLE SOURCE OF TRUTH: one unified transform write for all states.
         card.element.style.transform = `translate3d(${card.x + (card.dragX || 0)}px, ${card.dragY || 0}px, ${card.dragZ || 0}px) translateZ(${arcZ}px) rotateY(${arcRotateY}deg) scale(${card.dragScale != null ? card.dragScale : 1}) rotate(${card.dragRotation || 0}deg)`;
       });
@@ -4994,7 +4934,7 @@ function updateCalling(t, time) {
   callingAutoplayTime += dt;
 
   if (scene.userData.callingScreens) {
-    const Z = -290;
+    const Z = -320;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
 
@@ -5148,148 +5088,148 @@ function updateEcosystem(t, time) {
   if (!isTransitioningInOrActive) {
     return;
   }
-    // 1. Centerpiece logo fades in first between vp = 12.0 and 12.15
-    const logoOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
-    
-    // Payoff trigger starts after final orb assembly (vp >= 12.8)
-    const payoff = vp >= 12.8 ? lerp(1.0, 2.0, clamp((vp - 12.8) / 0.5, 0, 1)) : 1.0;
+  // 1. Centerpiece logo fades in first between vp = 12.0 and 12.15
+  const logoOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
 
-    // Update centerpiece logo (junctionMesh) opacity and keep its scale completely stable (increased to 1.75)
-    if (scene.userData.junctionMesh && scene.userData.junctionMesh.material) {
-      scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95 * getSectionOpacity(5);
-      scene.userData.junctionMesh.renderOrder = 8; // Render behind orbs, above conduits
-      scene.userData.junctionMesh.scale.set(1.75, 1.75, 1.75); // Enlarged to 1.75
-    }
-    
-    // Float the nodes and rotate elements
-    if (scene.userData.ecoNodes) {
-      // Dynamically position the nodes based on camera viewport boundaries at z = -470
-      const aspect = window.innerWidth / window.innerHeight;
-      const fovRad = (camera.fov * Math.PI) / 360;
-      const dist = Math.abs(camera.position.z - (-470));
-      const halfHeight = dist * Math.tan(fovRad);
-      const halfWidth = halfHeight * aspect;
+  // Payoff trigger starts after final orb assembly (vp >= 12.8)
+  const payoff = vp >= 12.8 ? lerp(1.0, 2.0, clamp((vp - 12.8) / 0.5, 0, 1)) : 1.0;
 
-      // Conversions: set centers to exactly 240px from left/right and 220px from top/bottom
-      const marginX_units = (240 / window.innerWidth) * (2 * halfWidth);
-      const marginY_units = (220 / window.innerHeight) * (2 * halfHeight);
-      const targetX = halfWidth - marginX_units;
-      const targetY = halfHeight - marginY_units;
+  // Update centerpiece logo (junctionMesh) opacity and keep its scale completely stable (increased to 1.75)
+  if (scene.userData.junctionMesh && scene.userData.junctionMesh.material) {
+    scene.userData.junctionMesh.material.opacity = logoOpacity * 0.95 * getSectionOpacity(5);
+    scene.userData.junctionMesh.renderOrder = 8; // Render behind orbs, above conduits
+    scene.userData.junctionMesh.scale.set(1.75, 1.75, 1.75); // Enlarged to 1.75
+  }
 
-      // Make center Y = 4.5 the horizontal symmetry line (4-quadrant corner layout)
-      // Removed the 0.50 vertical centerline multiplier to keep the layout wide and closer to corners
-      const dynamicPositions = [
-        [-targetX, 4.5 + targetY, -470], // Top Left (Content Creation)
-        [targetX, 4.5 + targetY, -470],  // Top Right (Website Experiences)
-        [-targetX, 4.5 - targetY, -470], // Bottom Left (AI Calling Agents)
-        [targetX, 4.5 - targetY, -470]   // Bottom Right (AI Texting Agents)
-      ];
+  // Float the nodes and rotate elements
+  if (scene.userData.ecoNodes) {
+    // Dynamically position the nodes based on camera viewport boundaries at z = -485
+    const aspect = window.innerWidth / window.innerHeight;
+    const fovRad = (camera.fov * Math.PI) / 360;
+    const dist = Math.abs(camera.position.z - (-485));
+    const halfHeight = dist * Math.tan(fovRad);
+    const halfWidth = halfHeight * aspect;
 
-      // Compute delta time for frame-rate independent hover transitions
-      const now = performance.now();
-      const dt = now - lastEcoTime;
-      lastEcoTime = now;
+    // Conversions: set centers to exactly 240px from left/right and 220px from top/bottom
+    const marginX_units = (240 / window.innerWidth) * (2 * halfWidth);
+    const marginY_units = (220 / window.innerHeight) * (2 * halfHeight);
+    const targetX = halfWidth - marginX_units;
+    const targetY = halfHeight - marginY_units;
 
-      scene.userData.ecoNodes.forEach((node, idx) => {
-        const bp = dynamicPositions[idx];
-        node.userData.basePos = bp;
-        
-        // Orbs remain perfectly stable at their base positions
-        node.position.set(bp[0], bp[1], bp[2]);
-        
-        // Make the core body face the camera directly
-        node.children[0].quaternion.copy(camera.quaternion);
+    // Make center Y = 4.5 the horizontal symmetry line (4-quadrant corner layout)
+    // Removed the 0.50 vertical centerline multiplier to keep the layout wide and closer to corners
+    const dynamicPositions = [
+      [-targetX, 4.5 + targetY, -485], // Top Left (Content Creation)
+      [targetX, 4.5 + targetY, -485],  // Top Right (Website Experiences)
+      [-targetX, 4.5 - targetY, -485], // Bottom Left (AI Calling Agents)
+      [targetX, 4.5 - targetY, -485]   // Bottom Right (AI Texting Agents)
+    ];
 
-        // ALIVE ORB SYSTEM - Slow breathing/pulsing animation
-        const angle = (ecoTime / 3.2) * Math.PI * 2;
-        const breathingScale = 1.00 + (Math.sin(angle) * 0.5 + 0.5) * 0.015 * payoff;
-        
-        // Smooth hover transition state tracking (300ms transition)
-        if (node.userData.hoverFactor === undefined) {
-          node.userData.hoverFactor = 0.0;
-        }
-        
-        const isHovered = (idx === hoveredNodeIdx);
-        const targetHover = isHovered ? 1.0 : 0.0;
-        
-        const speed = 1.0 / 300.0;
-        const step = dt * speed;
-        
-        if (node.userData.hoverFactor < targetHover) {
-          node.userData.hoverFactor = Math.min(targetHover, node.userData.hoverFactor + step);
-        } else if (node.userData.hoverFactor > targetHover) {
-          node.userData.hoverFactor = Math.max(targetHover, node.userData.hoverFactor - step);
-        }
-        
-        const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
-        const easedHover = targetHover > 0 
-          ? easeOutCubic(node.userData.hoverFactor)
-          : 1 - easeOutCubic(1 - node.userData.hoverFactor);
-        
-        const finalScale = lerp(breathingScale, 1.65, easedHover);
-        node.children[0].scale.set(finalScale, finalScale, 1.0);
-        
-        if (isHovered) {
-          node.children[0].renderOrder = 15;
-        } else if (node.userData.hoverFactor > 0) {
-          node.children[0].renderOrder = 12;
-        } else {
-          node.children[0].renderOrder = 10;
-        }
-        
-        // Fade in core mesh (orbs) between t = 0.88 and 0.93
-        const coreMesh = node.children[0];
-        if (coreMesh.material) {
-          const baseOp = coreMesh.material.userData.baseOpacity !== undefined ? coreMesh.material.userData.baseOpacity : 1.0;
-          const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5);
-          coreMesh.material.opacity = baseOp * orbZoneOpacity;
-          
-          // Balanced highlight on hover
-          const highlightBoost = 1.0 + 0.3 * easedHover;
-          coreMesh.material.color.setRGB(highlightBoost, highlightBoost, highlightBoost);
-        }
-      });
+    // Compute delta time for frame-rate independent hover transitions
+    const now = performance.now();
+    const dt = now - lastEcoTime;
+    lastEcoTime = now;
 
-      // Check if orb targets have moved, update spline anchors, and rebuild tube geometry dynamically
-      const tl = dynamicPositions[0];
-      const tr = dynamicPositions[1];
-      const bl = dynamicPositions[2];
-      const br = dynamicPositions[3];
+    scene.userData.ecoNodes.forEach((node, idx) => {
+      const bp = dynamicPositions[idx];
+      node.userData.basePos = bp;
 
-      if (pTopLeft.x !== tl[0] || pTopLeft.y !== tl[1] ||
-          pTopRight.x !== tr[0] || pTopRight.y !== tr[1] ||
-          pBottomLeft.x !== bl[0] || pBottomLeft.y !== bl[1] ||
-          pBottomRight.x !== br[0] || pBottomRight.y !== br[1]) {
-        
-        pTopLeft.set(tl[0], tl[1], tl[2]);
-        pTopRight.set(tr[0], tr[1], tr[2]);
-        pBottomLeft.set(bl[0], bl[1], bl[2]);
-        pBottomRight.set(br[0], br[1], br[2]);
+      // Orbs remain perfectly stable at their base positions
+      node.position.set(bp[0], bp[1], bp[2]);
 
-        // Rebuild ecosystem curves based on new dynamic positions
-        rebuildEcosystemStreams();
+      // Make the core body face the camera directly
+      node.children[0].quaternion.copy(camera.quaternion);
+
+      // ALIVE ORB SYSTEM - Slow breathing/pulsing animation
+      const angle = (ecoTime / 3.2) * Math.PI * 2;
+      const breathingScale = 1.00 + (Math.sin(angle) * 0.5 + 0.5) * 0.015 * payoff;
+
+      // Smooth hover transition state tracking (300ms transition)
+      if (node.userData.hoverFactor === undefined) {
+        node.userData.hoverFactor = 0.0;
       }
-    }
 
-    // Converging ecosystem streams replaced by single continuous master stream
+      const isHovered = (idx === hoveredNodeIdx);
+      const targetHover = isHovered ? 1.0 : 0.0;
 
-    // Drifting eco background particles update
-    if (scene.userData.ecoParticles) {
-      const pts = scene.userData.ecoParticles;
-      pts.rotation.y = ecoTime * 0.02;
-      pts.rotation.z = ecoTime * 0.01;
-      if (pts.material) {
-        const baseOp = pts.material.userData.baseOpacity !== undefined ? pts.material.userData.baseOpacity : 0.25;
-        const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5); // Fades in with centerpiece logo
-        pts.material.opacity = baseOp * ptsOpacity;
-        pts.material.size = 0.08 * payoff; // scale particle size by payoff
+      const speed = 1.0 / 300.0;
+      const step = dt * speed;
+
+      if (node.userData.hoverFactor < targetHover) {
+        node.userData.hoverFactor = Math.min(targetHover, node.userData.hoverFactor + step);
+      } else if (node.userData.hoverFactor > targetHover) {
+        node.userData.hoverFactor = Math.max(targetHover, node.userData.hoverFactor - step);
       }
-    }
 
-    // Ecosystem point light payoff
-    if (lightEco) {
-      lightEco.intensity = 0.7 + 0.8 * (payoff - 1.0);
+      const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+      const easedHover = targetHover > 0
+        ? easeOutCubic(node.userData.hoverFactor)
+        : 1 - easeOutCubic(1 - node.userData.hoverFactor);
+
+      const finalScale = lerp(breathingScale, 1.65, easedHover);
+      node.children[0].scale.set(finalScale, finalScale, 1.0);
+
+      if (isHovered) {
+        node.children[0].renderOrder = 15;
+      } else if (node.userData.hoverFactor > 0) {
+        node.children[0].renderOrder = 12;
+      } else {
+        node.children[0].renderOrder = 10;
+      }
+
+      // Fade in core mesh (orbs) between t = 0.88 and 0.93
+      const coreMesh = node.children[0];
+      if (coreMesh.material) {
+        const baseOp = coreMesh.material.userData.baseOpacity !== undefined ? coreMesh.material.userData.baseOpacity : 1.0;
+        const orbZoneOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5);
+        coreMesh.material.opacity = baseOp * orbZoneOpacity;
+
+        // Balanced highlight on hover
+        const highlightBoost = 1.0 + 0.3 * easedHover;
+        coreMesh.material.color.setRGB(highlightBoost, highlightBoost, highlightBoost);
+      }
+    });
+
+    // Check if orb targets have moved, update spline anchors, and rebuild tube geometry dynamically
+    const tl = dynamicPositions[0];
+    const tr = dynamicPositions[1];
+    const bl = dynamicPositions[2];
+    const br = dynamicPositions[3];
+
+    if (pTopLeft.x !== tl[0] || pTopLeft.y !== tl[1] ||
+      pTopRight.x !== tr[0] || pTopRight.y !== tr[1] ||
+      pBottomLeft.x !== bl[0] || pBottomLeft.y !== bl[1] ||
+      pBottomRight.x !== br[0] || pBottomRight.y !== br[1]) {
+
+      pTopLeft.set(tl[0], tl[1], tl[2]);
+      pTopRight.set(tr[0], tr[1], tr[2]);
+      pBottomLeft.set(bl[0], bl[1], bl[2]);
+      pBottomRight.set(br[0], br[1], br[2]);
+
+      // Rebuild ecosystem curves based on new dynamic positions
+      rebuildEcosystemStreams();
     }
+  }
+
+  // Converging ecosystem streams replaced by single continuous master stream
+
+  // Drifting eco background particles update
+  if (scene.userData.ecoParticles) {
+    const pts = scene.userData.ecoParticles;
+    pts.rotation.y = ecoTime * 0.02;
+    pts.rotation.z = ecoTime * 0.01;
+    if (pts.material) {
+      const baseOp = pts.material.userData.baseOpacity !== undefined ? pts.material.userData.baseOpacity : 0.25;
+      const ptsOpacity = clamp((vp - 12.0) / 0.15, 0, 1) * getSectionOpacity(5); // Fades in with centerpiece logo
+      pts.material.opacity = baseOp * ptsOpacity;
+      pts.material.size = 0.08 * payoff; // scale particle size by payoff
+    }
+  }
+
+  // Ecosystem point light payoff
+  if (lightEco) {
+    lightEco.intensity = 0.7 + 0.8 * (payoff - 1.0);
+  }
 }
 
 function updateTexting(t, time) {
@@ -5346,7 +5286,7 @@ function updateTexting(t, time) {
 
 
   if (isTransitioningInOrActive) {
-    
+
     // Main river tube (disabled for visual cleanup)
     if (scene.userData.riverTube) {
       scene.userData.riverTube.material.opacity = 0;
@@ -5358,37 +5298,37 @@ function updateTexting(t, time) {
         // Calculate camera look direction including parallax
         const lookDir = new THREE.Vector3().subVectors(lookTarget, camera.position).normalize();
         const phoneDist = 7.2; // 15% visual reduction for proper breathing margins
-        
+
         // Position phone along the camera look axis at a fixed distance
         b.position.copy(camera.position).addScaledVector(lookDir, phoneDist);
-        
+
         // Slide phone upward relative to local camera Up-axis
         const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
         const slideOffset = (1.0 - textingRevealTime) * -9.5;
         b.position.addScaledVector(camUp, slideOffset);
-        
+
         // Compute slow, premium floating/breathing offsets
         const floatY = Math.sin(time * 0.35 + b.userData.phase) * 0.14;
         const floatX = Math.cos(time * 0.25 + b.userData.phase) * 0.08;
-        
+
         // Compute mouse parallax offsets
         const mouseParallaxX = mouse.sx * 0.28;
         const mouseParallaxY = mouse.sy * 0.22;
-        
+
         // Project offsets relative to local camera axes
         const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
         b.position.addScaledVector(camRight, floatX + mouseParallaxX);
         b.position.addScaledVector(camUp, floatY + mouseParallaxY);
-        
+
         // Compute organic rotational breathing drift
         const floatRotZ = Math.sin(time * 0.15 + b.userData.phase) * 0.02;
         const floatRotY = Math.cos(time * 0.12 + b.userData.phase) * 0.025;
         const floatRotX = Math.sin(time * 0.10 + b.userData.phase) * 0.02;
-        
+
         // Compute interactive mouse tilts
         const mouseRotY = mouse.sx * 0.14;
         const mouseRotX = -mouse.sy * 0.087;
-        
+
         // Align phone flat with camera and apply tilts
         b.quaternion.copy(camera.quaternion);
         const euler = new THREE.Euler().setFromQuaternion(b.quaternion);
@@ -5396,12 +5336,12 @@ function updateTexting(t, time) {
         euler.y += floatRotY + mouseRotY;
         euler.z += floatRotZ;
         b.quaternion.setFromEuler(euler);
-        
+
         // Scale slightly while entering (starts at 92%, scales to 100%)
         const entryScale = 0.92 + 0.08 * textingRevealTime;
         const floatScale = 1.0 + Math.sin(time * 0.2 + b.userData.phase) * 0.015;
         b.scale.set(entryScale * floatScale, entryScale * floatScale, 1.0);
-        
+
         const finalOpacity = phoneOpacity * 0.98 * getSectionOpacity(4);
         b.material.opacity = finalOpacity;
         b.visible = finalOpacity > 0.001;
@@ -5472,9 +5412,9 @@ const goldCurves = [
 const goldCurveTravelLimits = [
   1.00, // Hero -> Content (fully travels to end of Segment 1 at Z=-65.5)
   0.63, // Content -> Website (dismounts halfway along Segment 2 at Z=-195)
-  0.33, // Website -> Calling
-  0.60, // Calling -> Texting
-  0.45  // Texting -> Ecosystem
+  1.00, // Website -> Calling (fully travels end of Segment 3 at Z=-305)
+  1.00, // Calling -> Texting (fully travels end of Segment 4 at Z=-380)
+  1.00  // Texting -> Ecosystem (fully travels end of Segment 5 at Z=-485)
 ];
 
 function getSectionOpacity(idx) {
@@ -5507,7 +5447,7 @@ function getSectionOpacity(idx) {
   return 0.0;
 }
 
-const camTarget  = new THREE.Vector3();
+const camTarget = new THREE.Vector3();
 const lookTarget = new THREE.Vector3();
 
 function animate() {
@@ -5524,7 +5464,7 @@ function animate() {
   if (sectionTransitionProgress < 1.0) {
     transitionTimeElapsed += dt;
     progressVal = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-    
+
     // Phase 1 (0.0 to 0.2): Fade out departure. Camera does not move yet.
     if (progressVal < 0.2) {
       scrollProgress = startScrollProgress;
@@ -5557,7 +5497,7 @@ function animate() {
       }
     }
   }
-  
+
   // ═══════════════════════════════════════════════════════════════════
   // SCROLL → CAMERA PROGRESS REMAPPING
   //
@@ -5606,12 +5546,12 @@ function animate() {
     if (sectionIdx === 2) {
       // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
       const camZ = lerp(-195.0, -272.0, webProgress);
-      // Non-linear elevation ramp: starting lower (Row 1), eye-level (Row 2), elevated overlook (Row 3)
-      const easeY = Math.pow(webProgress, 1.5);
-      const camY = 1.8 + easeY * 9.5; // Starts at 1.8 and rises up to 11.3 (highest point) for a visible overlooked vantage
+      // Level off height to stay flat at eye-level from Row 2 to Row 3
+      const easeY = Math.sin(Math.min(1.0, webProgress / 0.6) * Math.PI / 2);
+      const camY = 1.8 + easeY * 3.7; 
       const pos = new THREE.Vector3(0.0, camY, camZ);
-      // Look target tilts subtly downward over the exhibition as we rise
-      const look = new THREE.Vector3(0.0, camY - easeY * 2.5, camZ - 20.0);
+      // Keep look target flat and forward-looking
+      const look = new THREE.Vector3(0.0, camY, camZ - 20.0);
       return { pos, look };
     } else {
       // Normal sections: evaluate CAM_PATH and LOOK_PATH at their fixed station positions
@@ -5855,14 +5795,14 @@ function animate() {
     if (currentSectionIdx > 2) {
       if (websiteScrollProgress !== 1.0) {
         websiteScrollProgress = 1.0;
-        websiteScrollTarget   = 1.0;
+        websiteScrollTarget = 1.0;
         websiteScrollVelocity = 0;
         websiteSpringVelocity = 0;
       }
     } else if (currentSectionIdx < 2) {
       if (websiteScrollProgress !== 0.0) {
         websiteScrollProgress = 0.0;
-        websiteScrollTarget   = 0.0;
+        websiteScrollTarget = 0.0;
         websiteScrollVelocity = 0;
         websiteSpringVelocity = 0;
       }
@@ -6020,7 +5960,7 @@ function animate() {
         branchOpacity *= clamp((13.5 - vp) / 0.7, 0.0, 1.0);
       }
       branchOpacity *= getSectionOpacity(5); // Apply transition fade
-      
+
       branchTLMesh.material.uniforms.opacity.value = branchOpacity;
       branchTRMesh.material.uniforms.opacity.value = branchOpacity;
       branchBLMesh.material.uniforms.opacity.value = branchOpacity;
@@ -6068,7 +6008,7 @@ function animate() {
         // Accelerate Z speed during gravitational pull
         pSpeed = speed * (1.0 + 3.0 * suctionStrength);
       }
-      
+
       // Move star towards positive Z (towards camera)
       posArray[i * 3 + 2] += pSpeed;
 
@@ -6087,7 +6027,7 @@ function animate() {
 
       // Wrap if it passes behind the camera
       if (posArray[i * 3 + 2] > camera.position.z + 10) {
-        posArray[i * 3 + 2] = -470;
+        posArray[i * 3 + 2] = -485;
         // Randomize X and Y when wrapping
         const r = rand(10, 80);
         const theta = rand(0, TAU);
