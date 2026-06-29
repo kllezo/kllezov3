@@ -11,7 +11,7 @@ http.createServer((req, res) => {
   
   let cleanUrl = decodeURIComponent(req.url.split('?')[0]);
   let p = path.join(__dirname, cleanUrl === '/' ? 'index.html' : cleanUrl);
-  if (fs.existsSync(p)) {
+  if (fs.existsSync(p) && fs.statSync(p).isFile()) {
     let content = fs.readFileSync(p);
     if (req.url === '/' || req.url === '/index.html') {
       content = content.toString().replace('<head>', '<head><script>' +
