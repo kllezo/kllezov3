@@ -71,7 +71,7 @@ let ecoTime = 0;
 let currentSectionIdx = 0;
 let targetSectionIdx = 0;
 let sectionTransitionProgress = 1.0; // 1.0 means transition is complete
-let transitionDuration = 4.2; // 4.2s cinematic snap transition duration
+let transitionDuration = 4.8; // 4.8s cinematic snap transition duration (reduced speed by ~12.5% for luxury feel)
 let transitionTimeElapsed = 0;
 let startScrollProgress = 0;
 let targetScrollProgress = 0;
@@ -1760,11 +1760,11 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     // ── SCREEN CLIPPING: enforce curved edges of the phone display ──
     ctx.save();
     ctx.beginPath();
-    const screenX = destX + 10;
-    const screenY = destY + 88;
-    const screenW = destW - 20;
-    const screenH = destH - 110;
-    const screenR = 38;
+    const screenX = destX + 12;
+    const screenY = destY + 12;
+    const screenW = destW - 24;
+    const screenH = destH - 24;
+    const screenR = 40;
     ctx.moveTo(screenX + screenR, screenY);
     ctx.arcTo(screenX + screenW, screenY,            screenX + screenW, screenY + screenH, screenR);
     ctx.arcTo(screenX + screenW, screenY + screenH,  screenX,           screenY + screenH, screenR);
@@ -1899,22 +1899,22 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     });
 
     // Chat area dimensions
-    let activeMinY = destY + 145;
-    let activeMaxY = destY + destH - 102;
-    let activeW = destW - 32;
-    let activeX = destX + 16;
+    let activeMinY = destY + 135;
+    let activeMaxY = destY + destH - 125; // Raised bottom limit to respect input bar and padding
+    let activeW = destW - 64;             // 32px screen margin padding on left/right (was 16px)
+    let activeX = destX + 32;
 
     if (websiteUiOpacity > 0.001) {
-      activeMinY = lerp(destY + 145, destY + 185, websiteUiOpacity);
-      activeMaxY = lerp(destY + destH - 102, destY + destH - 120, websiteUiOpacity);
-      activeW = lerp(destW - 32, destW - 48, websiteUiOpacity);
-      activeX = destX + 16;
+      activeMinY = lerp(destY + 135, destY + 175, websiteUiOpacity);
+      activeMaxY = lerp(destY + destH - 125, destY + destH - 140, websiteUiOpacity);
+      activeW = lerp(destW - 64, destW - 80, websiteUiOpacity);
+      activeX = lerp(destX + 32, destX + 40, websiteUiOpacity);
     }
 
     const chatContentMinY = activeMinY + 16;
     const chatContentMaxY = activeMaxY - 16;
     const maxViewportHeight = chatContentMaxY - chatContentMinY;
-    const maxBubbleWidth = 250;
+    const maxBubbleWidth = 230;            // Reduced bubble width to match real messaging look and prevent bezel clip
 
     let bubblesToDraw = [];
     let totalHeight = 0;
@@ -2159,7 +2159,7 @@ const lightContent = new THREE.PointLight(0xffffff, 1.0, 150);
 lightContent.position.set(0, 8, -90);
 scene.add(lightContent);
 
-const lightWebsites = new THREE.PointLight(0xFFD27D, 1.2, 150);
+const lightWebsites = new THREE.PointLight(0xFFD27D, 1.35, 150); // Increased intensity by 12.5% for improved readability
 lightWebsites.position.set(0, 5, -220);
 scene.add(lightWebsites);
 
@@ -2263,6 +2263,7 @@ document.body.style.overflow = 'hidden';
 let websiteScrollProgress = 0.0;  // smoothed progress 0..1 (drives camera + textures)
 let websiteScrollTarget   = 0.0;  // raw target progress (nudged by wheel/touch)
 let websiteScrollVelocity = 0.0;  // accumulated velocity from wheel events
+let websiteSpringVelocity = 0.0;  // spring velocity for damped spring-scroll physics
 
 function isWebsiteScrollMode() {
   return currentSectionIdx === 2 && sectionTransitionProgress >= 1.0;
@@ -2272,30 +2273,41 @@ function isWebsiteScrollMode() {
 function tickWebsiteScroll(dt) {
   if (!isWebsiteScrollMode()) return;
 
-  // Drain velocity into target
-  websiteScrollTarget += websiteScrollVelocity * dt;
-  websiteScrollVelocity *= Math.pow(0.05, dt); // exponential friction — quick stop
+  // 1. Friction on the user input scroll velocity (how long the input momentum lasts)
+  websiteScrollVelocity *= Math.pow(0.25, dt); // lower friction for a longer, luxurious glide (was 0.05)
 
-  // ONE-WAY LOCK: target is clamped to [0, 1.3]. It can NEVER go below 0.
+  // 2. Add input velocity to target progress
+  websiteScrollTarget += websiteScrollVelocity * dt;
+
+  // ONE-WAY LOCK: target is clamped to [0, 1.25]. It can NEVER go below 0.
   // WEBSITE_EXPLORE is a locked state — exit is only forward, never backward.
   if (websiteScrollTarget < 0) {
     websiteScrollTarget  = 0;
     websiteScrollVelocity = 0; // kill negative momentum completely
   }
-  if (websiteScrollTarget > 1.3) websiteScrollTarget = 1.3;
+  if (websiteScrollTarget > 1.25) websiteScrollTarget = 1.25;
 
   // Forward exit: only when user has fully walked through the entire exhibition
-  if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.95) {
+  if (websiteScrollTarget >= 1.0 && websiteScrollProgress >= 0.98) {
     websiteScrollTarget   = 1.0;
     websiteScrollProgress = 1.0;
     websiteScrollVelocity = 0;  // kill all momentum before firing transition
+    websiteSpringVelocity = 0;
     triggerSectionTransition(currentSectionIdx + 1);
     return;
   }
 
-  // Smooth lerp toward target (critically-damped spring feel)
-  const lerpSpeed = 1.0 - Math.pow(0.001, dt); // ~6-8 frame settling at 60fps
-  websiteScrollProgress = websiteScrollProgress + (websiteScrollTarget - websiteScrollProgress) * lerpSpeed;
+  // 3. Damped Spring Interpolation: websiteScrollProgress chases websiteScrollTarget
+  // Critical damping parameter: omega determines speed, zeta = 1.0 for no oscillation
+  const omega = 6.0; // stiffness
+  const f = 1.0 + omega * dt;
+  const displacement = websiteScrollProgress - websiteScrollTarget;
+
+  // Analytic critical damping update
+  websiteScrollProgress = websiteScrollTarget + (displacement + (websiteSpringVelocity + omega * displacement) * dt) / (f * f);
+  websiteSpringVelocity = (websiteSpringVelocity - omega * omega * displacement * dt) / (f * f);
+
+  // Clamp progress strictly to 0..1
   websiteScrollProgress = Math.max(0, Math.min(1, websiteScrollProgress));
 }
 
@@ -2926,22 +2938,11 @@ const SEGMENT_CUTOFFS = [
   1.00  // Segment 5 cutoff
 ];
 
-// Helper function to return stable segment progress when parked
+// Helper function to return stable segment progress when parked (continuous navigation rail)
 function getParkedSegmentProgress(idx, i, callingAutoplayTime, textingAutoplayTime) {
   const segmentNum = i + 1;
-  if (segmentNum < idx) {
+  if (segmentNum <= idx) {
     return 1.0;
-  }
-  if (segmentNum === idx) {
-    if (idx === 3) { // AI Calling Agents: includes travel and card weave autoplay
-      const autoplayPct = Math.min(1.0, Math.max(0.0, callingAutoplayTime / 2.8));
-      return 0.27 + autoplayPct * 0.73;
-    }
-    if (idx === 4) { // AI Texting Agents: includes travel and phone card weave autoplay
-      const autoplayPct = Math.min(1.0, Math.max(0.0, textingAutoplayTime / 12.0));
-      return 0.35 + autoplayPct * 0.65;
-    }
-    return SEGMENT_CUTOFFS[i];
   }
   return 0.0;
 }
@@ -3518,23 +3519,43 @@ function createLightBeam(spotPos, targetPos, color) {
   return beam;
 }
 
+function createContactShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.clearRect(0, 0, 256, 64);
+  
+  // Soft rectangular/elliptical contact shadow gradient
+  const grad = ctx.createRadialGradient(128, 32, 0, 128, 32, 120);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+  grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.65)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 64);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
 (function buildWebsites() {
 
   const slabDefs = [
     // Website 1: Michelin Restaurant (Nara Omakase) — NO STAND (ground mounted)
-    { x: -16, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    { x: -14.2, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     // Website 2: Luxury Real Estate (Aurelia) — NO STAND (ground mounted)
-    { x: 16, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    { x: 14.2, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
     
     // Website 3: Luxury Fitness (Apex Performance Lab) — SHORT STAND (185%)
-    { x: -19, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    { x: -16.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     // Website 4: Premium Automotive (Verta GT) — SHORT STAND (185%)
-    { x: 19, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    { x: 16.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
     
     // Website 5: Longevity / Medical (Elevate) — FULL STAND (375%)
-    { x: -16, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
+    { x: -14.2, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
     // Website 6: Premium SaaS / AI (Kllezo Automate) — FULL STAND (375%)
-    { x: 16, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
+    { x: 14.2, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3684,6 +3705,22 @@ function createLightBeam(spotPos, targetPos, color) {
       bracket.position.set(0, -d.h / 2 - 0.12, 0);
       group.add(bracket);
     }
+
+    // Soft contact shadow beneath the billboard to ground it visually
+    const shadowGeo = new THREE.PlaneGeometry(d.w * 1.15, d.d * 4.0);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: createContactShadowTexture(),
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+      blending: THREE.NormalBlending
+    });
+    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+    shadowMesh.name = 'shadow';
+    shadowMesh.userData.baseOpacity = 0.5;
+    shadowMesh.position.set(0, -d.h / 2 - d.poleHeight + 0.02, 0);
+    shadowMesh.rotation.x = -Math.PI / 2;
+    group.add(shadowMesh);
 
     const targetYAbsolute = -12 + colHeight + d.h / 2;
     const loweredY = -14.5 - d.h / 2;
@@ -4765,26 +4802,22 @@ function updateWebsites(t, time, vpOverride) {
       g.rotation.y = d.ry + mouse.sx * 0.015;
       g.rotation.x = mouse.sy * 0.012;
 
-      // Per-billboard independent website scroll
-      // Each row activates progressively; closest billboard scrolls furthest
-      let scrollPct = 0.0;
-      if (rowIdx === 0) {
-        scrollPct = clamp(websiteScrollProgress / 0.33, 0, 1);
-      } else if (rowIdx === 1) {
-        scrollPct = clamp((websiteScrollProgress - 0.28) / 0.38, 0, 1);
-      } else {
-        scrollPct = clamp((websiteScrollProgress - 0.58) / 0.42, 0, 1);
-      }
+      // Per-billboard independent website scroll driven by camera proximity
+      // Different start/end trigger bounds for even vs odd index billboards ensures they never synchronize identically
+      const startDist = 45 + (idx % 2) * 10;
+      const endDist = -10 - (idx % 2) * 5;
+      const relZ = camera.position.z - d.z;
+      let scrollPct = clamp((startDist - relZ) / (startDist - endDist), 0.0, 1.0);
 
-      // Per-billboard proximity weight — closest billboard (smallest distanceZ) scrolls most
-      const proximityWeight = clamp(1.0 - distanceZ / 50.0, 0.35, 1.0);
+      // Per-billboard proximity weight — closest billboard scrolls most
+      const proximityWeight = clamp(1.0 - distanceZ / 45.0, 0.25, 1.0);
 
-      const easeScrollPct = 0.5 * (1.0 - Math.cos(scrollPct * Math.PI));
+      const easeScrollPct = scrollPct * scrollPct * (3 - 2 * scrollPct); // smoothstep
       g.userData.scrollPct = easeScrollPct;
       if (g.userData.webTexture && g.userData.repeatY !== undefined) {
         const maxOffset = 1.0 - g.userData.repeatY;
         // Mouse adds a tiny vertical peek offset inside this billboard
-        const mouseScrollInfluence = mouse.sy * 0.012 * proximityWeight;
+        const mouseScrollInfluence = mouse.sy * 0.015 * proximityWeight;
         const baseOffset = maxOffset * (1.0 - easeScrollPct * proximityWeight);
         g.userData.webTexture.offset.y = clamp(baseOffset + mouseScrollInfluence, 0.0, maxOffset);
         g.userData.webTexture.needsUpdate = true;
@@ -5267,7 +5300,7 @@ function updateTexting(t, time) {
   if (lastTextingTimeUpdate === 0) {
     lastTextingTimeUpdate = now;
   }
-  const dt = now - lastTextingTimeUpdate;
+  const dt = Math.min(0.1, now - lastTextingTimeUpdate);
   lastTextingTimeUpdate = now;
 
   const vp = scrollProgress * 13.0;
@@ -5462,10 +5495,11 @@ function getSectionOpacity(idx) {
     return 0.0;
   }
   if (idx === targetSectionIdx) {
-    if (progress < 0.5) {
+    if (progress < 0.25) {
       return 0.0;
     }
-    return (progress - 0.5) / 0.5;
+    // Fade in early during travel phase (progress 0.25 to 0.70) so the destination is the hero
+    return clamp((progress - 0.25) / 0.45, 0.0, 1.0);
   }
   return 0.0;
 }
@@ -5480,7 +5514,7 @@ function animate() {
 
   /* -- Smooth snap transitions -- */
   const nowAnimate = performance.now() / 1000.0;
-  const dt = nowAnimate - lastAnimateTime;
+  const dt = Math.min(0.1, nowAnimate - lastAnimateTime); // Clamp delta time to max 0.1s to handle frame lag/suspend safely
   lastAnimateTime = nowAnimate;
 
   let progressVal = 1.0;
@@ -5571,9 +5605,10 @@ function animate() {
       const camZ = lerp(-195.0, -272.0, webProgress);
       // Non-linear elevation ramp: starting lower (Row 1), eye-level (Row 2), elevated overlook (Row 3)
       const easeY = Math.pow(webProgress, 1.5);
-      const camY = 1.2 + easeY * 8.0;
+      const camY = 1.8 + easeY * 9.5; // Starts at 1.8 and rises up to 11.3 (highest point) for a visible overlooked vantage
       const pos = new THREE.Vector3(0.0, camY, camZ);
-      const look = new THREE.Vector3(0.0, camY + easeY * 2.0, camZ - 20.0); // look slightly upward as we rise
+      // Look target tilts subtly downward over the exhibition as we rise
+      const look = new THREE.Vector3(0.0, camY - easeY * 2.5, camZ - 20.0);
       return { pos, look };
     } else {
       // Normal sections: evaluate CAM_PATH and LOOK_PATH at their fixed station positions
@@ -5637,56 +5672,123 @@ function animate() {
         limit = 0.36; // Dismount at Z = -195 (Gallery entry)
       }
 
-      let followProgress = 0.0;
-      if (toIdx > fromIdx) {
-        followProgress = t_travel * limit;
-      } else {
-        followProgress = (1.0 - t_travel) * limit;
-      }
+      let finalCamTargetTube = new THREE.Vector3();
+      let finalLookTargetTube = new THREE.Vector3();
 
-      const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
-      const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
-      const upVec = new THREE.Vector3(0, 1, 0);
-      const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
-      const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+      if (toIdx === 2) {
+        // ── 1. PHYSICAL DISMOUNT SEQUENCE (Content → Website) ──
+        // Decelerate travel progress along the tube gradually
+        const t_travel_eased = Math.sin(t_travel * Math.PI / 2);
+        const followProgress = t_travel_eased * limit;
 
-      // Banking into turns
-      const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
-      if (Math.abs(bankAngle) > 0.001) {
-        actualUp.applyAxisAngle(tangent, bankAngle);
-      }
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
 
-      const rideHeight = 3.5;
-      const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
-      const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
-
-      // Extended transition boarding/dismounting blend ranges (35% of travel) for deliberate moving walkway dismount/boarding feel
-      const blendRange = 0.35;
-      if (t_travel < blendRange) {
-        const boardBlend = t_travel / blendRange;
-        const easeBlend = 0.5 * (1.0 - Math.cos(boardBlend * Math.PI));
-        finalCamTarget.copy(startState.pos).lerp(tubeCamPos, easeBlend);
-        finalLookTarget.copy(startState.look).lerp(tubeLookPos, easeBlend);
-
-        if (fromIdx === 2) {
-          // Boarding: lift camera vertically above tube
-          const liftOffset = Math.sin(boardBlend * Math.PI) * 1.5;
-          finalCamTarget.y += liftOffset;
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
         }
-      } else if (t_travel > (1.0 - blendRange)) {
-        const dismountBlend = (1.0 - t_travel) / blendRange;
-        const easeBlend = 0.5 * (1.0 - Math.cos(dismountBlend * Math.PI));
-        finalCamTarget.copy(endState.pos).lerp(tubeCamPos, easeBlend);
-        finalLookTarget.copy(endState.look).lerp(tubeLookPos, easeBlend);
 
-        if (toIdx === 2) {
-          // Dismounting: lift camera above tube then drop gently onto ramp
-          const liftOffset = Math.sin((1.0 - dismountBlend) * Math.PI) * 1.5;
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+        const dismountStart = 0.5; // Dismount starts halfway through the transition
+        if (t_travel > dismountStart) {
+          const dismountT = (t_travel - dismountStart) / (1.0 - dismountStart); // 0..1
+          const easeDismount = dismountT * dismountT * (3 - 2 * dismountT); // smoothstep
+
+          // Camera lifts slightly and drops gently (sine wave offset)
+          const liftOffset = Math.sin(dismountT * Math.PI) * 2.2;
+
+          // Separate camera horizontally to the walkway center (X=0) and settle Y/Z
+          finalCamTarget.lerpVectors(tubeCamPos, endState.pos, easeDismount);
           finalCamTarget.y += liftOffset;
+
+          finalLookTarget.lerpVectors(tubeLookPos, endState.look, easeDismount);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
+        }
+      } else if (fromIdx === 2 && toIdx === 3) {
+        // ── 2. PHYSICAL BOARDING SEQUENCE (Website → Calling) ──
+        // Start slowly (camera slows), then accelerate along the curve
+        const t_travel_eased = Math.pow(t_travel, 2.5);
+        const followProgress = t_travel_eased * limit;
+
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
+        }
+
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+        const boardEnd = 0.5; // Boarding takes the first 50% of the transition
+        if (t_travel < boardEnd) {
+          const boardT = t_travel / boardEnd; // 0..1
+          const easeBoard = boardT * boardT * (3 - 2 * boardT); // smoothstep
+
+          // Lift above the tube before dropping down to board it
+          const liftOffset = Math.sin(boardT * Math.PI) * 1.8;
+
+          finalCamTarget.lerpVectors(startState.pos, tubeCamPos, easeBoard);
+          finalCamTarget.y += liftOffset;
+
+          finalLookTarget.lerpVectors(startState.look, tubeLookPos, easeBoard);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
         }
       } else {
-        finalCamTarget.copy(tubeCamPos);
-        finalLookTarget.copy(tubeLookPos);
+        // ── 3. STANDARD CURVE TRAVEL (Other transitions) ──
+        let followProgress = 0.0;
+        if (toIdx > fromIdx) {
+          followProgress = t_travel * limit;
+        } else {
+          followProgress = (1.0 - t_travel) * limit;
+        }
+
+        const pTube = followCurve.getPointAt(Math.min(followProgress, 0.9999));
+        const tangent = followCurve.getTangentAt(Math.min(followProgress, 0.9999)).normalize();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(tangent, upVec).normalize();
+        const actualUp = new THREE.Vector3().crossVectors(rightVec, tangent).normalize();
+
+        const bankAngle = clamp(rightVec.y * 0.25, -0.10, 0.10);
+        if (Math.abs(bankAngle) > 0.001) {
+          actualUp.applyAxisAngle(tangent, bankAngle);
+        }
+
+        const rideHeight = 3.5;
+        const tubeCamPos = pTube.clone().addScaledVector(actualUp, rideHeight);
+        const tubeLookPos = pTube.clone().addScaledVector(tangent, 8.0).addScaledVector(actualUp, -1.0);
+
+        const blendRange = 0.35;
+        if (t_travel < blendRange) {
+          const boardBlend = t_travel / blendRange;
+          const easeBlend = 0.5 * (1.0 - Math.cos(boardBlend * Math.PI));
+          finalCamTarget.copy(startState.pos).lerp(tubeCamPos, easeBlend);
+          finalLookTarget.copy(startState.look).lerp(tubeLookPos, easeBlend);
+        } else if (t_travel > (1.0 - blendRange)) {
+          const dismountBlend = (1.0 - t_travel) / blendRange;
+          const easeBlend = 0.5 * (1.0 - Math.cos(dismountBlend * Math.PI));
+          finalCamTarget.copy(endState.pos).lerp(tubeCamPos, easeBlend);
+          finalLookTarget.copy(endState.look).lerp(tubeLookPos, easeBlend);
+        } else {
+          finalCamTarget.copy(tubeCamPos);
+          finalLookTarget.copy(tubeLookPos);
+        }
       }
     }
 
@@ -5752,12 +5854,14 @@ function animate() {
         websiteScrollProgress = 1.0;
         websiteScrollTarget   = 1.0;
         websiteScrollVelocity = 0;
+        websiteSpringVelocity = 0;
       }
     } else if (currentSectionIdx < 2) {
       if (websiteScrollProgress !== 0.0) {
         websiteScrollProgress = 0.0;
         websiteScrollTarget   = 0.0;
         websiteScrollVelocity = 0;
+        websiteSpringVelocity = 0;
       }
     }
     // Still update websites for opacity fade-out to complete cleanly
@@ -5818,16 +5922,11 @@ function animate() {
           } else if (i > curveIdx) {
             segmentProgresses[i] = 0.0;
           } else {
-            // Active segment — interpolate between departure parked value and arrival parked value
-            // This eliminates the backward jump that occurred when departing parked=1.0 then
-            // immediately growing from 0 using only t_travel * limit.
-            const departureProgress = getParkedSegmentProgress(fromIdx, i, callingAutoplayTime, textingAutoplayTime);
-            const arrivalProgress   = getParkedSegmentProgress(toIdx,   i, callingAutoplayTime, textingAutoplayTime);
-            const ease = t_travel * t_travel * (3 - 2 * t_travel); // smoothstep
+            // Active segment: grows ahead of the camera's travel progress so the rail is already aligned when camera arrives
             if (toIdx > fromIdx) {
-              segmentProgresses[i] = lerp(departureProgress, arrivalProgress, ease);
+              segmentProgresses[i] = clamp(t_travel * 1.35, 0.0, 1.0);
             } else {
-              segmentProgresses[i] = lerp(departureProgress, arrivalProgress, ease);
+              segmentProgresses[i] = clamp(1.0 - (1.0 - t_travel) * 1.35, 0.0, 1.0);
             }
           }
         }
