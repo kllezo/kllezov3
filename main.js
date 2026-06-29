@@ -2736,13 +2736,13 @@ function updateMeshGeometry(mesh, newGeom) {
 }
 
 // Points for Segment 1: Hero to Content Engine
-// Redesigned to swoop left initially and terminate exactly at the Content Engine parked position (Z = -65.5)
+// Visual tube curve: curves right following the camera path
 const ptsHeroToContent = [
-  new THREE.Vector3(-4.5, -8.5, -30),
-  new THREE.Vector3(-8.5, -8.7, -38),
-  new THREE.Vector3(-11.5, -9.3, -46),
-  new THREE.Vector3(-10.5, -10.0, -54),
-  new THREE.Vector3(-6.5, -10.5, -62),
+  new THREE.Vector3(0.0, -11.0, -30.0),
+  new THREE.Vector3(4.5, -10.0, -38.0),
+  new THREE.Vector3(8.5, -9.0, -46.0),
+  new THREE.Vector3(10.5, -8.0, -54.0),
+  new THREE.Vector3(6.5, -9.5, -62.0),
   new THREE.Vector3(1.5, -11.0, -65.5)
 ];
 
@@ -2760,7 +2760,6 @@ const ptsContentToWebsites = [
   new THREE.Vector3(15.5, -14.5, -144),
   new THREE.Vector3(14.5, -13.0, -154),
   new THREE.Vector3(11.5, -10.0, -164),
-  new THREE.Vector3(8.5, -6.0, -174),
   new THREE.Vector3(5.5, -2.0, -184),
   new THREE.Vector3(3.5, 1.0, -194),        // Enters center corridor gap
   new THREE.Vector3(2.5, 3.0, -204),        // Corridor
@@ -2776,30 +2775,92 @@ const ptsContentToWebsites = [
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
-// Starts right in the center (x=0) under the camera exit for zero-jump boarding
+// Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-320)
 const ptsWebsitesToCalling = [
+  new THREE.Vector3(0.0, 5.7, -272.0),
+  new THREE.Vector3(-10.0, 4.0, -290.0),
+  new THREE.Vector3(-18.0, 2.5, -305.0),
+  new THREE.Vector3(-15.0, 6.0, -325.0),
+  new THREE.Vector3(-10.5, 2.5, -327.0),
+  new THREE.Vector3(-5.25, 9.5, -325.0),
+  new THREE.Vector3(0.0, 3.0, -327.0),
+  new THREE.Vector3(5.25, 9.5, -325.0),
+  new THREE.Vector3(10.5, 2.5, -327.0),
+  new THREE.Vector3(15.0, 6.0, -325.0),
+  new THREE.Vector3(22.0, 2.5, -325.0)
+];
+
+// Points for Segment 4: AI Calling Agents to AI Texting Agents
+// Visual tube curve: elegant loops framing the Texting phone (phone at Z=-395)
+const ptsCallingToTexting = [
+  new THREE.Vector3(22.0, 2.5, -325.0),
+  new THREE.Vector3(14.0, -5.0, -345.0),
+  new THREE.Vector3(6.0, -15.0, -365.0),
+  new THREE.Vector3(-2.0, -18.0, -385.0),
+  new THREE.Vector3(-8.0, -10.0, -400.0),
+  new THREE.Vector3(-4.0, -2.0, -405.0),
+  new THREE.Vector3(1.0, 1.2, -410.0),
+  new THREE.Vector3(3.2, 2.5, -408.0),
+  new THREE.Vector3(5.2, 3.6, -404.0),
+  new THREE.Vector3(3.0, 4.8, -400.0),
+  new THREE.Vector3(-1.0, 5.8, -398.0),
+  new THREE.Vector3(-4.8, 6.9, -400.0),
+  new THREE.Vector3(-6.2, 8.0, -404.0),
+  new THREE.Vector3(-4.5, 9.2, -408.0),
+  new THREE.Vector3(-1.0, 10.2, -410.0),
+  new THREE.Vector3(3.5, 11.6, -408.0),
+  new THREE.Vector3(6.2, 13.4, -403.0),
+  new THREE.Vector3(4.0, 15.5, -399.0),
+  new THREE.Vector3(0.0, 17.5, -398.0),
+  new THREE.Vector3(-3.8, 19.2, -400.0),
+  new THREE.Vector3(-5.8, 21.2, -404.0),
+  new THREE.Vector3(-4.2, 23.0, -408.0),
+  new THREE.Vector3(1.0, 28.0, -410.0)
+];
+
+// Points for Segment 5: AI Texting Agents to Ecosystem Center Logo
+const ptsTextingToEcosystem = [
+  new THREE.Vector3(1.0, 28.0, -410.0),
+  new THREE.Vector3(0.0, 10.0, -430.0),
+  new THREE.Vector3(0.0, -10.0, -450.0),
+  new THREE.Vector3(0.0, -32.0, -485.0),
+  new THREE.Vector3(0.0, -18.0, -485.0),
+  new THREE.Vector3(0.0, -6.0, -485.0),
+  new THREE.Vector3(0.0, 4.5, -485.0)
+];
+
+// Instantiate separate visual curves
+const curveHeroToContent = new THREE.CatmullRomCurve3(ptsHeroToContent, false, 'centripetal');
+const curveContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
+const curveWebsitesToCalling = new THREE.CatmullRomCurve3(ptsWebsitesToCalling, false, 'centripetal');
+const curveCallingToTexting = new THREE.CatmullRomCurve3(ptsCallingToTexting, false, 'centripetal');
+const curveTextingToEcosystem = new THREE.CatmullRomCurve3(ptsTextingToEcosystem, false, 'centripetal');
+
+// Straight camera travel curves for transitions down the center walkway
+const camHeroToContent = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0.0, -11.0, -30.0),
+  new THREE.Vector3(0.5, -11.0, -38.0),
+  new THREE.Vector3(1.0, -11.0, -46.0),
+  new THREE.Vector3(1.2, -11.0, -54.0),
+  new THREE.Vector3(1.4, -11.0, -62.0),
+  new THREE.Vector3(1.5, -11.0, -65.5)
+], false, 'centripetal');
+const camContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
+const camWebsitesToCalling = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.0, 5.7, -272.0),
   new THREE.Vector3(0.0, 4.0, -280.0),
   new THREE.Vector3(0.0, 2.5, -288.0),
   new THREE.Vector3(0.0, 1.5, -296.0),
   new THREE.Vector3(0.0, 1.0, -305.0)
-];
-
-// Points for Segment 4: AI Calling Agents to AI Texting Agents
-const ptsCallingToTexting = [
+], false, 'centripetal');
+const camCallingToTexting = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.0, 1.0, -305.0),
-  new THREE.Vector3(-4.0, 1.5, -315.0),
-  new THREE.Vector3(0.0, 2.0, -325.0),
-  new THREE.Vector3(4.0, 2.5, -335.0),
-  new THREE.Vector3(0.0, 2.8, -345.0),
-  new THREE.Vector3(-3.0, 2.5, -355.0),
-  new THREE.Vector3(0.0, 2.0, -365.0),
-  new THREE.Vector3(3.0, 1.5, -375.0),
+  new THREE.Vector3(0.0, 1.0, -320.0),
+  new THREE.Vector3(0.0, 1.0, -340.0),
+  new THREE.Vector3(0.0, 1.0, -360.0),
   new THREE.Vector3(0.0, 1.0, -380.0)
-];
-
-// Points for Segment 5: AI Texting Agents to Ecosystem Center Logo
-const ptsTextingToEcosystem = [
+], false, 'centripetal');
+const camTextingToEcosystem = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.0, 1.0, -380.0),
   new THREE.Vector3(0.0, -5.0, -410.0),
   new THREE.Vector3(0.0, -15.0, -440.0),
@@ -2807,77 +2868,15 @@ const ptsTextingToEcosystem = [
   new THREE.Vector3(0.0, -18.0, -485.0),
   new THREE.Vector3(0.0, -6.0, -485.0),
   new THREE.Vector3(0.0, 4.5, -485.0)
+], false, 'centripetal');
+
+const cameraTransitionCurves = [
+  camHeroToContent,
+  camContentToWebsites,
+  camWebsitesToCalling,
+  camCallingToTexting,
+  camTextingToEcosystem
 ];
-
-// Custom Cubic Hermite Spline Curve implementation for precise tangent/handle control
-class HermiteCurve3 extends THREE.Curve {
-  constructor(points, tangents) {
-    super();
-    this.points = points;
-    this.tangents = tangents;
-  }
-  getPoint(t, optionalTarget = new THREE.Vector3()) {
-    const points = this.points;
-    const tangents = this.tangents;
-    const len = points.length - 1;
-    const index = t * len;
-    const i = Math.min(len - 1, Math.floor(index));
-    const localT = index - i;
-
-    const p0 = points[i];
-    const p1 = points[i + 1];
-    const t0 = tangents[i];
-    const t1 = tangents[i + 1];
-
-    const t2 = localT * localT;
-    const t3 = t2 * localT;
-
-    const h00 = 2 * t3 - 3 * t2 + 1;
-    const h10 = t3 - 2 * t2 + localT;
-    const h01 = -2 * t3 + 3 * t2;
-    const h11 = t3 - t2;
-
-    optionalTarget.set(
-      h00 * p0.x + h10 * t0.x + h01 * p1.x + h11 * t1.x,
-      h00 * p0.y + h10 * t0.y + h01 * p1.y + h11 * t1.y,
-      h00 * p0.z + h10 * t0.z + h01 * p1.z + h11 * t1.z
-    );
-    return optionalTarget;
-  }
-}
-
-// Helper to compute standard Catmull-Rom tangents at Hermite control points
-function computeHermiteTangents(points) {
-  const tangents = [];
-  const len = points.length;
-  for (let i = 0; i < len; i++) {
-    let t = new THREE.Vector3();
-    if (i === 0) {
-      t.subVectors(points[1], points[0]);
-    } else if (i === len - 1) {
-      t.subVectors(points[len - 1], points[len - 2]);
-    } else {
-      t.subVectors(points[i + 1], points[i - 1]).multiplyScalar(0.5);
-    }
-    tangents.push(t);
-  }
-  return tangents;
-}
-
-// Compute tangents for Segment 4 points and override apexes to point vertically (smoothing the corners)
-const HermiteTangentsCallingToTexting = computeHermiteTangents(ptsCallingToTexting);
-HermiteTangentsCallingToTexting[8] = new THREE.Vector3(0.0, 11.5, 0.0);   // Turn 1 Apex
-HermiteTangentsCallingToTexting[9] = new THREE.Vector3(0.0, 11.5, 0.0);   // Turn 2 Apex
-HermiteTangentsCallingToTexting[10] = new THREE.Vector3(0.0, 11.5, 0.0);  // Turn 3 Apex
-HermiteTangentsCallingToTexting[11] = new THREE.Vector3(0.0, 11.5, 0.0);  // Turn 4 Apex
-
-// Instantiate separate curves
-const curveHeroToContent = new THREE.CatmullRomCurve3(ptsHeroToContent, false, 'centripetal');
-const curveContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
-const curveWebsitesToCalling = new THREE.CatmullRomCurve3(ptsWebsitesToCalling, false, 'centripetal');
-
-const curveCallingToTexting = new THREE.CatmullRomCurve3(ptsCallingToTexting, false, 'centripetal');
-const curveTextingToEcosystem = new THREE.CatmullRomCurve3(ptsTextingToEcosystem, false, 'centripetal');
 
 // The exact cutoff points for each segment when parked at that section's destination
 const SEGMENT_CUTOFFS = [
@@ -5609,7 +5608,7 @@ function animate() {
       // Phase 2: Traveling on tube
       const t_travel = (progressVal - 0.2) / 0.6; // 0..1
       const minIdx = Math.min(fromIdx, toIdx);
-      const followCurve = goldCurves[minIdx];
+      const followCurve = cameraTransitionCurves[minIdx];
       let limit = goldCurveTravelLimits[minIdx];
       if (minIdx === 1) {
         limit = 0.63; // Dismount at Z = -195 (Gallery entry)
@@ -5881,29 +5880,41 @@ function animate() {
     // It is only invisible when parked at sections 0 (Hero) or 1 (Content).
     let goldTubeMasterOpacity = 0.0;
     if (sectionTransitionProgress >= 1.0) {
-      // Parked: tube visible for Website Experiences + all downstream sections
-      goldTubeMasterOpacity = (currentSectionIdx >= 2) ? 1.0 : 0.0;
+      // Parked: tube visible for AI Calling + all downstream sections (invisible during Website Walkthrough)
+      goldTubeMasterOpacity = (currentSectionIdx > 2) ? 1.0 : 0.0;
     } else {
       // Transitioning
       const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
-      // Both source and destination are downstream (idx >= 2): keep tube fully visible
-      const bothDownstream = (currentSectionIdx >= 2 && targetSectionIdx >= 2);
-      if (bothDownstream) {
-        goldTubeMasterOpacity = 1.0;
-      } else if (progress < 0.2) {
-        goldTubeMasterOpacity = 0.0;
-      } else if (progress >= 0.2 && progress < 0.35) {
-        goldTubeMasterOpacity = (progress - 0.2) / 0.15; // Fade in
-      } else if (progress >= 0.35 && progress <= 0.65) {
-        goldTubeMasterOpacity = 1.0;
-      } else if (progress > 0.65 && progress <= 0.8) {
-        if (targetSectionIdx >= 2) {
-          goldTubeMasterOpacity = 1.0; // Stays visible for Website+ sections
+      if (currentSectionIdx === 1 && targetSectionIdx === 2) {
+        // Content -> Website: tube fades out from progress = 0.5 to 1.0
+        if (progress < 0.5) {
+          goldTubeMasterOpacity = 1.0;
         } else {
-          goldTubeMasterOpacity = (0.8 - progress) / 0.15; // Fade out
+          goldTubeMasterOpacity = clamp((1.0 - progress) / 0.5, 0.0, 1.0);
         }
+      } else if (currentSectionIdx === 2 && targetSectionIdx === 3) {
+        // Website -> Calling: tube slowly fades back in from progress = 0.0 to 0.4
+        goldTubeMasterOpacity = clamp(progress / 0.4, 0.0, 1.0);
       } else {
-        goldTubeMasterOpacity = (targetSectionIdx >= 2) ? 1.0 : 0.0;
+        // Other transitions
+        const bothDownstream = (currentSectionIdx >= 3 && targetSectionIdx >= 3);
+        if (bothDownstream) {
+          goldTubeMasterOpacity = 1.0;
+        } else if (progress < 0.2) {
+          goldTubeMasterOpacity = 0.0;
+        } else if (progress >= 0.2 && progress < 0.35) {
+          goldTubeMasterOpacity = (progress - 0.2) / 0.15; // Fade in
+        } else if (progress >= 0.35 && progress <= 0.65) {
+          goldTubeMasterOpacity = 1.0;
+        } else if (progress > 0.65 && progress <= 0.8) {
+          if (targetSectionIdx >= 3) {
+            goldTubeMasterOpacity = 1.0;
+          } else {
+            goldTubeMasterOpacity = (0.8 - progress) / 0.15; // Fade out
+          }
+        } else {
+          goldTubeMasterOpacity = (targetSectionIdx >= 3) ? 1.0 : 0.0;
+        }
       }
     }
 
