@@ -208,7 +208,7 @@ function drawLine(ctx, x1, y1, x2, y2, color, width = 1) {
    DYNAMIC CANVAS TEXTURE MANAGER
    ═══════════════════════════════════════════ */
 const dynamicTextures = [];
-function createDynamicTexture(width, height, drawFn) {
+function createDynamicTexture(width, height, drawFn, isStatic = false) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -219,7 +219,9 @@ function createDynamicTexture(width, height, drawFn) {
   texture.generateMipmaps = false;
   
   const entry = { canvas, ctx, width, height, drawFn, texture };
-  dynamicTextures.push(entry);
+  if (!isStatic) {
+    dynamicTextures.push(entry);
+  }
   
   try {
     drawFn(ctx, width, height);
@@ -253,15 +255,23 @@ let _texTickFrame = 0;
 function tickDynamicTextures() {
   _texTickFrame++;
   dynamicTextures.forEach(item => {
-    if (item.texture.userData && item.texture.userData.isDynamic) {
-      // High-priority textures (chat) redraw every frame
-      // Others skip every 2nd frame for performance
-      if (_texTickFrame % 2 === 0 || item.texture.userData.highPriority) {
-        try {
-          item.drawFn(item.ctx, item.width, item.height);
-          item.texture.needsUpdate = true;
-        } catch(e) {
-          console.error("Error in dynamic canvas tick:", e);
+    if (item.texture && item.texture.userData) {
+      const sectionIdx = item.texture.userData.sectionIdx;
+      if (sectionIdx !== undefined) {
+        if (currentSectionIdx !== sectionIdx && targetSectionIdx !== sectionIdx) {
+          return; // Suspend updates for inactive sections
+        }
+      }
+      if (item.texture.userData.isDynamic) {
+        // High-priority textures (chat) redraw every frame
+        // Others skip every 2nd frame for performance
+        if (_texTickFrame % 2 === 0 || item.texture.userData.highPriority) {
+          try {
+            item.drawFn(item.ctx, item.width, item.height);
+            item.texture.needsUpdate = true;
+          } catch(e) {
+            console.error("Error in dynamic canvas tick:", e);
+          }
         }
       }
     }
@@ -3733,9 +3743,8 @@ function createContactShadowTexture() {
     group.add(shadowMesh);
 
     const targetYAbsolute = -12 + colHeight + d.h / 2;
-    const loweredY = -14.5 - d.h / 2;
 
-    group.position.set(d.x, loweredY, d.z);
+    group.position.set(d.x, targetYAbsolute, d.z);
     group.rotation.y = d.ry;
 
     group.userData = {
@@ -3945,7 +3954,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = false;
-    texture.userData = { isDynamic: true, highPriority: true };
+    texture.userData = { isDynamic: true, highPriority: true, sectionIdx: 3 };
 
     const mat = new THREE.MeshBasicMaterial({
       map: texture,
@@ -4044,7 +4053,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   const chatTexture = createDynamicTexture(683, 1024, (ctx, w, h) => {
     drawTextBubbleCanvas(0, ctx, w, h);
   });
-  chatTexture.userData = { isDynamic: true, highPriority: true };
+  chatTexture.userData = { isDynamic: true, highPriority: true, sectionIdx: 4 };
 
   const chatMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(4.59, 6.885), // Reduced phone size by 15% (from 5.4 x 8.1) for proper breathing margins
@@ -4105,7 +4114,7 @@ function createDestinationLabelTexture(icon, title) {
     ctx.strokeStyle = 'rgba(103, 169, 255, 0.85)';
     ctx.lineWidth = 8;
     ctx.stroke();
-  });
+  }, true);
 }
 
 function createCentralTitleTexture() {
@@ -4133,7 +4142,7 @@ function createCentralTitleTexture() {
       ctx.letterSpacing = '2px';
     }
     ctx.fillText('Content. Websites. AI. Connected.', w / 2, 80);
-  });
+  }, true);
 }
 
 function createGlowTexture() {
@@ -4146,7 +4155,7 @@ function createGlowTexture() {
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
-  });
+  }, true);
 }
 
 function loadAndTintLogo(url, tintColorHex, callback) {
@@ -4495,12 +4504,24 @@ function updateDescriptionTyping(idx, activeTime) {
   el.style.opacity = 0.4 + 0.6 * progress;
 }
 
+const lastOverlayOpacities = {};
+let lastGalleryOp = -1;
+let lastGalleryPointerEvents = '';
+let lastNavContext = null;
+let lastNavVisible = null;
+let lastNavBg = null;
+let lastProgressFill = -1;
+
 function updateOverlay(t) {
   const vp = scrollProgress * 13.0;
   ZONES.forEach((z, idx) => {
     const el = zoneEls[z.id];
     if (!el) return;
-    el.style.opacity = getSectionOpacity(idx);
+    const op = getSectionOpacity(idx);
+    if (lastOverlayOpacities[z.id] !== op) {
+      el.style.opacity = op;
+      lastOverlayOpacities[z.id] = op;
+    }
   });
 
   // HTML gallery overlay sync (fades in early from vp = 0.2 to 0.8, stays full to 1.4, fades out to 1.8)
@@ -4516,11 +4537,15 @@ function updateOverlay(t) {
         galleryOp = 1.0;
       }
     }
-    galleryOverlay.style.opacity = clamp(galleryOp * getSectionOpacity(1), 0, 1);
-    if (galleryOp > 0.05) {
-      galleryOverlay.style.pointerEvents = 'auto';
-    } else {
-      galleryOverlay.style.pointerEvents = 'none';
+    const finalOp = clamp(galleryOp * getSectionOpacity(1), 0, 1);
+    if (lastGalleryOp !== finalOp) {
+      galleryOverlay.style.opacity = finalOp;
+      lastGalleryOp = finalOp;
+    }
+    const pe = finalOp > 0.05 ? 'auto' : 'none';
+    if (lastGalleryPointerEvents !== pe) {
+      galleryOverlay.style.pointerEvents = pe;
+      lastGalleryPointerEvents = pe;
     }
   }
 
@@ -4540,19 +4565,37 @@ function updateOverlay(t) {
   const ctx = document.getElementById('nav-context');
   if (ctx) {
     const zone = NAV_CONTEXTS.find(n => vp >= n.from && vp < n.to);
-    ctx.textContent = zone ? zone.text : '';
+    const text = zone ? zone.text : '';
+    if (lastNavContext !== text) {
+      ctx.textContent = text;
+      lastNavContext = text;
+    }
   }
 
   // Nav visibility
   const nav = document.getElementById('nav');
   if (nav) {
-    nav.classList.toggle('visible', vp > 1.0);
-    nav.classList.toggle('bg', vp > 1.5);
+    const isVisible = vp > 1.0;
+    const isBg = vp > 1.5;
+    if (lastNavVisible !== isVisible) {
+      nav.classList.toggle('visible', isVisible);
+      lastNavVisible = isVisible;
+    }
+    if (lastNavBg !== isBg) {
+      nav.classList.toggle('bg', isBg);
+      lastNavBg = isBg;
+    }
   }
 
   // Progress bar
   const fill = document.getElementById('progress-fill');
-  if (fill) fill.style.height = `${scrollProgress * 100}%`;
+  if (fill) {
+    const roundedScroll = Math.round(scrollProgress * 1000) / 10;
+    if (lastProgressFill !== roundedScroll) {
+      fill.style.height = `${roundedScroll}%`;
+      lastProgressFill = roundedScroll;
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -4675,11 +4718,13 @@ function updateCursor() {
    17. ANIMATION UPDATERS PER ZONE
    ═══════════════════════════════════════════ */
 function updateContent(t, time, dt) {
-  const vp = scrollProgress * 13.0;
-
+  const isVisible = getSectionOpacity(1) > 0.001;
   if (scene.userData.contentGroup) {
-    scene.userData.contentGroup.visible = getSectionOpacity(1) > 0.001;
+    scene.userData.contentGroup.visible = isVisible;
   }
+  if (!isVisible) return;
+
+  const vp = scrollProgress * 13.0;
 
   // Update HTML-based sliding gallery marquee
   const htmlRows = scene.userData.htmlGalleryRows;
@@ -4767,14 +4812,18 @@ function updateContent(t, time, dt) {
 
 
 function updateWebsites(t, time, vpOverride) {
-  const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
   const envOpacity = getSectionOpacity(2);
+  const isVisible = envOpacity > 0.001;
 
   if (scene.userData.websitesGroup) {
-    scene.userData.websitesGroup.visible = envOpacity > 0.001;
+    scene.userData.websitesGroup.visible = isVisible;
   }
 
-  if (scene.userData.websitesGroup && scene.userData.websitesGroup.visible && scene.userData.slabs) {
+  if (!isVisible) return;
+
+  const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
+
+  if (scene.userData.websitesGroup.visible && scene.userData.slabs) {
     if (scene.userData.canyonFloor) {
       scene.userData.canyonFloor.material.opacity = 0.9 * envOpacity;
       scene.userData.canyonFloor.material.transparent = true;
@@ -4804,9 +4853,6 @@ function updateWebsites(t, time, vpOverride) {
       const fadeVal = clamp(1.0 - distanceZ / 80.0, 0, 1);
       const easeFade = 0.5 * (1.0 - Math.cos(fadeVal * Math.PI));
       const finalOpacity = easeFade * envOpacity;
-
-      // Position the panel - STRICTLY FIXED structures, never translate or slide
-      g.position.set(d.x, targetY, d.z);
 
       // Cursor micro-tilt influence for high-end feel (Apple Vision Pro inspired)
       g.rotation.y = d.ry + mouse.sx * 0.015;
@@ -4915,49 +4961,6 @@ function updateWebsites(t, time, vpOverride) {
     if (scene.userData.canyonLight) {
       scene.userData.canyonLight.intensity = (0.5 + Math.sin(time * 1.5) * 0.2) * envOpacity;
     }
-  } else {
-    if (scene.userData.slabs) {
-      scene.userData.slabs.forEach(g => {
-        g.position.y = g.userData.targetY; // Keep physically set at targetY
-        g.traverse(child => {
-          if (child.isMesh && child.material) {
-            child.material.opacity = 0;
-          }
-        });
-      });
-    }
-    if (scene.userData.billboardSpotlights) {
-      scene.userData.billboardSpotlights.forEach(spot => {
-        spot.intensity = 0;
-      });
-    }
-    if (scene.userData.beams) {
-      scene.userData.beams.forEach(beam => {
-        beam.material.opacity = 0;
-      });
-    }
-    if (scene.userData.lenses) {
-      scene.userData.lenses.forEach(lens => {
-        lens.material.opacity = 0;
-      });
-    }
-    if (scene.userData.fixtures) {
-      scene.userData.fixtures.forEach(f => {
-        f.material.opacity = 0;
-      });
-    }
-    if (scene.userData.canyonFloor) scene.userData.canyonFloor.material.opacity = 0.0;
-    if (scene.userData.canyonFloorWire) scene.userData.canyonFloorWire.material.opacity = 0.0;
-    if (scene.userData.canyonWalls) {
-      scene.userData.canyonWalls.forEach((wall, wi) => {
-        if (wall.material) {
-          wall.material.opacity = 0.0;
-        }
-      });
-    }
-    if (scene.userData.canyonLight) {
-      scene.userData.canyonLight.intensity = 0.0;
-    }
   }
 }
 
@@ -4966,6 +4969,21 @@ function updateWebsites(t, time, vpOverride) {
 
 
 function updateCalling(t, time) {
+  const vp = scrollProgress * 13.0;
+  const inZone = vp >= 4.8 && vp <= 6.5;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(3) > 0.001);
+
+  if (scene.userData.callingGroup) {
+    scene.userData.callingGroup.visible = isTransitioningInOrActive;
+  }
+
+  if (!isTransitioningInOrActive) {
+    callingZoneTime = 0;
+    callingAutoplayTime = 0;
+    lastCallingTimeUpdate = 0;
+    return;
+  }
+
   const now = performance.now() / 1000.0;
   if (lastCallingTimeUpdate === 0) {
     lastCallingTimeUpdate = now;
@@ -4973,24 +4991,10 @@ function updateCalling(t, time) {
   const dt = now - lastCallingTimeUpdate;
   lastCallingTimeUpdate = now;
 
-  const vp = scrollProgress * 13.0;
-  const inZone = vp >= 4.8 && vp <= 6.5;
-  const isTransitioningInOrActive = inZone || (getSectionOpacity(3) > 0.001);
+  callingZoneTime += dt;
+  callingAutoplayTime += dt;
 
-  if (isTransitioningInOrActive) {
-    callingZoneTime += dt;
-    callingAutoplayTime += dt;
-  } else {
-    callingZoneTime = 0;
-    callingAutoplayTime = 0;
-    lastCallingTimeUpdate = 0;
-  }
-
-  if (scene.userData.callingGroup) {
-    scene.userData.callingGroup.visible = getSectionOpacity(3) > 0.001;
-  }
-
-  if (isTransitioningInOrActive && scene.userData.callingScreens) {
+  if (scene.userData.callingScreens) {
     const Z = -290;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
@@ -5139,10 +5143,12 @@ function updateEcosystem(t, time) {
   const isTransitioningInOrActive = inZone || (getSectionOpacity(5) > 0.001);
 
   if (scene.userData.ecosystemGroup) {
-    scene.userData.ecosystemGroup.visible = getSectionOpacity(5) > 0.001;
+    scene.userData.ecosystemGroup.visible = isTransitioningInOrActive;
   }
 
-  if (isTransitioningInOrActive) {
+  if (!isTransitioningInOrActive) {
+    return;
+  }
     // 1. Centerpiece logo fades in first between vp = 12.0 and 12.15
     const logoOpacity = clamp((vp - 12.0) / 0.15, 0, 1);
     
@@ -5285,41 +5291,31 @@ function updateEcosystem(t, time) {
     if (lightEco) {
       lightEco.intensity = 0.7 + 0.8 * (payoff - 1.0);
     }
-  } else {
-    // Hide logo, nodes and point lights
-    if (scene.userData.junctionMesh && scene.userData.junctionMesh.material) {
-      scene.userData.junctionMesh.material.opacity = 0.0;
-    }
-    if (scene.userData.ecoNodes) {
-      scene.userData.ecoNodes.forEach((node) => {
-        const coreMesh = node.children[0];
-        if (coreMesh && coreMesh.material) coreMesh.material.opacity = 0.0;
-      });
-    }
-
-    if (scene.userData.ecoParticles && scene.userData.ecoParticles.material) {
-      scene.userData.ecoParticles.material.opacity = 0.0;
-    }
-  }
 }
 
 function updateTexting(t, time) {
+  const vp = scrollProgress * 13.0;
+  // Texting zone: active strictly from vp = 8.8 to 10.5
+  const inZone = vp >= 8.8 && vp <= 10.5;
+  const isTransitioningInOrActive = inZone || (getSectionOpacity(4) > 0.001);
+
+  if (scene.userData.textingGroup) {
+    scene.userData.textingGroup.visible = isTransitioningInOrActive;
+  }
+
+  if (!isTransitioningInOrActive) {
+    textingRevealTime = 0.0;
+    textingPhoneSettled = false;
+    lastTextingTimeUpdate = 0;
+    return;
+  }
+
   const now = performance.now() / 1000.0;
   if (lastTextingTimeUpdate === 0) {
     lastTextingTimeUpdate = now;
   }
   const dt = Math.min(0.1, now - lastTextingTimeUpdate);
   lastTextingTimeUpdate = now;
-
-  const vp = scrollProgress * 13.0;
-  // Texting zone: active strictly from vp = 8.8 to 10.5
-  const inZone = vp >= 8.8 && vp <= 10.5;
-
-  const isTransitioningInOrActive = inZone || (getSectionOpacity(4) > 0.001);
-
-  if (scene.userData.textingGroup) {
-    scene.userData.textingGroup.visible = getSectionOpacity(4) > 0.001;
-  }
 
   // Phone enters after camera settles at Section 5 (AI Texting Agents)
   const startEnteringPhone = isTransitioningInOrActive && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
