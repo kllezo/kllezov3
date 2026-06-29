@@ -6065,6 +6065,7 @@ function animate() {
     const speed = baseSpeed + scrollSpeed;
 
     const isSuctionZone = t >= 0.78 && t <= 0.83;
+    const suctionStrength = isSuctionZone ? Math.sin(((t - 0.78) / 0.05) * Math.PI) : 0.0;
 
     for (let i = 0; i < VOID_COUNT; i++) {
       let pSpeed = speed;
