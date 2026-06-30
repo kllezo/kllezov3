@@ -98,32 +98,132 @@ document.addEventListener('DOMContentLoaded', () => {
   solutionCards.forEach(card => {
     card.addEventListener('click', (e) => {
       // Don't toggle if we click buttons or videos or custom links inside the card
-      if (e.target.closest('.solution-details-drawer a, .solution-details-drawer button, .solution-details-drawer video, .solution-badge, .solution-btn-secondary')) {
+      if (e.target.closest('.solution-drawer-left a, .solution-drawer-left button, .solution-preview-frame-premium, .solution-badge, .solution-btn-secondary')) {
         return;
       }
 
-      const drawer = card.querySelector('.solution-details-drawer');
       const isActive = card.classList.contains('active');
 
-      if (isActive) {
-        card.classList.remove('active');
-        if (drawer) drawer.style.maxHeight = null;
-      } else {
-        // Close other cards in the same grid
-        const parentGrid = card.closest('.solutions-grid-premium');
-        if (parentGrid) {
-          parentGrid.querySelectorAll('.solution-premium-card').forEach(otherCard => {
-            otherCard.classList.remove('active');
-            const otherDrawer = otherCard.querySelector('.solution-details-drawer');
-            if (otherDrawer) otherDrawer.style.maxHeight = null;
-          });
-        }
+      // Close other cards in the same grid
+      const parentGrid = card.closest('.solutions-grid-premium');
+      if (parentGrid) {
+        parentGrid.querySelectorAll('.solution-premium-card').forEach(otherCard => {
+          otherCard.classList.remove('active');
+        });
+      }
 
+      if (!isActive) {
         card.classList.add('active');
-        if (drawer) drawer.style.maxHeight = drawer.scrollHeight + 'px';
       }
     });
   });
+
+  /* ── 5. Process Scroll-driven Progress ── */
+  function updateProcessProgress() {
+    const processSections = document.querySelectorAll('.process-section');
+    processSections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      const viewHeight = window.innerHeight;
+      
+      if (rect.top < viewHeight && rect.bottom > 0) {
+        const totalHeight = rect.height + viewHeight * 0.3;
+        const scrolled = viewHeight - rect.top;
+        const pct = Math.min(Math.max(scrolled / totalHeight, 0), 1);
+        
+        const steps = sec.querySelectorAll('.process-step');
+        const progressLine = sec.querySelector('.process-progress-line-fill');
+        
+        const mappedPct = (pct - 0.15) / 0.65;
+        const activePctClamped = Math.min(Math.max(mappedPct, 0), 1);
+        
+        if (progressLine) {
+          progressLine.style.width = (activePctClamped * 100) + '%';
+        }
+        
+        steps.forEach((step, idx) => {
+          const stepThreshold = idx / (steps.length - 1 || 1);
+          if (activePctClamped >= stepThreshold - 0.05) {
+            step.classList.add('illuminated');
+          } else {
+            step.classList.remove('illuminated');
+          }
+        });
+      }
+    });
+  }
+  
+  function getOffsetScroll(pct) {
+    return Math.min(Math.max((pct - 0.15) / 0.65, 0), 1);
+  }
+  
+  window.addEventListener('scroll', updateProcessProgress);
+  updateProcessProgress();
+
+  /* ── 6. Results Metrics Count-up & Graphs ── */
+  const resultsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        
+        // Find graph box in current article section and active it
+        const articleParent = entry.target.closest('article');
+        if (articleParent) {
+          const graphBox = articleParent.querySelector('.os-graph-box');
+          if (graphBox) {
+            graphBox.classList.add('active');
+          }
+        }
+        
+        // Trigger count up for numbers
+        entry.target.querySelectorAll('.results-num-premium').forEach(numEl => {
+          const targetStr = numEl.textContent.trim();
+          const hasPlus = targetStr.includes('+');
+          const hasPercent = targetStr.includes('%');
+          const hasLess = targetStr.includes('<');
+          const hasSlash = targetStr.includes('/');
+          
+          let numVal = parseFloat(targetStr.replace(/[^\d\.]/g, ''));
+          let duration = 1200;
+          let startTime = null;
+
+          function animateCount(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const val = progress * numVal;
+            
+            let displayVal = '';
+            if (hasSlash) {
+              const parts = targetStr.split('/');
+              const den = parts[1];
+              displayVal = Math.floor(progress * parseFloat(parts[0])) + '/' + den;
+            } else if (targetStr.toLowerCase().includes('m')) {
+              displayVal = val.toFixed(1) + 'M';
+            } else if (numVal % 1 !== 0) {
+              displayVal = val.toFixed(1);
+            } else {
+              displayVal = Math.floor(val).toString();
+            }
+
+            if (hasLess && !displayVal.includes('<')) displayVal = '< ' + displayVal;
+            if (hasPlus && !displayVal.includes('+')) displayVal += '+';
+            if (hasPercent && !displayVal.includes('%')) displayVal += '%';
+            
+            numEl.textContent = displayVal;
+
+            if (progress < 1) {
+              requestAnimationFrame(animateCount);
+            } else {
+              numEl.textContent = targetStr;
+            }
+          }
+          requestAnimationFrame(animateCount);
+        });
+        resultsObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.results-section').forEach(sec => resultsObserver.observe(sec));
 
   /* ── 5. Video Lightbox Modal ── */
   const lightbox = document.createElement('div');
