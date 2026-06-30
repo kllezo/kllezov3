@@ -148,6 +148,22 @@ document.addEventListener('DOMContentLoaded', () => {
             step.classList.remove('illuminated');
           }
         });
+
+        // Set the active-step class on the current active step
+        let lastIlluminatedIdx = -1;
+        steps.forEach((step, idx) => {
+          if (step.classList.contains('illuminated')) {
+            lastIlluminatedIdx = idx;
+          }
+        });
+
+        steps.forEach((step, idx) => {
+          if (idx === lastIlluminatedIdx && activePctClamped > 0.01) {
+            step.classList.add('active-step');
+          } else {
+            step.classList.remove('active-step');
+          }
+        });
       }
     });
   }
