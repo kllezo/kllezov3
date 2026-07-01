@@ -3590,16 +3590,16 @@ function createPathwayArrowsTexture() {
 
   const slabDefs = [
     // Row 1 (closest to visitor): moderate spread, strongly angled inward
-    { x: -18.0, y: 0, z: -215, ry: 0.45, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
-    { x: 18.0, y: 0, z: -215, ry: -0.45, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
+    { x: -19.0, y: 0, z: -215, ry: 0.42, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
+    { x: 19.0, y: 0, z: -215, ry: -0.42, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
 
-    // Row 2 (middle): widest spread, moderate angle
-    { x: -22.0, y: 0, z: -237, ry: 0.28, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
-    { x: 22.0, y: 0, z: -237, ry: -0.28, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
+    // Row 2 (middle): widest spread, bulging outward, moderate angle
+    { x: -22.5, y: 0, z: -237, ry: 0.25, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
+    { x: 22.5, y: 0, z: -237, ry: -0.25, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
 
-    // Row 3 (farthest): pushed outward, gentle angle
-    { x: -24.0, y: 0, z: -259, ry: 0.15, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 },
-    { x: 24.0, y: 0, z: -259, ry: -0.15, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 }
+    // Row 3 (farthest): curved back inward towards center, gentle angle
+    { x: -19.0, y: 0, z: -259, ry: 0.12, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 },
+    { x: 19.0, y: 0, z: -259, ry: -0.12, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
