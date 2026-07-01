@@ -4652,6 +4652,7 @@ function updateOverlay(t) {
     const finalOp = clamp(galleryOp * getSectionOpacity(1), 0, 1);
     if (lastGalleryOp !== finalOp) {
       galleryOverlay.style.opacity = finalOp;
+      galleryOverlay.style.display = finalOp > 0.001 ? 'flex' : 'none';
       lastGalleryOp = finalOp;
     }
     const pe = finalOp > 0.05 ? 'auto' : 'none';
@@ -4769,7 +4770,7 @@ document.addEventListener('mouseenter', () => {
   }
 });
 
-// 2. Global Event Delegation for hover tracking (prevents stuck hover states)
+// Global Event Delegation for hover tracking
 document.addEventListener('mouseover', e => {
   const target = e.target;
   if (target && target.closest && target.closest('a, button, .zt-cta-btn, .nav-cta, [role="button"], .gallery-card, .zt-continue-btn')) {
@@ -4853,6 +4854,7 @@ function updateCursor() {
     document.body.classList.remove('hov');
   }
 }
+
 
 
 /* ═══════════════════════════════════════════
