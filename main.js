@@ -5474,8 +5474,8 @@ function updateTexting(t, time) {
   // Phone enters after camera settles at Section 5 (AI Texting Agents)
   const startEnteringPhone = isTransitioningInOrActive && (currentSectionIdx === 4 && sectionTransitionProgress >= 0.99);
   let phoneOpacity = 1.0;
-  if (vp < 9.1) {
-    phoneOpacity = clamp((vp - 8.8) / 0.3, 0, 1);
+  if (vp < 8.95) {
+    phoneOpacity = clamp((vp - 8.8) / 0.15, 0, 1);
   } else if (vp > 10.2) {
     phoneOpacity = clamp((10.5 - vp) / 0.3, 0, 1);
   }
@@ -5563,7 +5563,7 @@ function updateTexting(t, time) {
         // Negate X scale to un-mirror the texture (compensates for the Y-axis 180° rotation)
         b.scale.set(-(entryScale * floatScale), entryScale * floatScale, 1.0);
 
-        const finalOpacity = phoneOpacity * 0.98 * getSectionOpacity(4);
+        const finalOpacity = phoneOpacity * getSectionOpacity(4);
         b.material.opacity = finalOpacity;
         b.visible = finalOpacity > 0.001;
 
