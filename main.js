@@ -154,11 +154,13 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 4, 90);
 
-/* Resize */
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (typeof updateMaxSafeT === 'function') {
+    updateMaxSafeT();
+  }
 });
 
 /* ═══════════════════════════════════════════
@@ -2194,23 +2196,23 @@ const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -180), // t=0.28  Entering website canyon
   new THREE.Vector3(0,   4.5, -215), // t=0.32  Website Row 2
   new THREE.Vector3(0,   4.5, -240), // t=0.36  Website Row 3
-  new THREE.Vector3(0,   4.5, -255), // t=0.40  Leaving Row 3
-  new THREE.Vector3(0,   4.5, -286), // t=0.44  Transition 1 empty travel (increased spacing)
-  new THREE.Vector3(0,   4.5, -290), // t=0.48  Calling entry — parked at z=-290
-  new THREE.Vector3(0,   4.5, -290), // t=0.52  Parked at Calling
-  new THREE.Vector3(0,   4.5, -290), // t=0.55  Parked at Calling
-  new THREE.Vector3(0,   4.5, -290), // t=0.58  Calling hold
-  new THREE.Vector3(0,   4.5, -310), // t=0.61  Calling hold end / transition 2 starts
-  new THREE.Vector3(0,   4.5, -345), // t=0.65  Transition 2 travel
-  new THREE.Vector3(0,   4.5, -380), // t=0.68  Texting entry — parked at z=-380
-  new THREE.Vector3(0,   4.5, -380), // t=0.72  Parked at Texting
-  new THREE.Vector3(0,   4.5, -380), // t=0.75  Texting hold
-  new THREE.Vector3(0,   4.5, -380), // t=0.78  Exit Texting
-  new THREE.Vector3(0,   4.5, -380), // t=0.80  Website Bot hold
-  new THREE.Vector3(0,   4.5, -400), // t=0.84  Transition 3 travel space (absorb phone)
-  new THREE.Vector3(0,   4.5, -425), // t=0.88  Ecosystem entry (fading in centerpiece logo)
-  new THREE.Vector3(0,   4.5, -435), // t=0.93  Ecosystem orbs reveal
-  new THREE.Vector3(0,   4.5, -435), // t=1.00  Final framing
+  new THREE.Vector3(0,   4.5, -272), // t=0.40  Leaving Row 3 (Website exit)
+  new THREE.Vector3(0,   4.5, -305), // t=0.44  Transition 1 empty travel (increased spacing)
+  new THREE.Vector3(0,   4.5, -320), // t=0.48  Calling entry — parked at z=-320
+  new THREE.Vector3(0,   4.5, -320), // t=0.52  Parked at Calling
+  new THREE.Vector3(0,   4.5, -320), // t=0.55  Parked at Calling
+  new THREE.Vector3(0,   4.5, -320), // t=0.58  Calling hold
+  new THREE.Vector3(0,   4.5, -335), // t=0.61  Calling hold end / transition 2 starts
+  new THREE.Vector3(0,   4.5, -380), // t=0.65  Transition 2 travel
+  new THREE.Vector3(0,   4.5, -410), // t=0.68  Texting entry — parked at z=-410
+  new THREE.Vector3(0,   4.5, -410), // t=0.72  Parked at Texting
+  new THREE.Vector3(0,   4.5, -410), // t=0.75  Texting hold
+  new THREE.Vector3(0,   4.5, -410), // t=0.78  Exit Texting
+  new THREE.Vector3(0,   4.5, -410), // t=0.80  Website Bot hold
+  new THREE.Vector3(0,   4.5, -450), // t=0.84  Transition 3 travel space (absorb phone)
+  new THREE.Vector3(0,   4.5, -530), // t=0.88  Ecosystem entry (fading in centerpiece logo at z=-530)
+  new THREE.Vector3(0,   4.5, -540), // t=0.93  Ecosystem orbs reveal
+  new THREE.Vector3(0,   4.5, -540), // t=1.00  Final framing
 ], false, 'catmullrom', 0.5);
 
 const LOOK_PATH = new THREE.CatmullRomCurve3([
@@ -2223,23 +2225,23 @@ const LOOK_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -220),  // t=0.28  Look ahead into canyon
   new THREE.Vector3(0,   4.5, -250),  // t=0.32  Through Row 2
   new THREE.Vector3(0,   4.5, -270),  // t=0.36  Through Row 3
-  new THREE.Vector3(0,   4.5, -305),  // t=0.40  Leaving Row 3
-  new THREE.Vector3(0,   4.5, -306),  // t=0.44  Transition 1 travel
-  new THREE.Vector3(0,   4.5, -320),  // t=0.48  Look at Calling screens (positioned at z=-320)
-  new THREE.Vector3(0,   4.5, -320),  // t=0.52
-  new THREE.Vector3(0,   4.5, -320),  // t=0.55
-  new THREE.Vector3(0,   4.5, -320),  // t=0.58
-  new THREE.Vector3(0,   4.5, -330),  // t=0.61  Transition 2 travel starts
-  new THREE.Vector3(0,   4.5, -365),  // t=0.65  Transition 2 travel mid
-  new THREE.Vector3(0,   4.5, -395),  // t=0.68  Look at Texting phone (positioned at z=-395)
-  new THREE.Vector3(0,   4.5, -395),  // t=0.72
-  new THREE.Vector3(0,   4.5, -395),  // t=0.75
-  new THREE.Vector3(0,   4.5, -395),  // t=0.78
-  new THREE.Vector3(0,   4.5, -395),  // t=0.80  Look at texting phone
-  new THREE.Vector3(0,   4.5, -445),  // t=0.84  Look ahead to ecosystem
-  new THREE.Vector3(0,   4.5, -485),  // t=0.88  Ecosystem framing (logo at z=-485)
-  new THREE.Vector3(0,   4.5, -485),  // t=0.93
-  new THREE.Vector3(0,   4.5, -485),  // t=1.00  Final frame
+  new THREE.Vector3(0,   4.5, -320),  // t=0.40  Leaving Row 3
+  new THREE.Vector3(0,   4.5, -325),  // t=0.44  Transition 1 travel
+  new THREE.Vector3(0,   4.5, -333),  // t=0.48  Look at Calling screens (positioned at z=-333)
+  new THREE.Vector3(0,   4.5, -333),  // t=0.52
+  new THREE.Vector3(0,   4.5, -333),  // t=0.55
+  new THREE.Vector3(0,   4.5, -333),  // t=0.58
+  new THREE.Vector3(0,   4.5, -350),  // t=0.61  Transition 2 travel starts
+  new THREE.Vector3(0,   4.5, -395),  // t=0.65  Transition 2 travel mid
+  new THREE.Vector3(0,   4.5, -425),  // t=0.68  Look at Texting phone (positioned at z=-425)
+  new THREE.Vector3(0,   4.5, -425),  // t=0.72
+  new THREE.Vector3(0,   4.5, -425),  // t=0.75
+  new THREE.Vector3(0,   4.5, -425),  // t=0.78
+  new THREE.Vector3(0,   4.5, -425),  // t=0.80  Look at texting phone
+  new THREE.Vector3(0,   4.5, -480),  // t=0.84  Look ahead to ecosystem
+  new THREE.Vector3(0,   4.5, -530),  // t=0.88  Ecosystem framing (logo at z=-530)
+  new THREE.Vector3(0,   4.5, -530),  // t=0.93
+  new THREE.Vector3(0,   4.5, -530),  // t=1.00  Final frame
 ], false, 'catmullrom', 0.5);
 
 
@@ -2259,10 +2261,7 @@ function updateMaxSafeT() {
 // Initial calculation
 updateMaxSafeT();
 
-// Window resize listener helper to update maxSafeT
-window.addEventListener('resize', () => {
-  updateMaxSafeT();
-});
+// Window resize listener helper to update maxSafeT (merged into main resize listener)
 
 // Strict Section-Based Storyflow Gesture Listeners
 document.body.style.overflow = 'hidden';
@@ -2775,52 +2774,58 @@ const ptsContentToWebsites = [
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
-// Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-320)
+// Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-333)
 const ptsWebsitesToCalling = [
   new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(-10.0, 4.0, -290.0),
-  new THREE.Vector3(-18.0, 2.5, -305.0),
-  new THREE.Vector3(-15.0, 6.0, -325.0),
-  new THREE.Vector3(-10.5, 2.5, -327.0),
-  new THREE.Vector3(-5.25, 9.5, -325.0),
-  new THREE.Vector3(0.0, 3.0, -327.0),
-  new THREE.Vector3(5.25, 9.5, -325.0),
-  new THREE.Vector3(10.5, 2.5, -327.0),
-  new THREE.Vector3(15.0, 6.0, -325.0),
-  new THREE.Vector3(22.0, 2.5, -325.0)
+  new THREE.Vector3(-1.0, 5.0, -276.0),
+  new THREE.Vector3(-3.0, 4.2, -284.0),
+  new THREE.Vector3(-6.0, 3.5, -292.0),
+  new THREE.Vector3(-10.0, 2.5, -300.0),
+  new THREE.Vector3(-14.0, 2.0, -310.0),
+  new THREE.Vector3(-18.0, 1.5, -335.0),
+  new THREE.Vector3(-15.0, 4.5, -335.0),
+  new THREE.Vector3(-10.5, 2.0, -337.0),
+  new THREE.Vector3(-5.25, 7.5, -335.0),
+  new THREE.Vector3(0.0, 2.0, -337.0),
+  new THREE.Vector3(5.25, 7.5, -335.0),
+  new THREE.Vector3(10.5, 2.0, -337.0),
+  new THREE.Vector3(16.5, 7.5, -335.0),
+  new THREE.Vector3(22.0, 2.5, -335.0)
 ];
 
 // Points for Segment 4: AI Calling Agents to AI Texting Agents
-// Visual tube curve: elegant loops framing the Texting phone (phone at Z=-395)
+// Visual tube curve: elegant loops framing the Texting phone (phone at Z=-425)
 const ptsCallingToTexting = [
-  new THREE.Vector3(22.0, 2.5, -325.0),
-  new THREE.Vector3(14.0, -5.0, -345.0),
-  new THREE.Vector3(6.0, -15.0, -365.0),
-  new THREE.Vector3(-2.0, -18.0, -385.0),
-  new THREE.Vector3(-8.0, -10.0, -400.0),
-  new THREE.Vector3(-4.0, -2.0, -405.0),
-  new THREE.Vector3(1.0, 1.2, -410.0),
-  new THREE.Vector3(-2.5, 1.8, -408.0),
-  new THREE.Vector3(-5.0, 2.8, -404.0),
-  new THREE.Vector3(-2.5, 3.8, -400.0),
-  new THREE.Vector3(2.0, 4.8, -398.0),
-  new THREE.Vector3(5.0, 5.8, -400.0),
-  new THREE.Vector3(3.0, 6.8, -404.0),
-  new THREE.Vector3(-2.0, 7.8, -408.0),
-  new THREE.Vector3(-5.0, 8.8, -410.0),
-  new THREE.Vector3(-2.5, 9.8, -408.0),
-  new THREE.Vector3(1.0, 11.0, -410.0)
+  new THREE.Vector3(22.0, 2.5, -335.0),
+  new THREE.Vector3(14.0, -5.0, -355.0),
+  new THREE.Vector3(6.0, -15.0, -375.0),
+  new THREE.Vector3(-2.0, -18.0, -395.0),
+  new THREE.Vector3(-8.0, -15.0, -410.0),
+  new THREE.Vector3(-12.0, -5.0, -418.0),
+  new THREE.Vector3(-7.5, -2.0, -422.0),
+  new THREE.Vector3(-3.5, 0.1, -423.0),
+  new THREE.Vector3(1.0, 1.2, -425.0),
+  new THREE.Vector3(-2.5, 1.8, -423.0),
+  new THREE.Vector3(-5.0, 2.8, -419.0),
+  new THREE.Vector3(-2.5, 3.8, -415.0),
+  new THREE.Vector3(2.0, 4.8, -413.0),
+  new THREE.Vector3(5.0, 5.8, -415.0),
+  new THREE.Vector3(3.0, 6.8, -419.0),
+  new THREE.Vector3(-2.0, 7.8, -423.0),
+  new THREE.Vector3(-5.0, 8.8, -425.0),
+  new THREE.Vector3(-2.5, 9.8, -423.0),
+  new THREE.Vector3(1.0, 11.0, -425.0)
 ];
 
 // Points for Segment 5: AI Texting Agents to Ecosystem Center Logo
 const ptsTextingToEcosystem = [
-  new THREE.Vector3(1.0, 11.0, -410.0),
-  new THREE.Vector3(0.0, 5.0, -430.0),
-  new THREE.Vector3(0.0, -10.0, -450.0),
-  new THREE.Vector3(0.0, -32.0, -485.0),
-  new THREE.Vector3(0.0, -18.0, -485.0),
-  new THREE.Vector3(0.0, -6.0, -485.0),
-  new THREE.Vector3(0.0, 4.5, -485.0)
+  new THREE.Vector3(1.0, 11.0, -425.0),
+  new THREE.Vector3(0.0, 5.0, -455.0),
+  new THREE.Vector3(0.0, -10.0, -485.0),
+  new THREE.Vector3(0.0, -32.0, -530.0),
+  new THREE.Vector3(0.0, -18.0, -530.0),
+  new THREE.Vector3(0.0, -6.0, -530.0),
+  new THREE.Vector3(0.0, 4.5, -530.0)
 ];
 
 // Instantiate separate visual curves
@@ -2842,26 +2847,26 @@ const camHeroToContent = new THREE.CatmullRomCurve3([
 const camContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
 const camWebsitesToCalling = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(0.0, 4.0, -280.0),
-  new THREE.Vector3(0.0, 2.5, -288.0),
-  new THREE.Vector3(0.0, 1.5, -296.0),
-  new THREE.Vector3(0.0, 1.0, -305.0)
+  new THREE.Vector3(0.0, 4.0, -284.0),
+  new THREE.Vector3(0.0, 2.5, -296.0),
+  new THREE.Vector3(0.0, 1.5, -308.0),
+  new THREE.Vector3(0.0, 1.0, -320.0)
 ], false, 'centripetal');
 const camCallingToTexting = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0.0, 1.0, -305.0),
   new THREE.Vector3(0.0, 1.0, -320.0),
-  new THREE.Vector3(0.0, 1.0, -340.0),
-  new THREE.Vector3(0.0, 1.0, -360.0),
-  new THREE.Vector3(0.0, 1.0, -380.0)
+  new THREE.Vector3(0.0, 1.0, -342.5),
+  new THREE.Vector3(0.0, 1.0, -365.0),
+  new THREE.Vector3(0.0, 1.0, -387.5),
+  new THREE.Vector3(0.0, 1.0, -410.0)
 ], false, 'centripetal');
 const camTextingToEcosystem = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0.0, 1.0, -380.0),
-  new THREE.Vector3(0.0, -5.0, -410.0),
-  new THREE.Vector3(0.0, -15.0, -440.0),
-  new THREE.Vector3(0.0, -32.0, -485.0),
-  new THREE.Vector3(0.0, -18.0, -485.0),
-  new THREE.Vector3(0.0, -6.0, -485.0),
-  new THREE.Vector3(0.0, 4.5, -485.0)
+  new THREE.Vector3(0.0, 1.0, -410.0),
+  new THREE.Vector3(0.0, -5.0, -440.0),
+  new THREE.Vector3(0.0, -15.0, -470.0),
+  new THREE.Vector3(0.0, -32.0, -530.0),
+  new THREE.Vector3(0.0, -18.0, -530.0),
+  new THREE.Vector3(0.0, -6.0, -530.0),
+  new THREE.Vector3(0.0, 4.5, -530.0)
 ], false, 'centripetal');
 
 const cameraTransitionCurves = [
@@ -2914,7 +2919,7 @@ for (let i = 0; i < VOID_COUNT; i++) {
   const phi = rand(0, PI);
   voidPos[i * 3] = r * Math.sin(phi) * Math.cos(theta) * rand(0.5, 2.0);
   voidPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * rand(0.3, 1.2);
-  voidPos[i * 3 + 2] = rand(-485, 10);
+  voidPos[i * 3 + 2] = rand(-530, 10);
   // Luxury tech colors: Champagne, Steel Gray, Gold
   const rColor = Math.random();
   let colorHex;
@@ -3490,23 +3495,78 @@ function createContactShadowTexture() {
   return texture;
 }
 
+function createPathwayTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 2048;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 512, 2048);
+
+  // Subtle illuminated borders
+  ctx.strokeStyle = 'rgba(255, 210, 125, 0.45)';
+  ctx.lineWidth = 14;
+  ctx.shadowColor = 'rgba(255, 210, 125, 0.7)';
+  ctx.shadowBlur = 30;
+
+  const r = 50;
+  const x = 15;
+  const y = 15;
+  const w = 512 - 30;
+  const h = 2048 - 30;
+
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // Render glowing flow chevrons pointing forward (upwards)
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.35)';
+  for (let cy = 80; cy < 2048; cy += 120) {
+    ctx.beginPath();
+    ctx.moveTo(256 - 24, cy + 12);
+    ctx.lineTo(256, cy - 12);
+    ctx.lineTo(256 + 24, cy + 12);
+    ctx.lineTo(256 + 24, cy + 6);
+    ctx.lineTo(256, cy - 18);
+    ctx.lineTo(256 - 24, cy + 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+}
+
 (function buildWebsites() {
 
   const slabDefs = [
-    // Website 1: Michelin Restaurant (Nara Omakase) — NO STAND (ground mounted)
-    { x: -12.5, y: 0, z: -225, ry: 0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
-    // Website 2: Luxury Real Estate (Aurelia) — NO STAND (ground mounted)
-    { x: 12.5, y: 0, z: -225, ry: -0.15, w: 24.0, h: 14.4, d: 1.8, poleHeight: 0 },
+    // Website 1: Michelin Restaurant (Nara Omakase)
+    { x: -11.0, y: 0, z: -225, ry: 0.30, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    // Website 2: Luxury Real Estate (Aurelia)
+    { x: 11.0, y: 0, z: -225, ry: -0.30, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
 
-    // Website 3: Luxury Fitness (Apex Performance Lab) — SHORT STAND (185%)
-    { x: -14.8, y: 0, z: -240, ry: 0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
-    // Website 4: Premium Automotive (Verta GT) — SHORT STAND (185%)
-    { x: 14.8, y: 0, z: -240, ry: -0.10, w: 21.6, h: 12.96, d: 1.8, poleHeight: 14.8 },
+    // Website 3: Luxury Fitness (Apex Performance Lab)
+    { x: -13.5, y: 0, z: -240, ry: 0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    // Website 4: Premium Automotive (Verta GT)
+    { x: 13.5, y: 0, z: -240, ry: -0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
 
-    // Website 5: Longevity / Medical (Elevate) — FULL STAND (375%)
-    { x: -12.5, y: 0, z: -257, ry: 0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 },
-    // Website 6: Premium SaaS / AI (Kllezo Automate) — FULL STAND (375%)
-    { x: 12.5, y: 0, z: -257, ry: -0.18, w: 19.44, h: 11.52, d: 1.8, poleHeight: 30.0 }
+    // Website 5: Longevity / Medical (Elevate)
+    { x: -11.0, y: 0, z: -255, ry: -0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    // Website 6: Premium SaaS / AI (Kllezo Automate)
+    { x: 11.0, y: 0, z: -255, ry: 0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3514,6 +3574,25 @@ function createContactShadowTexture() {
   const websitesGroup = new THREE.Group();
   scene.add(websitesGroup);
   scene.userData.websitesGroup = websitesGroup;
+
+  // Create physical sloped pathway in center
+  const pathwayTexture = createPathwayTexture();
+  const pathwayMat = new THREE.MeshBasicMaterial({
+    map: pathwayTexture,
+    transparent: true,
+    opacity: 0.85,
+    side: THREE.DoubleSide,
+    depthWrite: true
+  });
+  const pathwayGeo = new THREE.PlaneGeometry(4.5, 85);
+  const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayMat);
+  pathwayMesh.name = 'pathway';
+  pathwayMesh.position.set(0, 1.35, -233.5);
+  pathwayMesh.rotation.x = -Math.PI / 2 - 0.048;
+  websitesGroup.add(pathwayMesh);
+
+  scene.userData.pathwayTexture = pathwayTexture;
+  scene.userData.pathwayMat = pathwayMat;
 
   scene.userData.slabs = [];
   scene.userData.billboardSpotlights = [];
@@ -3860,7 +3939,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildCalling() {
-  const Z = -320;
+  const Z = -333;
 
   const callingGroup = new THREE.Group();
   scene.add(callingGroup);
@@ -3869,9 +3948,9 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   /* ── 3 CALLING PANELS — Voice Call, Live Transcript, Appointment Booked ── */
   scene.userData.callingScreens = [];
   const callingCardDefs = [
-    { id: 0, name: 'voiceCall', w: 9.0, h: 10.8, y: 4.5, finalX: -10.5, finalRy: 0.2 },
-    { id: 1, name: 'transcript', w: 9.0, h: 10.8, y: 4.5, finalX: 0.0, finalRy: 0.0 },
-    { id: 2, name: 'confirmed', w: 9.0, h: 10.8, y: 4.5, finalX: 10.5, finalRy: -0.2 }
+    { id: 0, name: 'voiceCall', w: 9.6, h: 11.52, y: 4.5, finalX: -10.5, finalRy: 0.2 },
+    { id: 1, name: 'transcript', w: 9.6, h: 11.52, y: 4.5, finalX: 0.0, finalRy: 0.0 },
+    { id: 2, name: 'confirmed', w: 9.6, h: 11.52, y: 4.5, finalX: 10.5, finalRy: -0.2 }
   ];
 
   callingCardDefs.forEach((s, si) => {
@@ -3969,7 +4048,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildTexting() {
-  const Z = -395;
+  const Z = -425;
 
   const textingGroup = new THREE.Group();
   scene.add(textingGroup);
@@ -3999,13 +4078,32 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
       side: THREE.DoubleSide
     })
   );
-  chatMesh.position.set(0, 0.6, Z); // Placed at Z (z = -450) facing camera and lowered to fit inside framing
+  chatMesh.position.set(0, 0.6, Z); // Placed at Z (z = -425) facing camera and lowered to fit inside framing
   chatMesh.rotation.y = 0;
   chatMesh.renderOrder = 10;
   chatMesh.userData.baseY = 0.6;
   chatMesh.userData.phase = 0;
   scene.userData.textBubbles.push(chatMesh);
   textingGroup.add(chatMesh);
+
+  // Opaque black phone backing plane to act as physical mask and prevent tube bleed-through
+  const phoneBacking = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.65, 6.955),
+    new THREE.MeshBasicMaterial({
+      color: 0x050505,
+      transparent: false,
+      depthWrite: true,
+      depthTest: true
+    })
+  );
+  phoneBacking.name = 'backing';
+  phoneBacking.position.set(0, 0.6, Z - 0.02);
+  phoneBacking.rotation.y = 0;
+  phoneBacking.renderOrder = 9; // Render right behind screen
+  phoneBacking.userData.baseY = 0.6;
+  phoneBacking.userData.phase = 0;
+  scene.userData.textBubbles.push(phoneBacking);
+  textingGroup.add(phoneBacking);
 
   scene.userData.flowCurvesTexting = [];
   scene.userData.flowDotsTexting = [];
@@ -4452,6 +4550,12 @@ function updateOverlay(t) {
     const op = getSectionOpacity(idx);
     if (lastOverlayOpacities[z.id] !== op) {
       el.style.opacity = op;
+      const translateOffset = 18 * (1.0 - op);
+      if (z.id === 'zt-hero') {
+        el.style.transform = `translate(-50%, calc(-50% + ${translateOffset}px))`;
+      } else {
+        el.style.transform = `translateY(${translateOffset}px)`;
+      }
       lastOverlayOpacities[z.id] = op;
     }
   });
@@ -4558,10 +4662,35 @@ function updateBackground(t) {
    ═══════════════════════════════════════════ */
 const curDot = document.getElementById('cur-dot');
 const curRing = document.getElementById('cur-ring');
-let cx = 0, cy = 0, rx = 0, ry = 0;
+let cx = -100, cy = -100, rx = -100, ry = -100;
 let hoveringHtml = false;
+let isCursorInitialized = false;
 
-window.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; });
+window.addEventListener('mousemove', e => {
+  cx = e.clientX;
+  cy = e.clientY;
+  if (!isCursorInitialized) {
+    rx = cx;
+    ry = cy;
+    isCursorInitialized = true;
+    curDot.classList.add('active');
+    curRing.classList.add('active');
+  }
+});
+
+document.addEventListener('mouseleave', () => {
+  if (curDot && curRing) {
+    curDot.classList.remove('active');
+    curRing.classList.remove('active');
+  }
+});
+
+document.addEventListener('mouseenter', () => {
+  if (isCursorInitialized && curDot && curRing) {
+    curDot.classList.add('active');
+    curRing.classList.add('active');
+  }
+});
 
 document.querySelectorAll('a, button, .zt-cta-btn, .nav-cta').forEach(el => {
   el.addEventListener('mouseenter', () => {
@@ -4756,6 +4885,18 @@ function updateWebsites(t, time, vpOverride) {
   const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
 
   if (scene.userData.websitesGroup.visible && scene.userData.slabs) {
+    const pathwayTexture = scene.userData.pathwayTexture;
+    const pathwayMat = scene.userData.pathwayMat;
+    if (pathwayTexture && pathwayMat) {
+      const currentWebProgress = websiteScrollProgress;
+      const progressDiff = Math.abs(currentWebProgress - (window.lastWebProgress || 0));
+      window.lastWebProgress = currentWebProgress;
+      const scrollSpeed = clamp(progressDiff * 15.0, 0, 1.0);
+
+      pathwayTexture.offset.y += 0.005 + scrollSpeed * 0.04;
+      pathwayMat.opacity = (0.75 + 0.20 * Math.sin(time * 2.0) + scrollSpeed * 0.15) * envOpacity;
+    }
+
     if (scene.userData.canyonFloor) {
       scene.userData.canyonFloor.material.opacity = 0.9 * envOpacity;
       scene.userData.canyonFloor.material.transparent = true;
@@ -4927,7 +5068,7 @@ function updateCalling(t, time) {
   callingAutoplayTime += dt;
 
   if (scene.userData.callingScreens) {
-    const Z = -320;
+    const Z = -333;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
 
@@ -5292,8 +5433,12 @@ function updateTexting(t, time) {
         const lookDir = new THREE.Vector3().subVectors(lookTarget, camera.position).normalize();
         const phoneDist = 7.2; // 15% visual reduction for proper breathing margins
 
-        // Position phone along the camera look axis at a fixed distance
-        b.position.copy(camera.position).addScaledVector(lookDir, phoneDist);
+        // Position phone along the camera look axis at a fixed distance (placing backing slightly behind)
+        let finalPhoneDist = phoneDist;
+        if (b.name === 'backing') {
+          finalPhoneDist = phoneDist + 0.02;
+        }
+        b.position.copy(camera.position).addScaledVector(lookDir, finalPhoneDist);
 
         // Slide phone upward relative to local camera Up-axis
         const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
@@ -5339,18 +5484,24 @@ function updateTexting(t, time) {
         b.material.opacity = finalOpacity;
         b.visible = finalOpacity > 0.001;
 
-        // Make the card material completely opaque when fully visible to ensure depth testing and occlusion
-        if (finalOpacity >= 0.95) {
+        if (b.name === 'backing') {
           b.material.transparent = false;
           b.material.depthWrite = true;
           b.material.depthTest = true;
-          b.material.alphaTest = 0.5;
         } else {
-          // Smooth transition fallback
-          b.material.transparent = true;
-          b.material.depthWrite = true;
-          b.material.depthTest = true;
-          b.material.alphaTest = 0.05;
+          // Make the card material completely opaque when fully visible to ensure depth testing and occlusion
+          if (finalOpacity >= 0.95) {
+            b.material.transparent = false;
+            b.material.depthWrite = true;
+            b.material.depthTest = true;
+            b.material.alphaTest = 0.5;
+          } else {
+            // Smooth transition fallback
+            b.material.transparent = true;
+            b.material.depthWrite = true;
+            b.material.depthTest = true;
+            b.material.alphaTest = 0.05;
+          }
         }
         b.material.needsUpdate = true;
       });
@@ -5431,6 +5582,16 @@ function getSectionOpacity(idx) {
     return 0.0;
   }
   if (idx === targetSectionIdx) {
+    if (idx === 1) {
+      // Content Engine special case: only fade in at the very end of transition
+      if (progress < 0.80) return 0.0;
+      return clamp((progress - 0.80) / 0.20, 0.0, 1.0);
+    }
+    if (idx === 3) {
+      // AI Calling special case: start fading in late so the ride is clean
+      if (progress < 0.60) return 0.0;
+      return clamp((progress - 0.60) / 0.25, 0.0, 1.0);
+    }
     if (progress < 0.25) {
       return 0.0;
     }
@@ -5477,6 +5638,7 @@ function animate() {
       sectionTransitionProgress = 1.0;
       currentSectionIdx = targetSectionIdx;
       scrollProgress = targetScrollProgress;
+      lastGestureTime = performance.now(); // reset snap transition cooldown anchor
     }
   }
 
@@ -6032,7 +6194,7 @@ function animate() {
 
       // Wrap if it passes behind the camera
       if (posArray[i * 3 + 2] > camera.position.z + 10) {
-        posArray[i * 3 + 2] = -485;
+        posArray[i * 3 + 2] = -530;
         // Randomize X and Y when wrapping
         const r = rand(10, 80);
         const theta = rand(0, TAU);

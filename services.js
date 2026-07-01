@@ -286,5 +286,196 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  /* ── 7. Interactive 3D Gold Glass Particle Orb ── */
+  const canvases = document.querySelectorAll('.kllezo-orb-canvas');
+  canvases.forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    const container = canvas.closest('.hero-orb-container');
+    if (!ctx || !container) return;
+
+    let width = 0, height = 0;
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      width = rect.width * (window.devicePixelRatio || 1);
+      height = rect.height * (window.devicePixelRatio || 1);
+      canvas.width = width;
+      canvas.height = height;
+      ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Orb parameters
+    const PARTICLE_COUNT = 450;
+    const particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      particles.push({
+        x: Math.sin(phi) * Math.cos(theta),
+        y: Math.sin(phi) * Math.sin(theta),
+        z: Math.cos(phi),
+        brightness: Math.random() * 0.4 + 0.6,
+        size: Math.random() * 1.5 + 1.0
+      });
+    }
+
+    let angleX = 0;
+    let angleY = 0;
+    let targetSpeedX = 0.003;
+    let targetSpeedY = 0.005;
+    let currentSpeedX = 0.003;
+    let currentSpeedY = 0.005;
+    let radiusScale = 1.0;
+    let targetRadiusScale = 1.0;
+
+    let mx = -1, my = -1;
+    let isMouseOver = false;
+
+    container.addEventListener('mousemove', (e) => {
+      const rect = container.getBoundingClientRect();
+      mx = e.clientX - rect.left;
+      my = e.clientY - rect.top;
+      isMouseOver = true;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const dx = (mx - centerX) / centerX;
+      const dy = (my - centerY) / centerY;
+
+      targetSpeedX = dy * 0.04;
+      targetSpeedY = dx * 0.04;
+      targetRadiusScale = 1.22;
+    });
+
+    container.addEventListener('mouseleave', () => {
+      isMouseOver = false;
+      targetSpeedX = 0.003;
+      targetSpeedY = 0.005;
+      targetRadiusScale = 1.0;
+    });
+
+    function draw() {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const baseRadius = Math.min(w, h) * 0.35;
+      const radius = baseRadius * radiusScale;
+
+      currentSpeedX += (targetSpeedX - currentSpeedX) * 0.06;
+      currentSpeedY += (targetSpeedY - currentSpeedY) * 0.06;
+      radiusScale += (targetRadiusScale - radiusScale) * 0.06;
+
+      angleX += currentSpeedX;
+      angleY += currentSpeedY;
+
+      if (!isMouseOver) {
+        angleX += Math.sin(performance.now() * 0.001) * 0.0005;
+        angleY += Math.cos(performance.now() * 0.0008) * 0.0005;
+      }
+
+      const cosX = Math.cos(angleX);
+      const sinX = Math.sin(angleX);
+      const cosY = Math.cos(angleY);
+      const sinY = Math.sin(angleY);
+
+      const projected = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const p = particles[i];
+
+        let x1 = p.x * cosY - p.z * sinY;
+        let z1 = p.x * sinY + p.z * cosY;
+
+        let y2 = p.y * cosX - z1 * sinX;
+        let z2 = p.y * sinX + z1 * cosX;
+
+        const fov = 2.5;
+        const scale = fov / (fov + z2);
+
+        const px = cx + x1 * radius * scale;
+        const py = cy + y2 * radius * scale;
+
+        projected.push({
+          x: px,
+          y: py,
+          z: z2,
+          brightness: p.brightness,
+          size: p.size * scale
+        });
+      }
+
+      projected.sort((a, b) => b.z - a.z);
+
+      const gradBg = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 1.1);
+      gradBg.addColorStop(0, 'rgba(255, 218, 140, 0.075)');
+      gradBg.addColorStop(0.5, 'rgba(255, 204, 110, 0.025)');
+      gradBg.addColorStop(1, 'rgba(255, 204, 110, 0.0)');
+      ctx.fillStyle = gradBg;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let i = 0; i < projected.length; i++) {
+        const p = projected[i];
+        if (p.z > 0) {
+          const alpha = (1.0 - (p.z + 1.0) / 2.0) * p.brightness * 0.45;
+          ctx.fillStyle = `rgba(255, 208, 120, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.strokeStyle = 'rgba(255, 215, 125, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 235, 185, 0.45)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx - 3, cy - 3, radius * 0.96, Math.PI * 0.95, Math.PI * 1.55);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 220, 150, 0.25)';
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.02, Math.PI * 0.98, Math.PI * 1.45);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+      ctx.beginPath();
+      ctx.arc(cx - radius * 0.35, cy - radius * 0.35, radius * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let i = 0; i < projected.length; i++) {
+        const p = projected[i];
+        if (p.z <= 0) {
+          const alpha = (1.0 - (p.z + 1.0) / 2.0) * p.brightness * 0.95;
+          ctx.fillStyle = `rgba(255, 218, 130, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (p.brightness > 0.92) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  });
+
 });
 

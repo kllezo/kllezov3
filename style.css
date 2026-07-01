@@ -263,6 +263,12 @@ body {
   z-index: 9999;
   transform: translate(-50%, -50%);
   mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+}
+
+#cur-dot.active {
+  opacity: 1;
 }
 
 #cur-ring {
@@ -275,7 +281,13 @@ body {
   transform: translate(-50%, -50%);
   transition: width 0.4s cubic-bezier(0.16,1,0.3,1),
               height 0.4s cubic-bezier(0.16,1,0.3,1),
-              border-color 0.3s;
+              border-color 0.3s,
+              opacity 0.25s ease-out;
+  opacity: 0;
+}
+
+#cur-ring.active {
+  opacity: 1;
 }
 
 body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
@@ -800,11 +812,10 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   text-shadow: none !important;
 }
 
-/* Force pure white, 100% opacity, and no filters or blend modes on all text elements */
+/* Force pure white and no filters or blend modes on all text elements */
 h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, textarea, select,
-.scroll-instruction, .nav-brand, .nav-context, .nav-cta, .zt-num, .zt-title, .zt-body, .zt-sub {
+.nav-brand, .nav-context, .nav-cta {
   color: #FFFFFF !important;
-  opacity: 1 !important;
   filter: none !important;
   backdrop-filter: none !important;
   mix-blend-mode: normal !important;
@@ -832,6 +843,11 @@ h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, textarea, select,
   color: #FFFFFF !important;
   opacity: 1 !important;
   filter: none !important;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
 }
 
 
