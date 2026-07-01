@@ -2503,12 +2503,13 @@ const pBottomRight = new THREE.Vector3(25, -9.5, -740);
 const pBottomLeft = new THREE.Vector3(-25, -9.5, -740);
 
 // Helper function to create separate procedural molten gold shader material copies for each stream
-function createGoldMaterial(initialOpacity = 0.0) {
+function createGoldMaterial(initialOpacity = 0.0, disableEndFade = false) {
   return new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
       opacity: { value: initialOpacity },
-      progress: { value: 0.0 }
+      progress: { value: 0.0 },
+      disableEndFade: { value: disableEndFade ? 1.0 : 0.0 }
     },
     vertexShader: `
       varying vec2 vUv;
@@ -2586,6 +2587,7 @@ function createGoldMaterial(initialOpacity = 0.0) {
       uniform float time;
       uniform float opacity;
       uniform float progress;
+      uniform float disableEndFade;
 
       // GPU Value Noise 3D
       float hash(vec3 p) {
@@ -2677,7 +2679,8 @@ function createGoldMaterial(initialOpacity = 0.0) {
         color += glow;
 
         // Edge fade near start and end of path curves along tube length (vUv.x)
-        float edgeFade = smoothstep(0.0, 0.08, vUv.x) * (1.0 - smoothstep(0.92, 1.0, vUv.x));
+        float endFadeFactor = (disableEndFade > 0.5) ? 1.0 : (1.0 - smoothstep(0.92, 1.0, vUv.x));
+        float edgeFade = smoothstep(0.0, 0.08, vUv.x) * endFadeFactor;
 
         gl_FragColor = vec4(color, opacity * edgeFade);
       }
@@ -2803,23 +2806,23 @@ const ptsCallingToTexting = [
   new THREE.Vector3(-8.0, -15.0, -540.0),
   new THREE.Vector3(-12.0, -5.0, -552.0),
   new THREE.Vector3(-7.5, -2.0, -558.0),
-  new THREE.Vector3(-3.5, 0.1, -562.0),
-  new THREE.Vector3(1.0, 1.2, -572.0),
-  new THREE.Vector3(-2.5, 1.8, -570.0),
-  new THREE.Vector3(-5.0, 2.8, -566.0),
-  new THREE.Vector3(-2.5, 3.8, -562.0),
-  new THREE.Vector3(2.0, 4.8, -560.0),
-  new THREE.Vector3(5.0, 5.8, -562.0),
-  new THREE.Vector3(3.0, 6.8, -566.0),
-  new THREE.Vector3(-2.0, 7.8, -570.0),
-  new THREE.Vector3(-5.0, 8.8, -572.0),
-  new THREE.Vector3(-2.5, 9.8, -570.0),
-  new THREE.Vector3(1.0, 11.0, -572.0)
+  new THREE.Vector3(-3.5, 0.1, -564.0),
+  new THREE.Vector3(1.0, 1.2, -568.0),
+  new THREE.Vector3(-2.5, 1.8, -568.0),
+  new THREE.Vector3(-5.0, 2.8, -568.0),
+  new THREE.Vector3(-2.5, 3.8, -568.0),
+  new THREE.Vector3(2.0, 4.8, -568.0),
+  new THREE.Vector3(5.0, 5.8, -568.0),
+  new THREE.Vector3(3.0, 6.8, -568.0),
+  new THREE.Vector3(-2.0, 7.8, -568.0),
+  new THREE.Vector3(-5.0, 8.8, -568.0),
+  new THREE.Vector3(-2.5, 9.8, -568.0),
+  new THREE.Vector3(1.0, 11.0, -568.0)
 ];
 
 // Points for Segment 5: AI Texting Agents to Ecosystem Center Logo (center at Z=-740)
 const ptsTextingToEcosystem = [
-  new THREE.Vector3(1.0, 11.0, -572.0),
+  new THREE.Vector3(1.0, 11.0, -568.0),
   new THREE.Vector3(0.0, 5.0, -605.0),
   new THREE.Vector3(0.0, -10.0, -635.0),
   new THREE.Vector3(0.0, -32.0, -740.0),
@@ -4493,7 +4496,7 @@ function rebuildEcosystemStreams() {
   // Initialize the 5 segment gold meshes with their full curve geometries once
   for (let i = 0; i < 5; i++) {
     const geom = new THREE.TubeGeometry(curves[i], 420, 0.42, 96, false);
-    const mesh = new THREE.Mesh(geom, createGoldMaterial(0.0));
+    const mesh = new THREE.Mesh(geom, createGoldMaterial(0.0, i === 3));
     mesh.renderOrder = 8;
     mesh.visible = false;
     scene.add(mesh);
