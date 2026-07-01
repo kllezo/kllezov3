@@ -244,6 +244,7 @@ body {
   width: 1px; height: 100px;
   background: rgba(247,243,235,0.08);
   z-index: 20;
+  pointer-events: none;
 }
 
 #progress-fill {
@@ -256,12 +257,13 @@ body {
 /* ── Custom Cursor ── */
 #cur-dot {
   position: fixed;
+  top: 0; left: 0;
   width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--beige);
   pointer-events: none;
   z-index: 9999;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   mix-blend-mode: difference;
   opacity: 0;
   transition: opacity 0.25s ease-out;
@@ -273,12 +275,13 @@ body {
 
 #cur-ring {
   position: fixed;
+  top: 0; left: 0;
   width: 34px; height: 34px;
   border-radius: 50%;
   border: 1px solid rgba(247,243,235,0.35);
   pointer-events: none;
   z-index: 9998;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   transition: width 0.4s cubic-bezier(0.16,1,0.3,1),
               height 0.4s cubic-bezier(0.16,1,0.3,1),
               border-color 0.3s,
@@ -304,6 +307,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   z-index: 50;
   opacity: 0;
   transition: opacity 0.8s;
+  pointer-events: none;
 }
 
 #nav.visible { opacity: 1; }
@@ -315,6 +319,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   font-weight: 400;
   letter-spacing: 0.22em;
   color: #FFFFFF;
+  pointer-events: auto;
 }
 
 .nav-context {
@@ -332,12 +337,12 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #FFFFFF;
-  text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.3);
-  padding: 8px 22px;
-  border-radius: 100px;
-  cursor: none;
-  transition: color 0.3s, border-color 0.3s;
+  border: 1px solid rgba(247,243,235,0.22);
+  border-radius: 20px;
+  padding: 8px 18px;
+  background: transparent;
+  transition: background 0.3s, border-color 0.3s;
+  pointer-events: auto;
 }
 
 .nav-cta:hover { color: #FFFFFF; border-color: rgba(255,255,255,0.6); }
@@ -486,6 +491,7 @@ body.hov #cur-ring { width: 54px; height: 54px; border-color: var(--beige); }
   cursor: pointer;
   z-index: 1;
   transform-style: preserve-3d;
+  pointer-events: auto;
 }
 
 .gallery-card.dragging, .gallery-card.returning {

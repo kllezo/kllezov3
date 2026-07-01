@@ -3261,16 +3261,6 @@ scene.add(new THREE.Points(voidGeo, voidMat));
           targetDragY: 0
         };
 
-        cardEl.addEventListener('mouseenter', () => {
-          if (window.isInspecting || cardObj.dragging || cardObj.returning) return;
-          cardObj.isHovered = true;
-          document.body.classList.add('hov');
-        });
-        cardEl.addEventListener('mouseleave', () => {
-          cardObj.isHovered = false;
-          document.body.classList.remove('hov');
-        });
-
         // Pointer event dragging implementation
         let startX = 0;
         let startY = 0;
@@ -4750,7 +4740,8 @@ let cx = -100, cy = -100, rx = -100, ry = -100;
 let hoveringHtml = false;
 let isCursorInitialized = false;
 
-window.addEventListener('mousemove', e => {
+// 1. Capture-phase pointer move tracking (prevents freezes during stops/dragging)
+window.addEventListener('pointermove', e => {
   cx = e.clientX;
   cy = e.clientY;
   if (!isCursorInitialized) {
@@ -4760,7 +4751,7 @@ window.addEventListener('mousemove', e => {
     curDot.classList.add('active');
     curRing.classList.add('active');
   }
-});
+}, { capture: true });
 
 document.addEventListener('mouseleave', () => {
   if (curDot && curRing) {
@@ -4776,15 +4767,19 @@ document.addEventListener('mouseenter', () => {
   }
 });
 
-document.querySelectorAll('a, button, .zt-cta-btn, .nav-cta').forEach(el => {
-  el.addEventListener('mouseenter', () => {
+// 2. Global Event Delegation for hover tracking (prevents stuck hover states)
+document.addEventListener('mouseover', e => {
+  const target = e.target;
+  if (target && target.closest && target.closest('a, button, .zt-cta-btn, .nav-cta, [role="button"], .gallery-card, .zt-continue-btn')) {
     hoveringHtml = true;
-    document.body.classList.add('hov');
-  });
-  el.addEventListener('mouseleave', () => {
+  }
+});
+
+document.addEventListener('mouseout', e => {
+  const target = e.target;
+  if (target && target.closest && target.closest('a, button, .zt-cta-btn, .nav-cta, [role="button"], .gallery-card, .zt-continue-btn')) {
     hoveringHtml = false;
-    document.body.classList.remove('hov');
-  });
+  }
 });
 
 window.addEventListener('click', (event) => {
@@ -4827,10 +4822,8 @@ window.addEventListener('click', (event) => {
 function updateCursor() {
   rx = lerp(rx, cx, 0.1);
   ry = lerp(ry, cy, 0.1);
-  curDot.style.left = cx + 'px';
-  curDot.style.top = cy + 'px';
-  curRing.style.left = rx + 'px';
-  curRing.style.top = ry + 'px';
+  curDot.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
+  curRing.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
 
   // Hover detection for 3D ecosystem spheres
   let isHoveringNode = false;
