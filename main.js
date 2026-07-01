@@ -3528,9 +3528,9 @@ function createPathwayTexture() {
 
   ctx.shadowBlur = 0;
 
-  // Render glowing flow chevrons pointing forward (upwards)
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.35)';
-  for (let cy = 80; cy < 2048; cy += 120) {
+  // Render glowing flow chevrons pointing forward (upwards) — embedded in the platform
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.30)';
+  for (let cy = 80; cy < 1700; cy += 120) {
     ctx.beginPath();
     ctx.moveTo(256 - 24, cy + 12);
     ctx.lineTo(256, cy - 12);
@@ -3542,6 +3542,25 @@ function createPathwayTexture() {
     ctx.fill();
   }
 
+  // "SCROLL FORWARD TO EXPLORE" text at the front edge of the platform
+  ctx.shadowColor = 'rgba(255, 210, 125, 0.6)';
+  ctx.shadowBlur = 12;
+  ctx.font = '600 28px "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.7)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('SCROLL FORWARD TO EXPLORE', 256, 1900);
+  ctx.shadowBlur = 0;
+
+  // Down-chevron icon below text
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.55)';
+  ctx.beginPath();
+  ctx.moveTo(256 - 14, 1940);
+  ctx.lineTo(256, 1956);
+  ctx.lineTo(256 + 14, 1940);
+  ctx.closePath();
+  ctx.fill();
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -3551,20 +3570,20 @@ function createPathwayTexture() {
 (function buildWebsites() {
 
   const slabDefs = [
-    // Website 1: Michelin Restaurant (Nara Omakase)
-    { x: -14.0, y: 0, z: -220, ry: 0.40, w: 18.0, h: 10.8, d: 1.2, poleHeight: 11.1 },
-    // Website 2: Luxury Real Estate (Aurelia)
-    { x: 14.0, y: 0, z: -220, ry: -0.40, w: 18.0, h: 10.8, d: 1.2, poleHeight: 11.1 },
+    // Website 1: Michelin Restaurant (Nara Omakase) — pushed outward
+    { x: -19.0, y: 0, z: -215, ry: 0.38, w: 20.0, h: 11.0, d: 1.2, poleHeight: 9.5 },
+    // Website 2: Luxury Real Estate (Aurelia) — pushed outward
+    { x: 19.0, y: 0, z: -215, ry: -0.38, w: 20.0, h: 11.0, d: 1.2, poleHeight: 9.5 },
 
-    // Website 3: Luxury Fitness (Apex Performance Lab)
-    { x: -16.5, y: 0, z: -240, ry: 0.25, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
-    // Website 4: Premium Automotive (Verta GT)
-    { x: 16.5, y: 0, z: -240, ry: -0.25, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
+    // Website 3: Luxury Fitness (Apex Performance Lab) — widest spread (middle row)
+    { x: -22.0, y: 0, z: -237, ry: 0.22, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
+    // Website 4: Premium Automotive (Verta GT) — widest spread (middle row)
+    { x: 22.0, y: 0, z: -237, ry: -0.22, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
 
-    // Website 5: Longevity / Medical (Elevate)
-    { x: -14.0, y: 0, z: -260, ry: 0.12, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
-    // Website 6: Premium SaaS / AI (Kllezo Automate)
-    { x: 14.0, y: 0, z: -260, ry: -0.12, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 }
+    // Website 5: Longevity / Medical (Elevate) — converging back slightly
+    { x: -19.0, y: 0, z: -259, ry: 0.12, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
+    // Website 6: Premium SaaS / AI (Kllezo Automate) — converging back slightly
+    { x: 19.0, y: 0, z: -259, ry: -0.12, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3580,12 +3599,12 @@ function createPathwayTexture() {
     metalness: 0.2,
     clippingPlanes: [floorClippingPlane]
   });
-  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.2, 16.0, 77.0), baseMat);
-  baseMesh.position.set(0, -5.95, -233.5);
+  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.2, 16.0, 82.0), baseMat);
+  baseMesh.position.set(0, -5.95, -235.0);
   baseMesh.rotation.x = -0.048;
   websitesGroup.add(baseMesh);
 
-  // Create physical sloped pathway in center
+  // Create physical sloped pathway in center — continuous illuminated platform
   const pathwayTexture = createPathwayTexture();
   const pathwayMat = new THREE.MeshBasicMaterial({
     map: pathwayTexture,
@@ -3594,10 +3613,10 @@ function createPathwayTexture() {
     side: THREE.DoubleSide,
     depthWrite: true
   });
-  const pathwayGeo = new THREE.PlaneGeometry(4.5, 77.0);
+  const pathwayGeo = new THREE.PlaneGeometry(4.8, 82.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayMat);
   pathwayMesh.name = 'pathway';
-  pathwayMesh.position.set(0, 2.05, -233.5);
+  pathwayMesh.position.set(0, 2.05, -235.0);
   pathwayMesh.rotation.x = -Math.PI / 2 - 0.048;
   websitesGroup.add(pathwayMesh);
 
@@ -3958,9 +3977,9 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   /* ── 3 CALLING PANELS — Voice Call, Live Transcript, Appointment Booked ── */
   scene.userData.callingScreens = [];
   const callingCardDefs = [
-    { id: 0, name: 'voiceCall', w: 11.2, h: 13.5, y: 4.5, finalX: -12.5, finalRy: 0.2 },
-    { id: 1, name: 'transcript', w: 11.2, h: 13.5, y: 4.5, finalX: 0.0, finalRy: 0.0 },
-    { id: 2, name: 'confirmed', w: 11.2, h: 13.5, y: 4.5, finalX: 12.5, finalRy: -0.2 }
+    { id: 0, name: 'voiceCall', w: 8.5, h: 10.8, y: 4.5, finalX: -10.5, finalRy: 0.2 },
+    { id: 1, name: 'transcript', w: 8.5, h: 10.8, y: 4.5, finalX: 0.0, finalRy: 0.0 },
+    { id: 2, name: 'confirmed', w: 8.5, h: 10.8, y: 4.5, finalX: 10.5, finalRy: -0.2 }
   ];
 
   callingCardDefs.forEach((s, si) => {
@@ -4465,8 +4484,8 @@ function rebuildEcosystemStreams() {
     texture.anisotropy = renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 16;
     const aspect = texture.image.width / texture.image.height;
 
-    // Set centerpiece logo plane size (scaled to 70.0 units for premium framing)
-    const logoGeo = new THREE.PlaneGeometry(70.0 * aspect, 70.0);
+    // Set centerpiece logo plane size — elegant scale that does not dominate the viewport
+    const logoGeo = new THREE.PlaneGeometry(22.0 * aspect, 22.0);
     const logoMat = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
@@ -5476,7 +5495,7 @@ function updateTexting(t, time) {
         const mouseRotY = mouse.sx * 0.14;
         const mouseRotX = -mouse.sy * 0.087;
 
-        // Align phone flat with camera, rotate 180 degrees on local Y to face the camera, and apply tilts
+        // Align phone flat with camera, rotate 180° on Y to point front face at camera
         const localRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
         b.quaternion.copy(camera.quaternion).multiply(localRotation);
         const euler = new THREE.Euler().setFromQuaternion(b.quaternion);
@@ -5488,7 +5507,8 @@ function updateTexting(t, time) {
         // Scale slightly while entering (starts at 92%, scales to 100%)
         const entryScale = 0.92 + 0.08 * textingRevealTime;
         const floatScale = 1.0 + Math.sin(time * 0.2 + b.userData.phase) * 0.015;
-        b.scale.set(entryScale * floatScale, entryScale * floatScale, 1.0);
+        // Negate X scale to un-mirror the texture (compensates for the Y-axis 180° rotation)
+        b.scale.set(-(entryScale * floatScale), entryScale * floatScale, 1.0);
 
         const finalOpacity = phoneOpacity * 0.98 * getSectionOpacity(4);
         b.material.opacity = finalOpacity;
