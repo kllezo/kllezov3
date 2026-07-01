@@ -3493,7 +3493,7 @@ function createContactShadowTexture() {
   return texture;
 }
 
-function createPathwayTexture() {
+function createPathwayFrameTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 2048;
@@ -3501,11 +3501,11 @@ function createPathwayTexture() {
 
   ctx.clearRect(0, 0, 512, 2048);
 
-  // Subtle illuminated borders
-  ctx.strokeStyle = 'rgba(255, 210, 125, 0.45)';
-  ctx.lineWidth = 14;
-  ctx.shadowColor = 'rgba(255, 210, 125, 0.7)';
-  ctx.shadowBlur = 30;
+  // Soft illuminated rounded-rectangle border
+  ctx.strokeStyle = 'rgba(255, 210, 125, 0.50)';
+  ctx.lineWidth = 12;
+  ctx.shadowColor = 'rgba(255, 210, 125, 0.65)';
+  ctx.shadowBlur = 28;
 
   const r = 50;
   const x = 15;
@@ -3528,38 +3528,57 @@ function createPathwayTexture() {
 
   ctx.shadowBlur = 0;
 
-  // Render glowing flow chevrons pointing forward (upwards) — embedded in the platform
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.30)';
-  for (let cy = 80; cy < 1700; cy += 120) {
+  // "Scroll forward to explore" guidance text at the front edge (bottom of canvas = front of platform)
+  ctx.shadowColor = 'rgba(255, 210, 125, 0.5)';
+  ctx.shadowBlur = 10;
+  ctx.font = 'italic 500 26px "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.75)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Scroll forward to explore', 256, 1920);
+  ctx.shadowBlur = 0;
+
+  // Down-arrow circled icon below text
+  ctx.strokeStyle = 'rgba(255, 210, 125, 0.55)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(256, 1970, 16, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.60)';
+  ctx.beginPath();
+  ctx.moveTo(256 - 7, 1965);
+  ctx.lineTo(256, 1976);
+  ctx.lineTo(256 + 7, 1965);
+  ctx.closePath();
+  ctx.fill();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+function createPathwayArrowsTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 256, 512);
+
+  // Embedded animated chevrons — smaller, centered
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.28)';
+  for (let cy = 40; cy < 512; cy += 80) {
     ctx.beginPath();
-    ctx.moveTo(256 - 24, cy + 12);
-    ctx.lineTo(256, cy - 12);
-    ctx.lineTo(256 + 24, cy + 12);
-    ctx.lineTo(256 + 24, cy + 6);
-    ctx.lineTo(256, cy - 18);
-    ctx.lineTo(256 - 24, cy + 6);
+    ctx.moveTo(128 - 20, cy + 10);
+    ctx.lineTo(128, cy - 10);
+    ctx.lineTo(128 + 20, cy + 10);
+    ctx.lineTo(128 + 20, cy + 5);
+    ctx.lineTo(128, cy - 15);
+    ctx.lineTo(128 - 20, cy + 5);
     ctx.closePath();
     ctx.fill();
   }
-
-  // "SCROLL FORWARD TO EXPLORE" text at the front edge of the platform
-  ctx.shadowColor = 'rgba(255, 210, 125, 0.6)';
-  ctx.shadowBlur = 12;
-  ctx.font = '600 28px "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.7)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('SCROLL FORWARD TO EXPLORE', 256, 1900);
-  ctx.shadowBlur = 0;
-
-  // Down-chevron icon below text
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.55)';
-  ctx.beginPath();
-  ctx.moveTo(256 - 14, 1940);
-  ctx.lineTo(256, 1956);
-  ctx.lineTo(256 + 14, 1940);
-  ctx.closePath();
-  ctx.fill();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
@@ -3570,20 +3589,17 @@ function createPathwayTexture() {
 (function buildWebsites() {
 
   const slabDefs = [
-    // Website 1: Michelin Restaurant (Nara Omakase) — pushed outward
-    { x: -19.0, y: 0, z: -215, ry: 0.38, w: 20.0, h: 11.0, d: 1.2, poleHeight: 9.5 },
-    // Website 2: Luxury Real Estate (Aurelia) — pushed outward
-    { x: 19.0, y: 0, z: -215, ry: -0.38, w: 20.0, h: 11.0, d: 1.2, poleHeight: 9.5 },
+    // Row 1 (closest to visitor): moderate spread, strongly angled inward
+    { x: -18.0, y: 0, z: -215, ry: 0.45, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
+    { x: 18.0, y: 0, z: -215, ry: -0.45, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
 
-    // Website 3: Luxury Fitness (Apex Performance Lab) — widest spread (middle row)
-    { x: -22.0, y: 0, z: -237, ry: 0.22, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
-    // Website 4: Premium Automotive (Verta GT) — widest spread (middle row)
-    { x: 22.0, y: 0, z: -237, ry: -0.22, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
+    // Row 2 (middle): widest spread, moderate angle
+    { x: -22.0, y: 0, z: -237, ry: 0.28, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
+    { x: 22.0, y: 0, z: -237, ry: -0.28, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
 
-    // Website 5: Longevity / Medical (Elevate) — converging back slightly
-    { x: -19.0, y: 0, z: -259, ry: 0.12, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 },
-    // Website 6: Premium SaaS / AI (Kllezo Automate) — converging back slightly
-    { x: 19.0, y: 0, z: -259, ry: -0.12, w: 20.0, h: 11.0, d: 1.2, poleHeight: 10.0 }
+    // Row 3 (farthest): pushed outward, gentle angle
+    { x: -24.0, y: 0, z: -259, ry: 0.15, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 },
+    { x: 24.0, y: 0, z: -259, ry: -0.15, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3599,29 +3615,47 @@ function createPathwayTexture() {
     metalness: 0.2,
     clippingPlanes: [floorClippingPlane]
   });
-  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.2, 16.0, 82.0), baseMat);
+  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.5, 16.0, 85.0), baseMat);
   baseMesh.position.set(0, -5.95, -235.0);
   baseMesh.rotation.x = -0.048;
   websitesGroup.add(baseMesh);
 
-  // Create physical sloped pathway in center — continuous illuminated platform
-  const pathwayTexture = createPathwayTexture();
-  const pathwayMat = new THREE.MeshBasicMaterial({
-    map: pathwayTexture,
+  // ── LAYER 1: Static frame with illuminated border + guidance text (never scrolls) ──
+  const frameTexture = createPathwayFrameTexture();
+  const frameMat = new THREE.MeshBasicMaterial({
+    map: frameTexture,
     transparent: true,
     opacity: 0.85,
     side: THREE.DoubleSide,
-    depthWrite: true
+    depthWrite: false
   });
-  const pathwayGeo = new THREE.PlaneGeometry(4.8, 82.0);
-  const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayMat);
-  pathwayMesh.name = 'pathway';
-  pathwayMesh.position.set(0, 2.05, -235.0);
-  pathwayMesh.rotation.x = -Math.PI / 2 - 0.048;
-  websitesGroup.add(pathwayMesh);
+  const frameGeo = new THREE.PlaneGeometry(5.0, 85.0);
+  const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+  frameMesh.name = 'pathwayFrame';
+  frameMesh.position.set(0, 2.05, -235.0);
+  frameMesh.rotation.x = -Math.PI / 2 - 0.048;
+  websitesGroup.add(frameMesh);
 
-  scene.userData.pathwayTexture = pathwayTexture;
-  scene.userData.pathwayMat = pathwayMat;
+  // ── LAYER 2: Animated arrows (scrolls continuously) ──
+  const arrowsTexture = createPathwayArrowsTexture();
+  const arrowsMat = new THREE.MeshBasicMaterial({
+    map: arrowsTexture,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const arrowsGeo = new THREE.PlaneGeometry(3.0, 85.0);
+  const arrowsMesh = new THREE.Mesh(arrowsGeo, arrowsMat);
+  arrowsMesh.name = 'pathwayArrows';
+  arrowsMesh.position.set(0, 2.051, -235.0); // Slight Y offset to prevent z-fighting
+  arrowsMesh.rotation.x = -Math.PI / 2 - 0.048;
+  websitesGroup.add(arrowsMesh);
+
+  scene.userData.pathwayTexture = arrowsTexture;
+  scene.userData.pathwayMat = arrowsMat;
+  scene.userData.pathwayFrameMat = frameMat;
 
   scene.userData.slabs = [];
   scene.userData.billboardSpotlights = [];
@@ -4914,6 +4948,7 @@ function updateWebsites(t, time, vpOverride) {
   const vp = (vpOverride !== undefined) ? vpOverride : (scrollProgress * 13.0);
 
   if (scene.userData.websitesGroup.visible && scene.userData.slabs) {
+    // Animate ONLY the arrows layer (pathwayTexture = arrowsTexture)
     const pathwayTexture = scene.userData.pathwayTexture;
     const pathwayMat = scene.userData.pathwayMat;
     if (pathwayTexture && pathwayMat) {
@@ -4923,7 +4958,11 @@ function updateWebsites(t, time, vpOverride) {
       const scrollSpeed = clamp(progressDiff * 15.0, 0, 1.0);
 
       pathwayTexture.offset.y += 0.005 + scrollSpeed * 0.04;
-      pathwayMat.opacity = (0.75 + 0.20 * Math.sin(time * 2.0) + scrollSpeed * 0.15) * envOpacity;
+      pathwayMat.opacity = (0.55 + 0.15 * Math.sin(time * 2.0) + scrollSpeed * 0.15) * envOpacity;
+    }
+    // Static frame layer — gentle breathing glow
+    if (scene.userData.pathwayFrameMat) {
+      scene.userData.pathwayFrameMat.opacity = (0.75 + 0.10 * Math.sin(time * 1.5)) * envOpacity;
     }
 
     if (scene.userData.canyonFloor) {
