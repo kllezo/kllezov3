@@ -2321,6 +2321,7 @@ function tickWebsiteScroll(dt) {
 }
 
 function handleWheelGesture(e) {
+  e.preventDefault(); // CRITICAL: prevent native scroll — all navigation is gesture-driven
   const now = performance.now();
   if (sectionTransitionProgress < 1.0) return;
 
@@ -2359,6 +2360,7 @@ window.addEventListener('touchstart', e => {
 }, { passive: true });
 
 window.addEventListener('touchmove', e => {
+  e.preventDefault(); // CRITICAL: prevent native scroll on touch devices
   const touchEndY = e.touches[0].clientY;
   const deltaY = touchStartY - touchEndY; // positive = swipe up / scroll down
 
@@ -2384,7 +2386,7 @@ window.addEventListener('touchmove', e => {
     triggerSectionTransition(currentSectionIdx - 1);
     lastGestureTime = now;
   }
-}, { passive: true });
+}, { passive: false });
 
 window.addEventListener('keydown', e => {
   const now = performance.now();
@@ -6322,5 +6324,5 @@ function animate() {
 /* ═══════════════════════════════════════════
    19. START
    ═══════════════════════════════════════════ */
-document.getElementById('scroll-driver').style.height = '1400vh';
+// scroll-driver height is 0 in CSS — native scroll fully disabled
 animate();
