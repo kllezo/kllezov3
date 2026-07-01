@@ -2196,7 +2196,7 @@ const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -180), // t=0.28  Entering website canyon
   new THREE.Vector3(0,   4.5, -215), // t=0.32  Website Row 2
   new THREE.Vector3(0,   4.5, -240), // t=0.36  Website Row 3
-  new THREE.Vector3(0,   4.5, -272), // t=0.40  Leaving Row 3 (Website exit)
+  new THREE.Vector3(0,   4.5, -302), // t=0.40  Leaving Row 3 (Website exit)
   new THREE.Vector3(0,   4.5, -365), // t=0.44  Transition 1 empty travel (increased spacing)
   new THREE.Vector3(0,   4.5, -440), // t=0.48  Calling entry — parked at z=-440
   new THREE.Vector3(0,   4.5, -440), // t=0.52  Parked at Calling
@@ -2751,7 +2751,7 @@ const ptsHeroToContent = [
 ];
 
 // Points for Segment 2: Content Engine to Website Experiences
-// Starts exactly at the Content Engine parked position (Z = -65.5) and runs continuously to walkway exit (Z = -272.0)
+// Starts exactly at the Content Engine parked position (Z = -65.5) and runs continuously to walkway exit (Z = -302.0)
 const ptsContentToWebsites = [
   new THREE.Vector3(1.5, -11.0, -65.5),       // Connected directly to Segment 1 end
   new THREE.Vector3(5.5, -11.0, -74),
@@ -2766,27 +2766,27 @@ const ptsContentToWebsites = [
   new THREE.Vector3(11.5, -10.0, -164),
   new THREE.Vector3(5.5, -2.0, -184),
   new THREE.Vector3(3.5, 1.0, -194),        // Enters center corridor gap
-  new THREE.Vector3(2.5, 3.0, -204),        // Corridor
-  new THREE.Vector3(1.5, 2.5, -214),        // Corridor
-  new THREE.Vector3(2.5, 1.0, -224),        // Corridor
-  new THREE.Vector3(4.5, 0.0, -234),        // Corridor
-  new THREE.Vector3(5.5, 2.0, -244),        // Corridor
-  new THREE.Vector3(4.5, 4.0, -254),        // Corridor
-  new THREE.Vector3(2.5, 3.0, -260),        // Corridor
-  new THREE.Vector3(1.5, 2.5, -266),        // Corridor
-  new THREE.Vector3(0.0, 4.5, -269),        // Alignment towards center
-  new THREE.Vector3(0.0, 5.7, -272)         // Connects to Segment 3 right in center under the exit
+  new THREE.Vector3(2.5, 3.0, -210),        // Corridor
+  new THREE.Vector3(1.5, 2.5, -225),        // Corridor
+  new THREE.Vector3(2.5, 1.0, -240),        // Corridor
+  new THREE.Vector3(4.5, 0.0, -255),        // Corridor
+  new THREE.Vector3(5.5, 2.0, -270),        // Corridor
+  new THREE.Vector3(4.5, 4.0, -282),        // Corridor
+  new THREE.Vector3(2.5, 3.0, -290),        // Corridor
+  new THREE.Vector3(1.5, 2.5, -296),        // Corridor
+  new THREE.Vector3(0.0, 4.5, -299),        // Alignment towards center
+  new THREE.Vector3(0.0, 5.7, -302)         // Connects to Segment 3 right in center under the exit
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
 // Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-371)
 const ptsWebsitesToCalling = [
-  new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(-1.0, 5.0, -285.0),
-  new THREE.Vector3(-3.0, 4.2, -305.0),
-  new THREE.Vector3(-6.0, 3.5, -325.0),
-  new THREE.Vector3(-10.0, 2.5, -345.0),
-  new THREE.Vector3(-14.0, 2.0, -365.0),
+  new THREE.Vector3(0.0, 5.7, -302.0),
+  new THREE.Vector3(-1.0, 5.0, -315.0),
+  new THREE.Vector3(-3.0, 4.2, -330.0),
+  new THREE.Vector3(-6.0, 3.5, -345.0),
+  new THREE.Vector3(-10.0, 2.5, -360.0),
+  new THREE.Vector3(-14.0, 2.0, -375.0),
   new THREE.Vector3(-18.0, 1.5, -458.0),
   new THREE.Vector3(-15.0, 4.5, -458.0),
   new THREE.Vector3(-10.5, 2.0, -458.0),
@@ -2851,10 +2851,10 @@ const camHeroToContent = new THREE.CatmullRomCurve3([
 ], false, 'centripetal');
 const camContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
 const camWebsitesToCalling = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(0.0, 4.0, -301.5),
-  new THREE.Vector3(0.0, 2.5, -331.0),
-  new THREE.Vector3(0.0, 1.5, -360.5),
+  new THREE.Vector3(0.0, 5.7, -302.0),
+  new THREE.Vector3(0.0, 4.0, -324.0),
+  new THREE.Vector3(0.0, 2.5, -346.0),
+  new THREE.Vector3(0.0, 1.5, -368.0),
   new THREE.Vector3(0.0, 1.0, -390.0)
 ], false, 'centripetal');
 const camCallingToTexting = new THREE.CatmullRomCurve3([
@@ -2883,7 +2883,7 @@ const cameraTransitionCurves = [
 // The exact cutoff points for each segment when parked at that section's destination
 const SEGMENT_CUTOFFS = [
   0.72, // Segment 1 cutoff (terminates exactly at the purple reference line)
-  0.42, // Segment 2 cutoff (terminates exactly at the purple cut marker right before the Maison Noir showcase)
+  0.56, // Segment 2 cutoff (terminates exactly at the purple cut marker right before the Maison Noir showcase)
   1.00, // Segment 3 cutoff
   1.00, // Segment 4 cutoff
   1.00  // Segment 5 cutoff
@@ -3584,17 +3584,17 @@ function createPathwayArrowsTexture() {
 (function buildWebsites() {
 
   const slabDefs = [
-    // Row 1 (closest to camera, Z = -220): widest spread, strongly angled inward
-    { x: -27.0, y: 0, z: -220, ry: 0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 27.0, y: 0, z: -220, ry: -0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 1 (closest to camera, Z = -250): widest spread, strongly angled inward
+    { x: -27.0, y: 0, z: -250, ry: 0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 27.0, y: 0, z: -250, ry: -0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
 
-    // Row 2 (middle, Z = -241): moderate spread, moderate angle
-    { x: -22.0, y: 0, z: -241, ry: 0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 22.0, y: 0, z: -241, ry: -0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 2 (middle, Z = -271): moderate spread, moderate angle
+    { x: -22.0, y: 0, z: -271, ry: 0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 22.0, y: 0, z: -271, ry: -0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
 
-    // Row 3 (farthest, Z = -262): narrowest spread, gentle angle
-    { x: -15.0, y: 0, z: -262, ry: 0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 14.0, y: 0, z: -262, ry: -0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
+    // Row 3 (farthest, Z = -292): narrowest spread, gentle angle
+    { x: -15.0, y: 0, z: -292, ry: 0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 14.0, y: 0, z: -292, ry: -0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3612,7 +3612,7 @@ function createPathwayArrowsTexture() {
   });
   const baseMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 87.0), baseMat);
   baseMesh.name = 'pathwayBase';
-  baseMesh.position.set(0, -11.96, -228.5);
+  baseMesh.position.set(0, -11.96, -258.5);
   baseMesh.rotation.x = -Math.PI / 2;
   websitesGroup.add(baseMesh);
 
@@ -3663,7 +3663,7 @@ function createPathwayArrowsTexture() {
   const pathwayGeo = new THREE.PlaneGeometry(5.5, 87.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayShaderMat);
   pathwayMesh.name = 'pathway';
-  pathwayMesh.position.set(0, -11.94, -228.5);
+  pathwayMesh.position.set(0, -11.94, -258.5);
   pathwayMesh.rotation.x = -Math.PI / 2;
   websitesGroup.add(pathwayMesh);
 
@@ -3859,7 +3859,7 @@ function createPathwayArrowsTexture() {
   });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -PI / 2;
-  floor.position.set(0, -12, -252);
+  floor.position.set(0, -12, -282);
   websitesGroup.add(floor);
 
   const floorWire = new THREE.Mesh(
@@ -3867,26 +3867,26 @@ function createPathwayArrowsTexture() {
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.04 })
   );
   floorWire.rotation.x = -PI / 2;
-  floorWire.position.set(0, -12.05, -252);
+  floorWire.position.set(0, -12.05, -282);
   websitesGroup.add(floorWire);
 
   // Platform side skirting / front face to completely hide area beneath y = -12
   const frontWallGeo = new THREE.PlaneGeometry(60, 28);
   const frontWall = new THREE.Mesh(frontWallGeo, floorMat);
-  frontWall.position.set(0, -26, -212); // Front edge (z = -212)
+  frontWall.position.set(0, -26, -242); // Front edge (z = -242)
   websitesGroup.add(frontWall);
 
   const frontWallWire = new THREE.Mesh(
     new THREE.PlaneGeometry(60, 28, 12, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.03 })
   );
-  frontWallWire.position.set(0, -26, -211.95);
+  frontWallWire.position.set(0, -26, -241.95);
   websitesGroup.add(frontWallWire);
 
   // Side walls
   const sideWallGeo = new THREE.PlaneGeometry(80, 28);
   const leftWall = new THREE.Mesh(sideWallGeo, floorMat);
-  leftWall.position.set(-30, -26, -252);
+  leftWall.position.set(-30, -26, -282);
   leftWall.rotation.y = PI / 2;
   websitesGroup.add(leftWall);
 
@@ -3894,12 +3894,12 @@ function createPathwayArrowsTexture() {
     new THREE.PlaneGeometry(80, 28, 20, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
   );
-  leftWallWire.position.set(-29.95, -26, -252);
+  leftWallWire.position.set(-29.95, -26, -282);
   leftWallWire.rotation.y = PI / 2;
   websitesGroup.add(leftWallWire);
 
   const rightWall = new THREE.Mesh(sideWallGeo, floorMat);
-  rightWall.position.set(30, -26, -252);
+  rightWall.position.set(30, -26, -282);
   rightWall.rotation.y = -PI / 2;
   websitesGroup.add(rightWall);
 
@@ -3907,14 +3907,14 @@ function createPathwayArrowsTexture() {
     new THREE.PlaneGeometry(80, 28, 20, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
   );
-  rightWallWire.position.set(29.95, -26, -252);
+  rightWallWire.position.set(29.95, -26, -282);
   rightWallWire.rotation.y = -PI / 2;
   websitesGroup.add(rightWallWire);
 
   // Back wall
   const backWallGeo = new THREE.PlaneGeometry(60, 28);
   const backWall = new THREE.Mesh(backWallGeo, floorMat);
-  backWall.position.set(0, -26, -292);
+  backWall.position.set(0, -26, -322);
   backWall.rotation.y = PI;
   websitesGroup.add(backWall);
 
@@ -3922,13 +3922,13 @@ function createPathwayArrowsTexture() {
     new THREE.PlaneGeometry(60, 28, 12, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
   );
-  backWallWire.position.set(0, -26, -291.95);
+  backWallWire.position.set(0, -26, -321.95);
   backWallWire.rotation.y = PI;
   websitesGroup.add(backWallWire);
 
   // Atmosphere lights in canyon (softened)
   const canyonLight1 = new THREE.PointLight(0x4060a0, 0.15, 60);
-  canyonLight1.position.set(0, 5, -245);
+  canyonLight1.position.set(0, 5, -275);
   websitesGroup.add(canyonLight1);
   scene.userData.canyonLight = canyonLight1;
 
@@ -5785,7 +5785,7 @@ function animate() {
   function getStationCamera(sectionIdx, webProgress) {
     if (sectionIdx === 2) {
       // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
-      const camZ = lerp(-195.0, -272.0, webProgress);
+      const camZ = lerp(-225.0, -302.0, webProgress);
       const camY = -6.5;
       const pos = new THREE.Vector3(0.0, camY, camZ);
       // Keep look target flat and forward-looking
@@ -5850,7 +5850,7 @@ function animate() {
       const followCurve = cameraTransitionCurves[minIdx];
       let limit = goldCurveTravelLimits[minIdx];
       if (minIdx === 1) {
-        limit = 0.63; // Dismount at Z = -195 (Gallery entry)
+        limit = 0.77; // Dismount at Z = -225 (Gallery entry)
       }
 
       let finalCamTargetTube = new THREE.Vector3();
