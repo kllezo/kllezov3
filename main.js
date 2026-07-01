@@ -3505,10 +3505,10 @@ function createPathwayFrameTexture() {
   ctx.clearRect(0, 0, 512, 2048);
 
   // Soft illuminated rounded-rectangle border
-  ctx.strokeStyle = 'rgba(255, 210, 125, 0.50)';
-  ctx.lineWidth = 12;
-  ctx.shadowColor = 'rgba(255, 210, 125, 0.65)';
-  ctx.shadowBlur = 28;
+  ctx.strokeStyle = 'rgba(255, 210, 125, 0.95)';
+  ctx.lineWidth = 14;
+  ctx.shadowColor = 'rgba(255, 210, 125, 0.85)';
+  ctx.shadowBlur = 32;
 
   const r = 50;
   const x = 15;
@@ -3534,24 +3534,24 @@ function createPathwayFrameTexture() {
   // "Scroll forward to explore" guidance text at the front edge (bottom of canvas = front of platform)
   ctx.shadowColor = 'rgba(255, 210, 125, 0.5)';
   ctx.shadowBlur = 10;
-  ctx.font = 'italic 500 26px "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.75)';
+  ctx.font = '500 24px "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.85)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Scroll forward to explore', 256, 1920);
+  ctx.fillText('Scroll forward to explore', 256, 1910);
   ctx.shadowBlur = 0;
 
   // Down-arrow circled icon below text
-  ctx.strokeStyle = 'rgba(255, 210, 125, 0.55)';
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(255, 210, 125, 0.80)';
+  ctx.lineWidth = 3.0;
   ctx.beginPath();
-  ctx.arc(256, 1970, 16, 0, Math.PI * 2);
+  ctx.arc(256, 1965, 18, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.60)';
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.85)';
   ctx.beginPath();
-  ctx.moveTo(256 - 7, 1965);
-  ctx.lineTo(256, 1976);
-  ctx.lineTo(256 + 7, 1965);
+  ctx.moveTo(256 - 8, 1960);
+  ctx.lineTo(256, 1971);
+  ctx.lineTo(256 + 8, 1960);
   ctx.closePath();
   ctx.fill();
 
@@ -3569,16 +3569,16 @@ function createPathwayArrowsTexture() {
 
   ctx.clearRect(0, 0, 256, 512);
 
-  // Embedded animated chevrons — smaller, centered
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.28)';
+  // Embedded animated chevrons pointing downwards
+  ctx.fillStyle = 'rgba(255, 210, 125, 0.45)';
   for (let cy = 40; cy < 512; cy += 80) {
     ctx.beginPath();
-    ctx.moveTo(128 - 20, cy + 10);
-    ctx.lineTo(128, cy - 10);
-    ctx.lineTo(128 + 20, cy + 10);
-    ctx.lineTo(128 + 20, cy + 5);
-    ctx.lineTo(128, cy - 15);
-    ctx.lineTo(128 - 20, cy + 5);
+    ctx.moveTo(128 - 18, cy - 8);
+    ctx.lineTo(128, cy + 12);
+    ctx.lineTo(128 + 18, cy - 8);
+    ctx.lineTo(128 + 18, cy - 14);
+    ctx.lineTo(128, cy + 6);
+    ctx.lineTo(128 - 18, cy - 14);
     ctx.closePath();
     ctx.fill();
   }
@@ -3592,17 +3592,17 @@ function createPathwayArrowsTexture() {
 (function buildWebsites() {
 
   const slabDefs = [
-    // Row 1 (closest to visitor): moderate spread, strongly angled inward
-    { x: -19.0, y: 0, z: -215, ry: 0.42, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
-    { x: 19.0, y: 0, z: -215, ry: -0.42, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.5 },
+    // Row 1 (closest to camera, Z = -220): widest spread, strongly angled inward
+    { x: -27.0, y: 0, z: -220, ry: 0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 27.0, y: 0, z: -220, ry: -0.50, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
 
-    // Row 2 (middle): widest spread, bulging outward, moderate angle
-    { x: -22.5, y: 0, z: -237, ry: 0.25, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
-    { x: 22.5, y: 0, z: -237, ry: -0.25, w: 20.0, h: 11.0, d: 1.0, poleHeight: 1.8 },
+    // Row 2 (middle, Z = -241): moderate spread, moderate angle
+    { x: -22.0, y: 0, z: -241, ry: 0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 22.0, y: 0, z: -241, ry: -0.33, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
 
-    // Row 3 (farthest): curved back inward towards center, gentle angle
-    { x: -19.0, y: 0, z: -259, ry: 0.12, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 },
-    { x: 19.0, y: 0, z: -259, ry: -0.12, w: 20.0, h: 11.0, d: 1.0, poleHeight: 2.0 }
+    // Row 3 (farthest, Z = -262): narrowest spread, gentle angle
+    { x: -15.0, y: 0, z: -262, ry: 0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 14.0, y: 0, z: -262, ry: -0.16, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3611,19 +3611,20 @@ function createPathwayArrowsTexture() {
   scene.add(websitesGroup);
   scene.userData.websitesGroup = websitesGroup;
 
-  // Solid beveled concrete base to ground the walkway (architectural base)
+  // ── WALKWAY GLOSSY BASE PLANE ──
   const baseMat = new THREE.MeshStandardMaterial({
-    color: 0x0c0e14,
-    roughness: 0.8,
-    metalness: 0.2,
+    color: 0x08090d,
+    roughness: 0.15,
+    metalness: 0.85,
     clippingPlanes: [floorClippingPlane]
   });
-  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.5, 16.0, 85.0), baseMat);
-  baseMesh.position.set(0, -5.95, -235.0);
-  baseMesh.rotation.x = -0.048;
+  const baseMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 87.0), baseMat);
+  baseMesh.name = 'pathwayBase';
+  baseMesh.position.set(0, -11.96, -228.5);
+  baseMesh.rotation.x = -Math.PI / 2;
   websitesGroup.add(baseMesh);
 
-  // ── ONE CONTINUOUS PLATFORM: Static frame + Animated chevrons inside single ShaderMaterial ──
+  // ── WALKWAY GLOW OVERLAY ──
   const frameTexture = createPathwayFrameTexture();
   const arrowsTexture = createPathwayArrowsTexture();
 
@@ -3652,13 +3653,13 @@ function createPathwayArrowsTexture() {
         
         // Sample animated arrows only inside the inner platform area to avoid bleeding into borders/text
         vec4 arrowColor = vec4(0.0);
-        if (vUv.x > 0.15 && vUv.x < 0.85 && vUv.y > 0.08 && vUv.y < 0.92) {
-          vec2 arrowUv = vec2(vUv.x, vUv.y * 12.0 - arrowOffset);
+        if (vUv.x > 0.20 && vUv.x < 0.80 && vUv.y > 0.06 && vUv.y < 0.94) {
+          vec2 arrowUv = vec2(vUv.x, vUv.y * 16.0 + arrowOffset);
           arrowColor = texture2D(tArrows, arrowUv);
         }
         
-        vec3 finalRGB = frameColor.rgb + arrowColor.rgb * 0.7;
-        float finalAlpha = max(frameColor.a, arrowColor.a * 0.45) * opacity;
+        vec3 finalRGB = frameColor.rgb + arrowColor.rgb * 0.75;
+        float finalAlpha = max(frameColor.a, arrowColor.a * 0.50) * opacity;
         gl_FragColor = vec4(finalRGB, finalAlpha);
       }
     `,
@@ -3667,11 +3668,11 @@ function createPathwayArrowsTexture() {
     side: THREE.DoubleSide
   });
 
-  const pathwayGeo = new THREE.PlaneGeometry(5.0, 85.0);
+  const pathwayGeo = new THREE.PlaneGeometry(5.5, 87.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayShaderMat);
   pathwayMesh.name = 'pathway';
-  pathwayMesh.position.set(0, 2.05, -235.0);
-  pathwayMesh.rotation.x = -Math.PI / 2 - 0.048;
+  pathwayMesh.position.set(0, -11.94, -228.5);
+  pathwayMesh.rotation.x = -Math.PI / 2;
   websitesGroup.add(pathwayMesh);
 
   scene.userData.pathwayTexture = arrowsTexture;
@@ -3757,7 +3758,7 @@ function createPathwayArrowsTexture() {
       emissiveMap: webTexture,
       emissive: new THREE.Color(0xffffff),
       emissiveIntensity: 1.0, // High-end premium self-illumination
-      roughness: 0.15,
+      roughness: 0.85,
       metalness: 0.05,
       clippingPlanes: [floorClippingPlane],
       transparent: true,
@@ -3860,7 +3861,7 @@ function createPathwayArrowsTexture() {
   // Canyon floor grid
   const floorGeo = new THREE.PlaneGeometry(60, 80, 12, 20);
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x060810, roughness: 1, metalness: 0,
+    color: 0x060810, roughness: 0.35, metalness: 0.60,
     wireframe: false,
     transparent: true, opacity: 0.9,
   });
@@ -3933,8 +3934,8 @@ function createPathwayArrowsTexture() {
   backWallWire.rotation.y = PI;
   websitesGroup.add(backWallWire);
 
-  // Atmosphere lights in canyon
-  const canyonLight1 = new THREE.PointLight(0x4060a0, 0.5, 50);
+  // Atmosphere lights in canyon (softened)
+  const canyonLight1 = new THREE.PointLight(0x4060a0, 0.15, 60);
   canyonLight1.position.set(0, 5, -245);
   websitesGroup.add(canyonLight1);
   scene.userData.canyonLight = canyonLight1;
@@ -5787,9 +5788,7 @@ function animate() {
     if (sectionIdx === 2) {
       // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
       const camZ = lerp(-195.0, -272.0, webProgress);
-      // Platform sloped floor at center z=-235 is y=2.05, slope is -0.048.
-      // Keeping camera at exactly 1.6 units eye-level above sloped platform floor.
-      const camY = 3.65 + 0.048 * (camZ + 235.0);
+      const camY = -6.5;
       const pos = new THREE.Vector3(0.0, camY, camZ);
       // Keep look target flat and forward-looking
       const look = new THREE.Vector3(0.0, camY, camZ - 20.0);
