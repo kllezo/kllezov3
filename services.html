@@ -103,6 +103,8 @@
 
   </main>
 
+  <script src="services.js"></script>
+
   <!-- SCRIPT FOR PRODUCT EXPLORER INTERACTIONS & ANIMATIONS -->
   <script>
     // Hash-based redirect for homepage navigation compatibility
@@ -117,48 +119,6 @@
         window.location.replace(redirectUrl);
       }
     }
-
-    // Custom Cursor Script
-    const curDot  = document.getElementById('cur-dot');
-    const curRing = document.getElementById('cur-ring');
-    let cx = -100, cy = -100, rx = -100, ry = -100;
-    let isInitialized = false;
-
-    window.addEventListener('mousemove', e => {
-      cx = e.clientX;
-      cy = e.clientY;
-      if (!isInitialized) {
-        rx = cx;
-        ry = cy;
-        isInitialized = true;
-      }
-    });
-
-    function addHoverListeners() {
-      document.querySelectorAll('a, button, .orb-card').forEach(el => {
-        el.removeEventListener('mouseenter', onHoverEnter);
-        el.removeEventListener('mouseleave', onHoverLeave);
-        el.addEventListener('mouseenter', onHoverEnter);
-        el.addEventListener('mouseleave', onHoverLeave);
-      });
-    }
-
-    function onHoverEnter() { document.body.classList.add('hov'); }
-    function onHoverLeave() { document.body.classList.remove('hov'); }
-
-    function tickCursor() {
-      if (isInitialized) {
-        rx += (cx - rx) * 0.12;
-        ry += (cy - ry) * 0.12;
-        curDot.style.left  = cx + 'px';
-        curDot.style.top   = cy + 'px';
-        curRing.style.left = rx + 'px';
-        curRing.style.top  = ry + 'px';
-      }
-      requestAnimationFrame(tickCursor);
-    }
-    tickCursor();
-    addHoverListeners();
 
     // Product Explorer Single-Page Navigation Logic
     const landingView = document.getElementById('landing-view');

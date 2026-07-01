@@ -5,56 +5,54 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ── 1. Custom Cursor ── */
-  const curDot = document.getElementById('cur-dot');
-  const curRing = document.getElementById('cur-ring');
-  let cx = -100, cy = -100, rx = -100, ry = -100;
-  let isInitialized = false;
+  /* ── 1. Custom Cursor Controller ── */
+  const dot = document.getElementById('cur-dot');
+  const ring = document.getElementById('cur-ring');
 
-  window.addEventListener('mousemove', e => {
-    cx = e.clientX;
-    cy = e.clientY;
-    if (!isInitialized) {
-      rx = cx; ry = cy;
-      isInitialized = true;
-      if (curDot && curRing) {
-        curDot.classList.add('active');
-        curRing.classList.add('active');
-      }
+  if (dot && ring) {
+    document.body.appendChild(dot);
+    document.body.appendChild(ring);
+
+    dot.classList.add('active');
+    ring.classList.add('active');
+
+    let mouseX = -100;
+    let mouseY = -100;
+
+    window.addEventListener("pointermove", e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    }, { passive: true });
+
+    function updateCursor() {
+      dot.style.transform =
+        `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%,-50%)`;
+      ring.style.transform =
+        `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%,-50%)`;
+      requestAnimationFrame(updateCursor);
     }
-  });
+    updateCursor();
+  }
 
   document.addEventListener('mouseleave', () => {
-    if (curDot && curRing) {
-      curDot.classList.remove('active');
-      curRing.classList.remove('active');
+    if (dot && ring) {
+      dot.classList.remove('active');
+      ring.classList.remove('active');
     }
   });
 
   document.addEventListener('mouseenter', () => {
-    if (isInitialized && curDot && curRing) {
-      curDot.classList.add('active');
-      curRing.classList.add('active');
+    if (dot && ring) {
+      dot.classList.add('active');
+      ring.classList.add('active');
     }
   });
 
-  document.querySelectorAll('a, button, .solution-card, .video-placeholder-frame').forEach(el => {
+  document.querySelectorAll('a, button, .solution-card, .video-placeholder-frame, .orb-card').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
   });
 
-  function renderCursor() {
-    if (isInitialized && curDot && curRing) {
-      rx += (cx - rx) * 0.14;
-      ry += (cy - ry) * 0.14;
-      curDot.style.left = cx + 'px';
-      curDot.style.top = cy + 'px';
-      curRing.style.left = rx + 'px';
-      curRing.style.top = ry + 'px';
-    }
-    requestAnimationFrame(renderCursor);
-  }
-  renderCursor();
 
   /* ── 2. Ambient Software Demo Lifecycle ── */
   const demoObserver = new IntersectionObserver((entries) => {
