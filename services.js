@@ -17,6 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isInitialized) {
       rx = cx; ry = cy;
       isInitialized = true;
+      if (curDot && curRing) {
+        curDot.classList.add('active');
+        curRing.classList.add('active');
+      }
+    }
+  });
+
+  document.addEventListener('mouseleave', () => {
+    if (curDot && curRing) {
+      curDot.classList.remove('active');
+      curRing.classList.remove('active');
+    }
+  });
+
+  document.addEventListener('mouseenter', () => {
+    if (isInitialized && curDot && curRing) {
+      curDot.classList.add('active');
+      curRing.classList.add('active');
     }
   });
 
@@ -287,6 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ── 7. Interactive 3D Gold Glass Particle Orb ── */
+  const logoImg = new Image();
+  logoImg.src = '../assets/logo-removebg.png';
+
   const canvases = document.querySelectorAll('.kllezo-orb-canvas');
   canvases.forEach(canvas => {
     const ctx = canvas.getContext('2d');
@@ -453,6 +474,28 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.arc(cx - radius * 0.35, cy - radius * 0.35, radius * 0.3, 0, Math.PI * 2);
       ctx.fill();
+
+      // 3. Draw official upright Kllezo logo inside the core of the orb (z = 0)
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        
+        // Subtle gold glow
+        ctx.shadowColor = 'rgba(255, 215, 125, 0.45)';
+        ctx.shadowBlur = 18;
+        
+        // Upright logo with minimal slow breathing and subtle rotation
+        const logoScale = 0.55 + 0.025 * Math.sin(performance.now() * 0.0015);
+        ctx.scale(logoScale, logoScale);
+        const logoAngle = 0.04 * Math.sin(performance.now() * 0.0006);
+        ctx.rotate(logoAngle);
+
+        const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
+        const logoH = radius * 0.65;
+        const logoW = logoH * aspect;
+        ctx.drawImage(logoImg, -logoW / 2, -logoH / 2, logoW, logoH);
+        ctx.restore();
+      }
 
       for (let i = 0; i < projected.length; i++) {
         const p = projected[i];

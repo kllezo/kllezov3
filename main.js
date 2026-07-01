@@ -1614,7 +1614,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
     ctx.lastChatUpdateTime = now;
 
     function calculateBubbleLayout(text, maxW) {
-      ctx.font = '500 14px "Inter", -apple-system, sans-serif';
+      ctx.font = '500 16px "Inter", -apple-system, sans-serif';
       const words = text.split(' ');
       const lines = [];
       let currentLine = words[0] || '';
@@ -1636,7 +1636,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
       });
       const paddingX = 14;
       const paddingY = 10;
-      const lineHeight = 20;
+      const lineHeight = 22;
       const height = lines.length * lineHeight + paddingY * 2;
       return { lines, width: Math.ceil(maxLineWidth + paddingX * 2), height };
     }
@@ -1811,13 +1811,13 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           state.charIndex++;
           state.inputText = activeMsg.text.substring(0, state.charIndex);
 
-          // Fast, natural typing speed (12-24ms per character)
-          const baseSpeed = 0.012 + Math.random() * 0.012;
+          // 25% faster overall conversation speed: base typing speed 9-18ms
+          const baseSpeed = 0.009 + Math.random() * 0.009;
           const lastChar = state.inputText[state.inputText.length - 1];
           if (lastChar === ' ') {
-            state.charDelay = 0.03 + Math.random() * 0.03;
+            state.charDelay = 0.02 + Math.random() * 0.02;
           } else if (lastChar === ',' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-            state.charDelay = 0.06 + Math.random() * 0.06;
+            state.charDelay = 0.04 + Math.random() * 0.04;
           } else {
             state.charDelay = baseSpeed;
           }
@@ -1825,7 +1825,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           if (state.charIndex >= activeMsg.text.length) {
             state.state = 'customer_pause';
             state.timer = 0;
-            state.targetDelay = 0.2 + Math.random() * 0.2; // 200 - 400ms pause
+            state.targetDelay = 0.15 + Math.random() * 0.15; // 150 - 300ms pause
           }
         }
       }
@@ -1854,7 +1854,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         } else {
           state.state = 'ai_thinking';
           state.timer = 0;
-          state.targetDelay = 0.8 + Math.random() * 0.2; // 0.8 to 1.0s typing indicator
+          state.targetDelay = 0.55 + Math.random() * 0.15; // 0.55 to 0.70s typing indicator (faster)
           state.thinkingText = 'Kllezo AI is typing';
         }
       }
@@ -1873,7 +1873,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
           state.scriptIndex++;
           state.state = 'ai_pause';
           state.timer = 0;
-          state.targetDelay = 0.8; // 0.8s delay before next user message starts
+          state.targetDelay = 0.55; // 0.55s delay before next user message starts
         }
       }
       else if (state.state === 'ai_pause') {
@@ -1893,7 +1893,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
             state.timer = 0;
             state.charIndex = 0;
             state.inputText = '';
-            state.charDelay = 0.02;
+            state.charDelay = 0.015;
           }
         }
       }
@@ -2047,11 +2047,11 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const textColor = (b.sender === 'customer') ? customerTextColor : aiTextColor;
         drawBubble(bubbleX, y, b.width, b.height, styleBorderRadius, bubbleColor);
 
-        ctx.font = '500 14px "Inter", -apple-system, sans-serif';
+        ctx.font = '500 16px "Inter", -apple-system, sans-serif';
         ctx.fillStyle = textColor;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        const lineHeight = 20;
+        const lineHeight = 22;
         const paddingX = 14;
         const paddingY = 10;
         b.lines.forEach((line, lineIdx) => {
@@ -2082,7 +2082,7 @@ function drawTextBubbleCanvas(idx, ctx, w, h) {
         const dotStartX = dotBubbleX + (dotBubbleW - totalDotsW) / 2 + dotRadius;
         const dotCenterY = dotBubbleY + dotBubbleH / 2;
         const bounceAmp = 5;
-        const bounceSpeed = 6.0;
+        const bounceSpeed = 9.0;
         const phase = state.time * bounceSpeed;
 
         // Blend dot color (slightly lighter than bubble)
@@ -2197,22 +2197,22 @@ const CAM_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -215), // t=0.32  Website Row 2
   new THREE.Vector3(0,   4.5, -240), // t=0.36  Website Row 3
   new THREE.Vector3(0,   4.5, -272), // t=0.40  Leaving Row 3 (Website exit)
-  new THREE.Vector3(0,   4.5, -305), // t=0.44  Transition 1 empty travel (increased spacing)
-  new THREE.Vector3(0,   4.5, -320), // t=0.48  Calling entry — parked at z=-320
-  new THREE.Vector3(0,   4.5, -320), // t=0.52  Parked at Calling
-  new THREE.Vector3(0,   4.5, -320), // t=0.55  Parked at Calling
-  new THREE.Vector3(0,   4.5, -320), // t=0.58  Calling hold
-  new THREE.Vector3(0,   4.5, -335), // t=0.61  Calling hold end / transition 2 starts
-  new THREE.Vector3(0,   4.5, -380), // t=0.65  Transition 2 travel
-  new THREE.Vector3(0,   4.5, -410), // t=0.68  Texting entry — parked at z=-410
-  new THREE.Vector3(0,   4.5, -410), // t=0.72  Parked at Texting
-  new THREE.Vector3(0,   4.5, -410), // t=0.75  Texting hold
-  new THREE.Vector3(0,   4.5, -410), // t=0.78  Exit Texting
-  new THREE.Vector3(0,   4.5, -410), // t=0.80  Website Bot hold
-  new THREE.Vector3(0,   4.5, -450), // t=0.84  Transition 3 travel space (absorb phone)
-  new THREE.Vector3(0,   4.5, -530), // t=0.88  Ecosystem entry (fading in centerpiece logo at z=-530)
-  new THREE.Vector3(0,   4.5, -540), // t=0.93  Ecosystem orbs reveal
-  new THREE.Vector3(0,   4.5, -540), // t=1.00  Final framing
+  new THREE.Vector3(0,   4.5, -330), // t=0.44  Transition 1 empty travel (increased spacing)
+  new THREE.Vector3(0,   4.5, -360), // t=0.48  Calling entry — parked at z=-360
+  new THREE.Vector3(0,   4.5, -360), // t=0.52  Parked at Calling
+  new THREE.Vector3(0,   4.5, -360), // t=0.55  Parked at Calling
+  new THREE.Vector3(0,   4.5, -360), // t=0.58  Calling hold
+  new THREE.Vector3(0,   4.5, -375), // t=0.61  Calling hold end / transition 2 starts
+  new THREE.Vector3(0,   4.5, -425), // t=0.65  Transition 2 travel
+  new THREE.Vector3(0,   4.5, -460), // t=0.68  Texting entry — parked at z=-460
+  new THREE.Vector3(0,   4.5, -460), // t=0.72  Parked at Texting
+  new THREE.Vector3(0,   4.5, -460), // t=0.75  Texting hold
+  new THREE.Vector3(0,   4.5, -460), // t=0.78  Exit Texting
+  new THREE.Vector3(0,   4.5, -460), // t=0.80  Website Bot hold
+  new THREE.Vector3(0,   4.5, -510), // t=0.84  Transition 3 travel space (absorb phone)
+  new THREE.Vector3(0,   4.5, -580), // t=0.88  Ecosystem entry (fading in centerpiece logo at z=-580)
+  new THREE.Vector3(0,   4.5, -590), // t=0.93  Ecosystem orbs reveal
+  new THREE.Vector3(0,   4.5, -590), // t=1.00  Final framing
 ], false, 'catmullrom', 0.5);
 
 const LOOK_PATH = new THREE.CatmullRomCurve3([
@@ -2225,23 +2225,23 @@ const LOOK_PATH = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0,   4.5, -220),  // t=0.28  Look ahead into canyon
   new THREE.Vector3(0,   4.5, -250),  // t=0.32  Through Row 2
   new THREE.Vector3(0,   4.5, -270),  // t=0.36  Through Row 3
-  new THREE.Vector3(0,   4.5, -320),  // t=0.40  Leaving Row 3
-  new THREE.Vector3(0,   4.5, -325),  // t=0.44  Transition 1 travel
-  new THREE.Vector3(0,   4.5, -333),  // t=0.48  Look at Calling screens (positioned at z=-333)
-  new THREE.Vector3(0,   4.5, -333),  // t=0.52
-  new THREE.Vector3(0,   4.5, -333),  // t=0.55
-  new THREE.Vector3(0,   4.5, -333),  // t=0.58
-  new THREE.Vector3(0,   4.5, -350),  // t=0.61  Transition 2 travel starts
-  new THREE.Vector3(0,   4.5, -395),  // t=0.65  Transition 2 travel mid
-  new THREE.Vector3(0,   4.5, -425),  // t=0.68  Look at Texting phone (positioned at z=-425)
-  new THREE.Vector3(0,   4.5, -425),  // t=0.72
-  new THREE.Vector3(0,   4.5, -425),  // t=0.75
-  new THREE.Vector3(0,   4.5, -425),  // t=0.78
-  new THREE.Vector3(0,   4.5, -425),  // t=0.80  Look at texting phone
-  new THREE.Vector3(0,   4.5, -480),  // t=0.84  Look ahead to ecosystem
-  new THREE.Vector3(0,   4.5, -530),  // t=0.88  Ecosystem framing (logo at z=-530)
-  new THREE.Vector3(0,   4.5, -530),  // t=0.93
-  new THREE.Vector3(0,   4.5, -530),  // t=1.00  Final frame
+  new THREE.Vector3(0,   4.5, -360),  // t=0.40  Leaving Row 3
+  new THREE.Vector3(0,   4.5, -365),  // t=0.44  Transition 1 travel
+  new THREE.Vector3(0,   4.5, -371),  // t=0.48  Look at Calling screens (positioned at z=-371)
+  new THREE.Vector3(0,   4.5, -371),  // t=0.52
+  new THREE.Vector3(0,   4.5, -371),  // t=0.55
+  new THREE.Vector3(0,   4.5, -371),  // t=0.58
+  new THREE.Vector3(0,   4.5, -395),  // t=0.61  Transition 2 travel starts
+  new THREE.Vector3(0,   4.5, -445),  // t=0.65  Transition 2 travel mid
+  new THREE.Vector3(0,   4.5, -472),  // t=0.68  Look at Texting phone (positioned at z=-472)
+  new THREE.Vector3(0,   4.5, -472),  // t=0.72
+  new THREE.Vector3(0,   4.5, -472),  // t=0.75
+  new THREE.Vector3(0,   4.5, -472),  // t=0.78
+  new THREE.Vector3(0,   4.5, -472),  // t=0.80  Look at texting phone
+  new THREE.Vector3(0,   4.5, -530),  // t=0.84  Look ahead to ecosystem
+  new THREE.Vector3(0,   4.5, -580),  // t=0.88  Ecosystem framing (logo at z=-580)
+  new THREE.Vector3(0,   4.5, -580),  // t=0.93
+  new THREE.Vector3(0,   4.5, -580),  // t=1.00  Final frame
 ], false, 'catmullrom', 0.5);
 
 
@@ -2496,11 +2496,11 @@ const MAT = {
 /* ═══════════════════════════════════════════
    LIQUID GOLD GUIDE STREAM (LIVING ELEMENT)
    ═══════════════════════════════════════════ */
-const pTopLeft = new THREE.Vector3(-25, 18.5, -485);
-const pCenter = new THREE.Vector3(0, 4.5, -485);
-const pTopRight = new THREE.Vector3(25, 18.5, -485);
-const pBottomRight = new THREE.Vector3(25, -9.5, -485);
-const pBottomLeft = new THREE.Vector3(-25, -9.5, -485);
+const pTopLeft = new THREE.Vector3(-25, 18.5, -580);
+const pCenter = new THREE.Vector3(0, 4.5, -580);
+const pTopRight = new THREE.Vector3(25, 18.5, -580);
+const pBottomRight = new THREE.Vector3(25, -9.5, -580);
+const pBottomLeft = new THREE.Vector3(-25, -9.5, -580);
 
 // Helper function to create separate procedural molten gold shader material copies for each stream
 function createGoldMaterial(initialOpacity = 0.0) {
@@ -2774,58 +2774,58 @@ const ptsContentToWebsites = [
 ];
 
 // Points for Segment 3: Website Experiences to AI Calling Agents
-// Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-333)
+// Visual tube curve: elegant M-shaped flow behind the Calling cards (cards at Z=-371)
 const ptsWebsitesToCalling = [
   new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(-1.0, 5.0, -276.0),
-  new THREE.Vector3(-3.0, 4.2, -284.0),
-  new THREE.Vector3(-6.0, 3.5, -292.0),
-  new THREE.Vector3(-10.0, 2.5, -300.0),
-  new THREE.Vector3(-14.0, 2.0, -310.0),
-  new THREE.Vector3(-18.0, 1.5, -335.0),
-  new THREE.Vector3(-15.0, 4.5, -335.0),
-  new THREE.Vector3(-10.5, 2.0, -337.0),
-  new THREE.Vector3(-5.25, 7.5, -335.0),
-  new THREE.Vector3(0.0, 2.0, -337.0),
-  new THREE.Vector3(5.25, 7.5, -335.0),
-  new THREE.Vector3(10.5, 2.0, -337.0),
-  new THREE.Vector3(16.5, 7.5, -335.0),
-  new THREE.Vector3(22.0, 2.5, -335.0)
+  new THREE.Vector3(-1.0, 5.0, -282.0),
+  new THREE.Vector3(-3.0, 4.2, -295.0),
+  new THREE.Vector3(-6.0, 3.5, -310.0),
+  new THREE.Vector3(-10.0, 2.5, -325.0),
+  new THREE.Vector3(-14.0, 2.0, -345.0),
+  new THREE.Vector3(-18.0, 1.5, -373.0),
+  new THREE.Vector3(-15.0, 4.5, -373.0),
+  new THREE.Vector3(-10.5, 2.0, -375.0),
+  new THREE.Vector3(-5.25, 7.5, -373.0),
+  new THREE.Vector3(0.0, 2.0, -375.0),
+  new THREE.Vector3(5.25, 7.5, -373.0),
+  new THREE.Vector3(10.5, 2.0, -375.0),
+  new THREE.Vector3(16.5, 7.5, -373.0),
+  new THREE.Vector3(22.0, 2.5, -373.0)
 ];
 
 // Points for Segment 4: AI Calling Agents to AI Texting Agents
-// Visual tube curve: elegant loops framing the Texting phone (phone at Z=-425)
+// Visual tube curve: elegant loops framing the Texting phone (phone at Z=-472)
 const ptsCallingToTexting = [
-  new THREE.Vector3(22.0, 2.5, -335.0),
-  new THREE.Vector3(14.0, -5.0, -355.0),
-  new THREE.Vector3(6.0, -15.0, -375.0),
-  new THREE.Vector3(-2.0, -18.0, -395.0),
-  new THREE.Vector3(-8.0, -15.0, -410.0),
-  new THREE.Vector3(-12.0, -5.0, -418.0),
-  new THREE.Vector3(-7.5, -2.0, -422.0),
-  new THREE.Vector3(-3.5, 0.1, -423.0),
-  new THREE.Vector3(1.0, 1.2, -425.0),
-  new THREE.Vector3(-2.5, 1.8, -423.0),
-  new THREE.Vector3(-5.0, 2.8, -419.0),
-  new THREE.Vector3(-2.5, 3.8, -415.0),
-  new THREE.Vector3(2.0, 4.8, -413.0),
-  new THREE.Vector3(5.0, 5.8, -415.0),
-  new THREE.Vector3(3.0, 6.8, -419.0),
-  new THREE.Vector3(-2.0, 7.8, -423.0),
-  new THREE.Vector3(-5.0, 8.8, -425.0),
-  new THREE.Vector3(-2.5, 9.8, -423.0),
-  new THREE.Vector3(1.0, 11.0, -425.0)
+  new THREE.Vector3(22.0, 2.5, -373.0),
+  new THREE.Vector3(14.0, -5.0, -395.0),
+  new THREE.Vector3(6.0, -15.0, -415.0),
+  new THREE.Vector3(-2.0, -18.0, -435.0),
+  new THREE.Vector3(-8.0, -15.0, -450.0),
+  new THREE.Vector3(-12.0, -5.0, -462.0),
+  new THREE.Vector3(-7.5, -2.0, -468.0),
+  new THREE.Vector3(-3.5, 0.1, -470.0),
+  new THREE.Vector3(1.0, 1.2, -472.0),
+  new THREE.Vector3(-2.5, 1.8, -470.0),
+  new THREE.Vector3(-5.0, 2.8, -466.0),
+  new THREE.Vector3(-2.5, 3.8, -462.0),
+  new THREE.Vector3(2.0, 4.8, -460.0),
+  new THREE.Vector3(5.0, 5.8, -462.0),
+  new THREE.Vector3(3.0, 6.8, -466.0),
+  new THREE.Vector3(-2.0, 7.8, -470.0),
+  new THREE.Vector3(-5.0, 8.8, -472.0),
+  new THREE.Vector3(-2.5, 9.8, -470.0),
+  new THREE.Vector3(1.0, 11.0, -472.0)
 ];
 
 // Points for Segment 5: AI Texting Agents to Ecosystem Center Logo
 const ptsTextingToEcosystem = [
-  new THREE.Vector3(1.0, 11.0, -425.0),
-  new THREE.Vector3(0.0, 5.0, -455.0),
-  new THREE.Vector3(0.0, -10.0, -485.0),
-  new THREE.Vector3(0.0, -32.0, -530.0),
-  new THREE.Vector3(0.0, -18.0, -530.0),
-  new THREE.Vector3(0.0, -6.0, -530.0),
-  new THREE.Vector3(0.0, 4.5, -530.0)
+  new THREE.Vector3(1.0, 11.0, -472.0),
+  new THREE.Vector3(0.0, 5.0, -505.0),
+  new THREE.Vector3(0.0, -10.0, -535.0),
+  new THREE.Vector3(0.0, -32.0, -580.0),
+  new THREE.Vector3(0.0, -18.0, -580.0),
+  new THREE.Vector3(0.0, -6.0, -580.0),
+  new THREE.Vector3(0.0, 4.5, -580.0)
 ];
 
 // Instantiate separate visual curves
@@ -2847,26 +2847,26 @@ const camHeroToContent = new THREE.CatmullRomCurve3([
 const camContentToWebsites = new THREE.CatmullRomCurve3(ptsContentToWebsites, false, 'centripetal');
 const camWebsitesToCalling = new THREE.CatmullRomCurve3([
   new THREE.Vector3(0.0, 5.7, -272.0),
-  new THREE.Vector3(0.0, 4.0, -284.0),
-  new THREE.Vector3(0.0, 2.5, -296.0),
-  new THREE.Vector3(0.0, 1.5, -308.0),
-  new THREE.Vector3(0.0, 1.0, -320.0)
+  new THREE.Vector3(0.0, 4.0, -294.0),
+  new THREE.Vector3(0.0, 2.5, -316.0),
+  new THREE.Vector3(0.0, 1.5, -338.0),
+  new THREE.Vector3(0.0, 1.0, -360.0)
 ], false, 'centripetal');
 const camCallingToTexting = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0.0, 1.0, -320.0),
-  new THREE.Vector3(0.0, 1.0, -342.5),
-  new THREE.Vector3(0.0, 1.0, -365.0),
-  new THREE.Vector3(0.0, 1.0, -387.5),
-  new THREE.Vector3(0.0, 1.0, -410.0)
+  new THREE.Vector3(0.0, 1.0, -360.0),
+  new THREE.Vector3(0.0, 1.0, -385.0),
+  new THREE.Vector3(0.0, 1.0, -410.0),
+  new THREE.Vector3(0.0, 1.0, -435.0),
+  new THREE.Vector3(0.0, 1.0, -460.0)
 ], false, 'centripetal');
 const camTextingToEcosystem = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0.0, 1.0, -410.0),
-  new THREE.Vector3(0.0, -5.0, -440.0),
-  new THREE.Vector3(0.0, -15.0, -470.0),
-  new THREE.Vector3(0.0, -32.0, -530.0),
-  new THREE.Vector3(0.0, -18.0, -530.0),
-  new THREE.Vector3(0.0, -6.0, -530.0),
-  new THREE.Vector3(0.0, 4.5, -530.0)
+  new THREE.Vector3(0.0, 1.0, -460.0),
+  new THREE.Vector3(0.0, -5.0, -490.0),
+  new THREE.Vector3(0.0, -15.0, -520.0),
+  new THREE.Vector3(0.0, -32.0, -580.0),
+  new THREE.Vector3(0.0, -18.0, -580.0),
+  new THREE.Vector3(0.0, -6.0, -580.0),
+  new THREE.Vector3(0.0, 4.5, -580.0)
 ], false, 'centripetal');
 
 const cameraTransitionCurves = [
@@ -3554,19 +3554,19 @@ function createPathwayTexture() {
 
   const slabDefs = [
     // Website 1: Michelin Restaurant (Nara Omakase)
-    { x: -11.0, y: 0, z: -225, ry: 0.30, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    { x: -14.0, y: 0, z: -220, ry: 0.40, w: 18.0, h: 10.8, d: 1.2, poleHeight: 11.1 },
     // Website 2: Luxury Real Estate (Aurelia)
-    { x: 11.0, y: 0, z: -225, ry: -0.30, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    { x: 14.0, y: 0, z: -220, ry: -0.40, w: 18.0, h: 10.8, d: 1.2, poleHeight: 11.1 },
 
     // Website 3: Luxury Fitness (Apex Performance Lab)
-    { x: -13.5, y: 0, z: -240, ry: 0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    { x: -16.5, y: 0, z: -240, ry: 0.25, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
     // Website 4: Premium Automotive (Verta GT)
-    { x: 13.5, y: 0, z: -240, ry: -0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    { x: 16.5, y: 0, z: -240, ry: -0.25, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
 
     // Website 5: Longevity / Medical (Elevate)
-    { x: -11.0, y: 0, z: -255, ry: -0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 },
+    { x: -14.0, y: 0, z: -260, ry: 0.12, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 },
     // Website 6: Premium SaaS / AI (Kllezo Automate)
-    { x: 11.0, y: 0, z: -255, ry: 0.15, w: 18.0, h: 10.8, d: 1.2, poleHeight: 4.0 }
+    { x: 14.0, y: 0, z: -260, ry: -0.12, w: 18.0, h: 10.8, d: 1.2, poleHeight: 12.1 }
   ];
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
@@ -3574,6 +3574,18 @@ function createPathwayTexture() {
   const websitesGroup = new THREE.Group();
   scene.add(websitesGroup);
   scene.userData.websitesGroup = websitesGroup;
+
+  // Solid beveled concrete base to ground the walkway (architectural base)
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: 0x0c0e14,
+    roughness: 0.8,
+    metalness: 0.2,
+    clippingPlanes: [floorClippingPlane]
+  });
+  const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(5.2, 16.0, 77.0), baseMat);
+  baseMesh.position.set(0, -5.95, -233.5);
+  baseMesh.rotation.x = -0.048;
+  websitesGroup.add(baseMesh);
 
   // Create physical sloped pathway in center
   const pathwayTexture = createPathwayTexture();
@@ -3584,10 +3596,10 @@ function createPathwayTexture() {
     side: THREE.DoubleSide,
     depthWrite: true
   });
-  const pathwayGeo = new THREE.PlaneGeometry(4.5, 85);
+  const pathwayGeo = new THREE.PlaneGeometry(4.5, 77.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayMat);
   pathwayMesh.name = 'pathway';
-  pathwayMesh.position.set(0, 1.35, -233.5);
+  pathwayMesh.position.set(0, 2.05, -233.5);
   pathwayMesh.rotation.x = -Math.PI / 2 - 0.048;
   websitesGroup.add(pathwayMesh);
 
@@ -3939,7 +3951,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildCalling() {
-  const Z = -333;
+  const Z = -371;
 
   const callingGroup = new THREE.Group();
   scene.add(callingGroup);
@@ -3948,9 +3960,9 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
   /* ── 3 CALLING PANELS — Voice Call, Live Transcript, Appointment Booked ── */
   scene.userData.callingScreens = [];
   const callingCardDefs = [
-    { id: 0, name: 'voiceCall', w: 9.6, h: 11.52, y: 4.5, finalX: -10.5, finalRy: 0.2 },
-    { id: 1, name: 'transcript', w: 9.6, h: 11.52, y: 4.5, finalX: 0.0, finalRy: 0.0 },
-    { id: 2, name: 'confirmed', w: 9.6, h: 11.52, y: 4.5, finalX: 10.5, finalRy: -0.2 }
+    { id: 0, name: 'voiceCall', w: 10.4, h: 12.48, y: 4.5, finalX: -11.0, finalRy: 0.2 },
+    { id: 1, name: 'transcript', w: 10.4, h: 12.48, y: 4.5, finalX: 0.0, finalRy: 0.0 },
+    { id: 2, name: 'confirmed', w: 10.4, h: 12.48, y: 4.5, finalX: 11.0, finalRy: -0.2 }
   ];
 
   callingCardDefs.forEach((s, si) => {
@@ -4048,7 +4060,7 @@ function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, rad
 
 
 (function buildTexting() {
-  const Z = -425;
+  const Z = -472;
 
   const textingGroup = new THREE.Group();
   scene.add(textingGroup);
@@ -4229,25 +4241,25 @@ function loadAndTintLogo(url, tintColorHex, callback) {
     {
       name: 'Content Creation',
       imgKey: 'f1',
-      pos: [-59, 29.5, -485],
+      pos: [-59, 29.5, -580],
       radius: 12.0
     },
     {
       name: 'Website Experiences',
       imgKey: 'f2',
-      pos: [59, 29.5, -485],
+      pos: [59, 29.5, -580],
       radius: 12.0
     },
     {
       name: 'AI Calling Agents',
       imgKey: 'callingOrb',
-      pos: [-59, -29.5, -485],
+      pos: [-59, -29.5, -580],
       radius: 12.0
     },
     {
       name: 'AI Texting Agents',
       imgKey: 'f4',
-      pos: [59, -29.5, -485],
+      pos: [59, -29.5, -580],
       radius: 12.0
     }
   ];
@@ -4327,7 +4339,7 @@ function loadAndTintLogo(url, tintColorHex, callback) {
   for (let i = 0; i < ECO_COUNT; i++) {
     ecoPos[i * 3] = rand(-40, 40);
     ecoPos[i * 3 + 1] = rand(-25, 25);
-    ecoPos[i * 3 + 2] = -540 + rand(-40, 40);
+    ecoPos[i * 3 + 2] = -580 + rand(-40, 40);
   }
   ecoGeo.setAttribute('position', new THREE.BufferAttribute(ecoPos, 3));
   const pts = new THREE.Points(ecoGeo, new THREE.PointsMaterial({
@@ -4344,14 +4356,14 @@ function loadAndTintLogo(url, tintColorHex, callback) {
 })();
 
 function rebuildEcosystemStreams() {
-  const logoCenter = new THREE.Vector3(0, 4.5, -485);
+  const logoCenter = new THREE.Vector3(0, 4.5, -580);
 
   // Diagonal curves: originate from logoCenter and flow to orbs
   // Top-Left (Content Creation) - arched upwards
   const tlPoints = [
     logoCenter,
-    new THREE.Vector3(-8, 14.0, -485),
-    new THREE.Vector3(-18, 18.0, -485),
+    new THREE.Vector3(-8, 14.0, -580),
+    new THREE.Vector3(-18, 18.0, -580),
     pTopLeft
   ];
   const tlCurve = new THREE.CatmullRomCurve3(tlPoints, false, 'centripetal');
@@ -4359,8 +4371,8 @@ function rebuildEcosystemStreams() {
   // Top-Right (Website Experiences) - arched upwards
   const trPoints = [
     logoCenter,
-    new THREE.Vector3(8, 14.0, -485),
-    new THREE.Vector3(18, 18.0, -485),
+    new THREE.Vector3(8, 14.0, -580),
+    new THREE.Vector3(18, 18.0, -580),
     pTopRight
   ];
   const trCurve = new THREE.CatmullRomCurve3(trPoints, false, 'centripetal');
@@ -4368,8 +4380,8 @@ function rebuildEcosystemStreams() {
   // Bottom-Left (AI Calling) - bowed downwards
   const blPoints = [
     logoCenter,
-    new THREE.Vector3(-8, -6.0, -485),
-    new THREE.Vector3(-18, -9.0, -485),
+    new THREE.Vector3(-8, -6.0, -580),
+    new THREE.Vector3(-18, -9.0, -580),
     pBottomLeft
   ];
   const blCurve = new THREE.CatmullRomCurve3(blPoints, false, 'centripetal');
@@ -4377,8 +4389,8 @@ function rebuildEcosystemStreams() {
   // Bottom-Right (AI Texting) - bowed downwards
   const brPoints = [
     logoCenter,
-    new THREE.Vector3(8, -6.0, -485),
-    new THREE.Vector3(18, -9.0, -485),
+    new THREE.Vector3(8, -6.0, -580),
+    new THREE.Vector3(18, -9.0, -580),
     pBottomRight
   ];
   const brCurve = new THREE.CatmullRomCurve3(brPoints, false, 'centripetal');
@@ -4401,7 +4413,7 @@ function rebuildEcosystemStreams() {
 }
 
 (function buildConnectionPipe() {
-  const vStart = new THREE.Vector3(0, 4.5, -485);
+  const vStart = new THREE.Vector3(0, 4.5, -580);
   const curves = [
     curveHeroToContent,
     curveContentToWebsites,
@@ -4947,7 +4959,6 @@ function updateWebsites(t, time, vpOverride) {
         // Ensure smooth, forward-only scrolling that fully spans the page
         const baseOffset = maxOffset * (1.0 - easeScrollPct);
         g.userData.webTexture.offset.y = clamp(baseOffset + mouseScrollInfluence, 0.0, maxOffset);
-        g.userData.webTexture.needsUpdate = true;
       }
 
       // Animate opacity of all meshes in the group
@@ -5068,7 +5079,7 @@ function updateCalling(t, time) {
   callingAutoplayTime += dt;
 
   if (scene.userData.callingScreens) {
-    const Z = -333;
+    const Z = -371;
     const cubicInOut = (val) => val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
     const animTime = callingAutoplayTime;
 
@@ -5237,10 +5248,10 @@ function updateEcosystem(t, time) {
 
   // Float the nodes and rotate elements
   if (scene.userData.ecoNodes) {
-    // Dynamically position the nodes based on camera viewport boundaries at z = -485
+    // Dynamically position the nodes based on camera viewport boundaries at z = -580
     const aspect = window.innerWidth / window.innerHeight;
     const fovRad = (camera.fov * Math.PI) / 360;
-    const dist = Math.abs(camera.position.z - (-485));
+    const dist = Math.abs(camera.position.z - (-580));
     const halfHeight = dist * Math.tan(fovRad);
     const halfWidth = halfHeight * aspect;
 
@@ -5467,8 +5478,9 @@ function updateTexting(t, time) {
         const mouseRotY = mouse.sx * 0.14;
         const mouseRotX = -mouse.sy * 0.087;
 
-        // Align phone flat with camera and apply tilts
-        b.quaternion.copy(camera.quaternion);
+        // Align phone flat with camera, rotate 180 degrees on local Y to face the camera, and apply tilts
+        const localRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+        b.quaternion.copy(camera.quaternion).multiply(localRotation);
         const euler = new THREE.Euler().setFromQuaternion(b.quaternion);
         euler.x += floatRotX + mouseRotX;
         euler.y += floatRotY + mouseRotY;
@@ -5485,7 +5497,11 @@ function updateTexting(t, time) {
         b.visible = finalOpacity > 0.001;
 
         if (b.name === 'backing') {
-          b.material.transparent = false;
+          if (finalOpacity >= 0.95) {
+            b.material.transparent = false;
+          } else {
+            b.material.transparent = true;
+          }
           b.material.depthWrite = true;
           b.material.depthTest = true;
         } else {
@@ -5503,7 +5519,6 @@ function updateTexting(t, time) {
             b.material.alphaTest = 0.05;
           }
         }
-        b.material.needsUpdate = true;
       });
     }
 
@@ -5556,9 +5571,9 @@ const goldCurves = [
 const goldCurveTravelLimits = [
   1.00, // Hero -> Content (fully travels to end of Segment 1 at Z=-65.5)
   0.63, // Content -> Website (dismounts halfway along Segment 2 at Z=-195)
-  1.00, // Website -> Calling (fully travels end of Segment 3 at Z=-305)
-  1.00, // Calling -> Texting (fully travels end of Segment 4 at Z=-380)
-  1.00  // Texting -> Ecosystem (fully travels end of Segment 5 at Z=-485)
+  1.00, // Website -> Calling (fully travels end of Segment 3 at Z=-371)
+  1.00, // Calling -> Texting (fully travels end of Segment 4 at Z=-472)
+  1.00  // Texting -> Ecosystem (fully travels end of Segment 5 at Z=-580)
 ];
 
 function getSectionOpacity(idx) {
@@ -5567,12 +5582,11 @@ function getSectionOpacity(idx) {
   }
   const progress = clamp(transitionTimeElapsed / transitionDuration, 0, 1);
 
-  // Website Experiences special case:
-  // When LEAVING section 2 forward, keep it fully visible until phase 3 starts (progress >= 0.8)
-  // so there is no black void between the walkthrough and AI Calling.
+  // Prevent overlapping titles: Website Experiences fades out early (from progress 0.0 to 0.2)
+  // so there is no simultaneous visibility overlap with AI Calling.
   if (idx === 2 && currentSectionIdx === 2 && targetSectionIdx > 2) {
-    if (progress < 0.8) return 1.0;
-    return Math.max(0, 1.0 - (progress - 0.8) / 0.2);
+    if (progress < 0.2) return 1.0 - (progress / 0.2);
+    return 0.0;
   }
 
   if (idx === currentSectionIdx) {
@@ -5701,9 +5715,9 @@ function animate() {
     if (sectionIdx === 2) {
       // Custom Website Experiences Exhibition walk-through (between the rows at X=0)
       const camZ = lerp(-195.0, -272.0, webProgress);
-      // Level off height to stay flat at eye-level from Row 2 to Row 3
-      const easeY = Math.sin(Math.min(1.0, webProgress / 0.6) * Math.PI / 2);
-      const camY = 1.8 + easeY * 3.7; 
+      // Walkway has a linear slope of -0.048 (from y=2.05 at z=-233.5).
+      // Camera stays exactly 1.6 units above the walkway floor.
+      const camY = 1.8 + webProgress * 3.7; 
       const pos = new THREE.Vector3(0.0, camY, camZ);
       // Keep look target flat and forward-looking
       const look = new THREE.Vector3(0.0, camY, camZ - 20.0);
