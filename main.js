@@ -3053,39 +3053,49 @@ function createContactShadowTexture() {
   canvas.width = 512;
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
+
   ctx.clearRect(0, 0, 512, 128);
+
   ctx.save();
   ctx.translate(256, 64);
   ctx.scale(4.0, 1.0); // stretch radial gradient to fit width
+
   const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
   grad.addColorStop(0, 'rgba(0, 0, 0, 0.95)');
   grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.8)');
   grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
+
   ctx.beginPath();
   ctx.arc(0, 0, 60, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+
   const texture = new THREE.CanvasTexture(canvas);
   return texture;
 }
+
 function createPathwayFrameTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 2048;
   const ctx = canvas.getContext('2d');
+
   ctx.clearRect(0, 0, 1024, 2048);
+
   // 1. Glowing outer border
   ctx.strokeStyle = 'rgba(255, 205, 110, 0.7)';
   ctx.lineWidth = 14;
   ctx.shadowColor = 'rgba(255, 205, 110, 0.55)';
   ctx.shadowBlur = 24;
+
   const r = 50;
   const x = 20;
   const y = 20;
   const w = 1024 - 40;
   const h = 2048 - 40;
+
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -3098,6 +3108,7 @@ function createPathwayFrameTexture() {
   ctx.arcTo(x, y, x + r, y, r);
   ctx.closePath();
   ctx.stroke();
+
   // 2. Dual central gold guidance ribbons (framing the arrow center channel)
   ctx.strokeStyle = 'rgba(255, 205, 110, 0.9)';
   ctx.lineWidth = 16;
@@ -3108,86 +3119,99 @@ function createPathwayFrameTexture() {
   ctx.moveTo(512 - 80, y + r);
   ctx.lineTo(512 - 80, y + h - r);
   ctx.stroke();
+
   ctx.beginPath();
   ctx.moveTo(512 + 80, y + r);
   ctx.lineTo(512 + 80, y + h - r);
   ctx.stroke();
+
   ctx.shadowBlur = 0;
+
   // Large readable guidance text: bold, high contrast, extra space (1:1 scale layout, no anamorphic stretch)
   // Hardcoded transform to anchor it at the VERY FRONT of the walkway (Y = 1930, ~5.7% from the entrance edge)
   ctx.save();
-  ctx.shadowColor = 'rgba(255, 218, 140, 0.95)';
-  ctx.shadowBlur = 24;
-  ctx.font = '700 36px "Outfit", "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(255, 218, 140, 1.0)';
+  ctx.shadowColor = '#FFD27D';
+  ctx.shadowBlur = 32;
+  ctx.font = '700 48px "Outfit", "Inter", sans-serif';
+  ctx.fillStyle = '#FFD27D';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (self.CanvasRenderingContext2D && 'letterSpacing' in ctx) {
-    ctx.letterSpacing = '12px';
+    ctx.letterSpacing = '16px';
   }
   ctx.fillText('SCROLL FORWARD TO EXPLORE', 512, 1930);
   ctx.shadowBlur = 0;
+
   // Circular arrow icon pointing AWAY from visitor (upwards), placed at Y = 1780 (13% from entrance edge)
-  ctx.strokeStyle = 'rgba(255, 218, 140, 1.0)';
+  ctx.strokeStyle = '#FFD27D';
   ctx.lineWidth = 5.0;
   ctx.beginPath();
   ctx.arc(512, 1780, 36, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(255, 218, 140, 1.0)';
+
+  ctx.fillStyle = '#FFD27D';
   ctx.beginPath();
   ctx.moveTo(512 - 16, 1780 + 10);
   ctx.lineTo(512, 1780 - 12);
   ctx.lineTo(512 + 16, 1780 + 10);
   ctx.closePath();
   ctx.fill();
+
   ctx.restore();
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   return texture;
 }
+
 function createPathwayArrowsTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
+
   ctx.clearRect(0, 0, 256, 512);
-  // Subtle animated chevrons pointing AWAY from the visitor (guiding forward)
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.95)';
-  for (let cy = 30; cy < 512; cy += 120) {
+
+  // Spaced gold chevrons pointing AWAY from the visitor (towards Y=0)
+  ctx.fillStyle = '#FFD27D';
+  for (let cy = 20; cy < 512; cy += 80) {
     ctx.beginPath();
-    ctx.moveTo(128 - 12, cy + 6);
-    ctx.lineTo(128, cy - 8);
-    ctx.lineTo(128 + 12, cy + 6);
-    ctx.lineTo(128 + 12, cy + 10);
+    ctx.moveTo(128 - 20, cy + 12);
+    ctx.lineTo(128, cy - 12);
+    ctx.lineTo(128 + 20, cy + 12);
+    ctx.lineTo(128 + 20, cy + 20);
     ctx.lineTo(128, cy - 4);
-    ctx.lineTo(128 - 12, cy + 10);
+    ctx.lineTo(128 - 20, cy + 20);
     ctx.closePath();
     ctx.fill();
   }
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   return texture;
 }
+
 (function buildWebsites() {
+
   const slabDefs = [
-    // Row 1 (Z = -240): inward 12 degrees, shifted to X = ±15.5 to frame the corridor closely
-    { x: -15.5, y: 0, z: -240, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 15.5, y: 0, z: -240, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    // Row 2 (Z = -300)
-    { x: -15.5, y: 0, z: -300, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 15.5, y: 0, z: -300, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    // Row 3 (Z = -360)
-    { x: -15.5, y: 0, z: -360, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 15.5, y: 0, z: -360, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    // Row 4 (Z = -420)
-    { x: -15.5, y: 0, z: -420, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-    { x: 15.5, y: 0, z: -420, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
+    // Row 1 (Z = -250): inward 12 degrees, shifted to X = ±15.5 to frame the corridor closely
+    { x: -15.5, y: 0, z: -250, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 15.5, y: 0, z: -250, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 2 (Z = -315): inward 12 degrees, shifted to X = ±15.5
+    { x: -15.5, y: 0, z: -315, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 15.5, y: 0, z: -315, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 3 (Z = -380): inward 12 degrees, shifted to X = ±15.5
+    { x: -15.5, y: 0, z: -380, ry: 0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 15.5, y: 0, z: -380, ry: -0.21, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
   ];
+
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
+
   const websitesGroup = WebsiteArrivalAnchor;
   scene.userData.websitesGroup = websitesGroup;
+
   // ── WALKWAY GLOSSY BASE PLANE (Widen to 11.0) ──
   const baseMat = new THREE.MeshStandardMaterial({
     color: 0x08090d,
@@ -3200,9 +3224,11 @@ function createPathwayArrowsTexture() {
   baseMesh.position.set(0, 0, -130.0);
   baseMesh.rotation.x = -Math.PI / 2;
   WalkwayRoot.add(baseMesh);
+
   // ── WALKWAY GLOW OVERLAY (Widen to 11.0) ──
   const frameTexture = createPathwayFrameTexture();
   const arrowsTexture = createPathwayArrowsTexture();
+
   const pathwayShaderMat = new THREE.ShaderMaterial({
     uniforms: {
       tFrame: { value: frameTexture },
@@ -3229,7 +3255,7 @@ function createPathwayArrowsTexture() {
         // Sample animated arrows strictly down the middle channel (UV X = 0.44 to 0.56) starting after the entrance text (UV Y > 0.22)
         vec4 arrowColor = vec4(0.0);
         if (vUv.x > 0.44 && vUv.x < 0.56 && vUv.y > 0.22 && vUv.y < 0.94) {
-          vec2 arrowUv = vec2(vUv.x * 2.0, vUv.y * 48.0 + arrowOffset);
+          vec2 arrowUv = vec2((vUv.x - 0.44) / 0.12, vUv.y * 48.0 + arrowOffset);
           arrowColor = texture2D(tArrows, arrowUv);
         }
         
@@ -3243,25 +3269,31 @@ function createPathwayArrowsTexture() {
     depthWrite: false,
     side: THREE.DoubleSide
   });
+
   const pathwayGeo = new THREE.PlaneGeometry(11.0, 260.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayShaderMat);
   pathwayMesh.name = 'pathway';
   pathwayMesh.position.set(0, 0.02, -130.0);
   pathwayMesh.rotation.x = -Math.PI / 2;
   ArrowRoot.add(pathwayMesh);
+
   scene.userData.pathwayTexture = arrowsTexture;
   scene.userData.pathwayMat = pathwayShaderMat;
+
   scene.userData.slabs = [];
   scene.userData.billboardSpotlights = [];
   scene.userData.beams = [];
   scene.userData.lenses = [];
   scene.userData.fixtures = [];
+
   const fixtureBodyMat = new THREE.MeshStandardMaterial({
     color: 0x1f2124, roughness: 0.4, metalness: 0.8
   });
   const SPOT_COLOR = 0xFFD27D;
+
   slabDefs.forEach((d, idx) => {
     const group = new THREE.Group();
+
     // Slab body
     const bodyMat = MAT.pageArchitecture.clone();
     bodyMat.color.setHex(0x181a1d);
@@ -3277,6 +3309,7 @@ function createPathwayArrowsTexture() {
     );
     slab.userData.baseOpacity = bodyMat.opacity;
     group.add(slab);
+
     // Browser chrome bar at top
     const chromeMat = new THREE.MeshStandardMaterial({
       color: 0x22252a, roughness: 0.9, metalness: 0.1,
@@ -3292,6 +3325,7 @@ function createPathwayArrowsTexture() {
     chrome.userData.baseOpacity = 1.0;
     chrome.position.y = d.h / 2 - 0.4;
     group.add(chrome);
+
     // URL bar indicator
     const urlBarMat = new THREE.MeshStandardMaterial({
       color: 0x131518, roughness: 1.0, metalness: 0.0,
@@ -3307,12 +3341,23 @@ function createPathwayArrowsTexture() {
     urlBar.userData.baseOpacity = 1.0;
     urlBar.position.set(0, d.h / 2 - 0.4, d.d / 2 + 0.04);
     group.add(urlBar);
+
     // Web Page screen
     const planeW = d.w * 0.96;
     const planeH = d.h * 0.92;
-    // RESTORE ORIGINAL WEBSITE IMAGES: Use existing IMAGES niche1 - niche6 (Slabs 0-7 loop over the 6 unique niches)
-    const imgIdx = idx % 6;
-    const img = IMAGES['niche' + (imgIdx + 1)];
+
+    // Map 6 niches 1-to-1:
+    // Left: 1. Luxury Real Estate (niche1), 2. Fitness / Gym (niche2), 3. SaaS Dashboard (niche3)
+    // Right: 4. Restaurant (niche4), 5. Agency (niche5), 6. Hotel (niche6)
+    const nicheMap = [
+      'niche1', // Left Row 1
+      'niche4', // Right Row 1
+      'niche2', // Left Row 2
+      'niche5', // Right Row 2
+      'niche3', // Left Row 3
+      'niche6'  // Right Row 3
+    ];
+    const img = IMAGES[nicheMap[idx]];
     const webTexture = new THREE.Texture(img);
     webTexture.minFilter = THREE.LinearFilter;
     webTexture.magFilter = THREE.LinearFilter;
@@ -3320,6 +3365,7 @@ function createPathwayArrowsTexture() {
     webTexture.wrapS = THREE.ClampToEdgeWrapping;
     webTexture.wrapT = THREE.ClampToEdgeWrapping;
     webTexture.encoding = THREE.sRGBEncoding;
+
     const webMat = new THREE.MeshStandardMaterial({
       map: webTexture,
       emissiveMap: webTexture,
@@ -3331,6 +3377,7 @@ function createPathwayArrowsTexture() {
       transparent: true,
       opacity: 1.0
     });
+
     const webMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(planeW, planeH),
       webMat
@@ -3339,6 +3386,7 @@ function createPathwayArrowsTexture() {
     webMesh.userData.baseOpacity = 1.0;
     webMesh.position.set(0, -0.3, d.d / 2 + 0.03);
     group.add(webMesh);
+
     // Update texture dimensions to map aspect ratio cleanly
     const updateTextureDimensions = () => {
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
@@ -3351,11 +3399,13 @@ function createPathwayArrowsTexture() {
         group.userData.repeatY = repeatYVal;
       }
     };
+
     if (img.complete && img.naturalWidth > 0) {
       setTimeout(updateTextureDimensions, 0);
     } else {
       img.addEventListener('load', updateTextureDimensions);
     }
+
     // Variable pole system
     const colHeight = d.poleHeight;
     const colMat = new THREE.MeshStandardMaterial({
@@ -3367,6 +3417,7 @@ function createPathwayArrowsTexture() {
       transparent: true,
       opacity: 1.0
     });
+
     if (colHeight > 0) {
       const colRadius = d.w * 0.05;
       const colGeo = new THREE.CylinderGeometry(colRadius, colRadius * 1.15, colHeight, 32);
@@ -3374,12 +3425,14 @@ function createPathwayArrowsTexture() {
       column.userData.baseOpacity = 1.0;
       column.position.set(0, -d.h / 2 - colHeight / 2, 0);
       group.add(column);
+
       const bracketGeo = new THREE.BoxGeometry(d.w * 0.18, 0.25, d.d * 0.6);
       const bracket = new THREE.Mesh(bracketGeo, colMat);
       bracket.userData.baseOpacity = 1.0;
       bracket.position.set(0, -d.h / 2 - 0.12, 0);
       group.add(bracket);
     }
+
     // Soft contact shadow
     const shadowGeo = new THREE.PlaneGeometry(d.w * 1.15, d.d * 4.0);
     const shadowMat = new THREE.MeshBasicMaterial({
@@ -3395,9 +3448,12 @@ function createPathwayArrowsTexture() {
     shadowMesh.position.set(0, -d.h / 2 - d.poleHeight + 0.02, 0);
     shadowMesh.rotation.x = -Math.PI / 2;
     group.add(shadowMesh);
+
     const targetYAbsolute = -12 + d.poleHeight + d.h / 2;
+
     group.position.set(d.x, targetYAbsolute + 11.96, d.z + 185.0);
     group.rotation.y = d.ry;
+
     group.userData = {
       targetY: targetYAbsolute,
       d,
@@ -3406,9 +3462,11 @@ function createPathwayArrowsTexture() {
       webTexture,
       repeatY: 1.0
     };
+
     scene.userData.slabs.push(group);
     PlatformRoot.add(group);
   });
+
   // Canyon floor grid
   const floorGeo = new THREE.PlaneGeometry(80, 300, 20, 40);
   const floorMat = new THREE.MeshStandardMaterial({
@@ -3420,6 +3478,7 @@ function createPathwayArrowsTexture() {
   floor.rotation.x = -PI / 2;
   floor.position.set(0, -0.04, -135.0);
   PlatformRoot.add(floor);
+
   const floorWire = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 300, 20, 40),
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.04 })
@@ -3427,23 +3486,27 @@ function createPathwayArrowsTexture() {
   floorWire.rotation.x = -PI / 2;
   floorWire.position.set(0, -0.09, -135.0);
   PlatformRoot.add(floorWire);
+
   // Platform front face
   const frontWallGeo = new THREE.PlaneGeometry(80, 28);
   const frontWall = new THREE.Mesh(frontWallGeo, floorMat);
   frontWall.position.set(0, -14.04, 15.0);
   PlatformRoot.add(frontWall);
+
   const frontWallWire = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 28, 12, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.03 })
   );
   frontWallWire.position.set(0, -14.04, 15.05);
   PlatformRoot.add(frontWallWire);
+
   // Side walls
   const sideWallGeo = new THREE.PlaneGeometry(300, 28);
   const leftWall = new THREE.Mesh(sideWallGeo, floorMat);
   leftWall.position.set(-40, -14.04, -135.0);
   leftWall.rotation.y = PI / 2;
   PlatformRoot.add(leftWall);
+
   const leftWallWire = new THREE.Mesh(
     new THREE.PlaneGeometry(300, 28, 40, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
@@ -3451,10 +3514,12 @@ function createPathwayArrowsTexture() {
   leftWallWire.position.set(-39.95, -14.04, -135.0);
   leftWallWire.rotation.y = PI / 2;
   PlatformRoot.add(leftWallWire);
+
   const rightWall = new THREE.Mesh(sideWallGeo, floorMat);
   rightWall.position.set(40, -14.04, -135.0);
   rightWall.rotation.y = -PI / 2;
   PlatformRoot.add(rightWall);
+
   const rightWallWire = new THREE.Mesh(
     new THREE.PlaneGeometry(300, 28, 40, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
@@ -3462,12 +3527,14 @@ function createPathwayArrowsTexture() {
   rightWallWire.position.set(39.95, -14.04, -135.0);
   rightWallWire.rotation.y = -PI / 2;
   PlatformRoot.add(rightWallWire);
+
   // Back wall
   const backWallGeo = new THREE.PlaneGeometry(80, 28);
   const backWall = new THREE.Mesh(backWallGeo, floorMat);
   backWall.position.set(0, -14.04, -285.0);
   backWall.rotation.y = PI;
   PlatformRoot.add(backWall);
+
   const backWallWire = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 28, 12, 6),
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
@@ -3475,17 +3542,22 @@ function createPathwayArrowsTexture() {
   backWallWire.position.set(0, -14.04, -284.95);
   backWallWire.rotation.y = PI;
   PlatformRoot.add(backWallWire);
+
   // Canyon lights disabled to ensure lighting comes only from walkway borders, arrows, and reflections
   const canyonLight1 = new THREE.PointLight(0xFFD27D, 0.0, 60);
   canyonLight1.position.set(0, 8.04, -65.0);
   PlatformRoot.add(canyonLight1);
+
   const canyonLight2 = new THREE.PointLight(0xFFD27D, 0.0, 60);
   canyonLight2.position.set(0, 8.04, -130.0);
   PlatformRoot.add(canyonLight2);
+
   const canyonLight3 = new THREE.PointLight(0xFFD27D, 0.0, 60);
   canyonLight3.position.set(0, 8.04, -195.0);
   PlatformRoot.add(canyonLight3);
+
   scene.userData.canyonLights = [canyonLight1, canyonLight2, canyonLight3];
+
   scene.userData.canyonFloor = floor;
   scene.userData.canyonFloorWire = floorWire;
   scene.userData.canyonWalls = [
@@ -3494,6 +3566,7 @@ function createPathwayArrowsTexture() {
     rightWall, rightWallWire,
     backWall, backWallWire
   ];
+
 })();
 // Helper to construct a custom tube geometry with varying radius (narrows by 35% in the middle)
 function createVaryingRadiusTubeGeometry(curve, tubularSegments, baseRadius, radialSegments) {
@@ -5579,6 +5652,24 @@ function animate() {
   }
   /* -- Cursor -- */
   updateCursor();
+  // Disable all non-gold light sources when inside Website Experience (Section 2)
+  const isWebSection = (currentSectionIdx === 2) || (sectionTransitionProgress < 1.0 && targetSectionIdx === 2);
+  if (isWebSection) {
+    if (typeof sun !== 'undefined' && sun) sun.intensity = 0.0;
+    if (typeof mainAmbientLight !== 'undefined' && mainAmbientLight) mainAmbientLight.intensity = 0.0;
+    if (typeof lightContent !== 'undefined' && lightContent) lightContent.intensity = 0.0;
+    if (typeof lightTexting !== 'undefined' && lightTexting) lightTexting.intensity = 0.0;
+    if (typeof lightEco !== 'undefined' && lightEco) lightEco.intensity = 0.0;
+  } else {
+    if (typeof sun !== 'undefined' && sun) sun.intensity = 1.0;
+    if (typeof mainAmbientLight !== 'undefined' && mainAmbientLight) mainAmbientLight.intensity = 1.8;
+    if (typeof lightContent !== 'undefined' && lightContent) lightContent.intensity = 1.0;
+    if (typeof lightTexting !== 'undefined' && lightTexting) lightTexting.intensity = 0.8;
+    if (currentSectionIdx !== 5 && typeof lightEco !== 'undefined' && lightEco) {
+      lightEco.intensity = 0.7;
+    }
+  }
+  
   renderer.render(scene, camera);
 }
 /* ═══════════════════════════════════════════
