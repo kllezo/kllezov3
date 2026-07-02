@@ -7032,31 +7032,34 @@ function createPathwayFrameTexture() {
   ctx.shadowBlur = 0;
 
   // Large readable guidance text: bold, high contrast, extra space (stretched vertically to counteract perspective compression)
-  // Positioned close at Y = 1638 (about 20% from the front edge of the 2048 canvas)
+  // Hardcoded transform to anchor it at the VERY FRONT of the walkway (Y = 1930, ~5.7% from the entrance edge)
   ctx.save();
   ctx.scale(1.0, 2.2);
 
-  ctx.shadowColor = 'rgba(255, 215, 130, 0.7)';
-  ctx.shadowBlur = 16;
-  ctx.font = '700 48px "Outfit", "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(255, 215, 130, 0.98)';
+  ctx.shadowColor = 'rgba(255, 218, 140, 0.95)';
+  ctx.shadowBlur = 24;
+  ctx.font = '700 58px "Outfit", "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(255, 218, 140, 1.0)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('S C R O L L   F O R W A R D   T O   E X P L O R E', 512, 1638 / 2.2);
+  if (self.CanvasRenderingContext2D && 'letterSpacing' in ctx) {
+    ctx.letterSpacing = '12px';
+  }
+  ctx.fillText('SCROLL FORWARD TO EXPLORE', 512, 1930 / 2.2);
   ctx.shadowBlur = 0;
 
-  // Circular arrow icon pointing AWAY from visitor (upwards)
-  ctx.strokeStyle = 'rgba(255, 215, 130, 0.95)';
+  // Circular arrow icon pointing AWAY from visitor (upwards), placed at Y = 1780 (13% from entrance edge)
+  ctx.strokeStyle = 'rgba(255, 218, 140, 1.0)';
   ctx.lineWidth = 5.0;
   ctx.beginPath();
-  ctx.arc(512, 1738 / 2.2, 36, 0, Math.PI * 2);
+  ctx.arc(512, 1780 / 2.2, 36, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = 'rgba(255, 215, 130, 0.98)';
+  ctx.fillStyle = 'rgba(255, 218, 140, 1.0)';
   ctx.beginPath();
-  ctx.moveTo(512 - 16, (1738 + 10) / 2.2);
-  ctx.lineTo(512, (1738 - 12) / 2.2);
-  ctx.lineTo(512 + 16, (1738 + 10) / 2.2);
+  ctx.moveTo(512 - 16, (1780 + 10) / 2.2);
+  ctx.lineTo(512, (1780 - 12) / 2.2);
+  ctx.lineTo(512 + 16, (1780 + 10) / 2.2);
   ctx.closePath();
   ctx.fill();
 
@@ -7155,9 +7158,9 @@ function createPathwayArrowsTexture() {
       void main() {
         vec4 frameColor = texture2D(tFrame, vUv);
         
-        // Sample animated arrows strictly down the middle channel between the dual gold ribbons (UV X = 0.44 to 0.56)
+        // Sample animated arrows strictly down the middle channel (UV X = 0.44 to 0.56) starting after the entrance text (UV Y > 0.22)
         vec4 arrowColor = vec4(0.0);
-        if (vUv.x > 0.44 && vUv.x < 0.56 && vUv.y > 0.06 && vUv.y < 0.94) {
+        if (vUv.x > 0.44 && vUv.x < 0.56 && vUv.y > 0.22 && vUv.y < 0.94) {
           vec2 arrowUv = vec2(vUv.x * 2.0, vUv.y * 48.0 + arrowOffset);
           arrowColor = texture2D(tArrows, arrowUv);
         }
