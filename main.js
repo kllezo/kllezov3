@@ -4420,7 +4420,7 @@ EntranceLighting.add(entrancePointLight);
 
 const lightTexting = new THREE.PointLight(0xFFE8CC, 0.8, 150);
 
-lightTexting.position.set(0, 3, -360);
+lightTexting.position.set(0, 3, -752.0); // Shifted downstream to Texting section
 
 scene.add(lightTexting);
 
@@ -4428,7 +4428,7 @@ scene.add(lightTexting);
 
 const lightEco = new THREE.PointLight(0xffffff, 0.7, 120);
 
-lightEco.position.set(0, 0, -430);
+lightEco.position.set(0, 0, -920.0); // Shifted downstream to Ecosystem centerpiece
 
 scene.add(lightEco);
 
