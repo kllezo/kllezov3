@@ -6970,975 +6970,729 @@ function createLightBeam(spotPos, targetPos, color) {
 
 
 
-function createContactShadowTexture() {
-
+function generateWebsiteTexture(idx) {
   const canvas = document.createElement('canvas');
-
-  canvas.width = 512;
-
-  canvas.height = 128;
-
+  canvas.width = 1024;
+  canvas.height = 3072;
   const ctx = canvas.getContext('2d');
 
+  let bgGrad = ctx.createLinearGradient(0, 0, 0, 3072);
+  let colors = [];
+  let brandName = "";
+  let brandTagline = "";
+  let ctaText = "";
+  let brandAccent = "";
+  let fonts = { title: "serif", body: "sans-serif" };
 
+  if (idx === 0) {
+    colors = ["#090b0e", "#141a29", "#06080b"];
+    brandName = "A U R E L I A   E S T A T E S";
+    brandTagline = "Extraordinary Locations.";
+    ctaText = "EXPLORE ESTATES";
+    brandAccent = "#ffd700";
+    fonts = { title: 'italic 700 72px "Playfair Display", "Didot", serif', body: '500 24px "Inter", sans-serif' };
+  } else if (idx === 1) {
+    colors = ["#0a0808", "#1c1212", "#050404"];
+    brandName = "L ' A M B R O I S I E";
+    brandTagline = "Seven Culinary Courses.";
+    ctaText = "BOOK RESERVATION";
+    brandAccent = "#e0b034";
+    fonts = { title: '700 64px "Didot", "Playfair Display", serif', body: '300 24px "Georgia", serif' };
+  } else if (idx === 2) {
+    colors = ["#0d0e11", "#1b202c", "#07080a"];
+    brandName = "K I N E T I K   W E L L N E S S";
+    brandTagline = "Built Beyond Limits.";
+    ctaText = "JOIN MEMBERSHIP";
+    brandAccent = "#ff4500";
+    fonts = { title: '900 76px "Arial Black", Impact, sans-serif', body: '700 24px "Arial", sans-serif' };
+  } else if (idx === 3) {
+    colors = ["#101316", "#1c242c", "#0b0d0e"];
+    brandName = "V E R V E   S T U D I O S";
+    brandTagline = "Spaces That Breathe.";
+    ctaText = "COLLABORATE";
+    brandAccent = "#48cae4";
+    fonts = { title: '400 64px "Courier New", Courier, monospace', body: '400 24px "Courier New", monospace' };
+  } else if (idx === 4) {
+    colors = ["#04060a", "#0c1324", "#020305"];
+    brandName = "A E R O   M O T O R S";
+    brandTagline = "Engineered Emotion.";
+    ctaText = "BUILD YOUR AERO";
+    brandAccent = "#00f0ff";
+    fonts = { title: '800 68px "Trebuchet MS", Arial, sans-serif', body: '500 24px "Arial", sans-serif' };
+  } else {
+    colors = ["#060a0c", "#101d26", "#030506"];
+    brandName = "H E L I X   B I O T E C H";
+    brandTagline = "Decoding Life Science.";
+    ctaText = "EXPLORE RESEARCH";
+    brandAccent = "#10b981";
+    fonts = { title: '700 64px "Segoe UI", Arial, sans-serif', body: '400 24px "Segoe UI", sans-serif' };
+  }
+
+  bgGrad.addColorStop(0, colors[0]);
+  bgGrad.addColorStop(0.3, colors[1]);
+  bgGrad.addColorStop(1, colors[2]);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 3072);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+  ctx.fillRect(0, 0, 1024, 180);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(1024, 180); ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = '700 28px "Inter", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(brandName, 80, 105);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+  ctx.font = '500 20px "Inter", sans-serif';
+  ctx.fillText("OVERVIEW", 480, 105);
+  ctx.fillText("SERVICES", 620, 105);
+  ctx.fillText("GALLERY", 750, 105);
+
+  ctx.strokeStyle = brandAccent;
+  ctx.lineWidth = 3.0;
+  ctx.strokeRect(860, 65, 100, 50);
+  ctx.fillStyle = brandAccent;
+  ctx.font = '700 16px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("LAUNCH", 910, 96);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = fonts.title;
+  ctx.textAlign = 'left';
+  ctx.fillText(brandTagline, 80, 360);
+  if (idx === 0) ctx.fillText("Lives Lived Well.", 80, 450);
+  else if (idx === 1) ctx.fillText("Modern French Cuisine.", 80, 450);
+  else if (idx === 2) ctx.fillText("Engineered For Output.", 80, 450);
+  else if (idx === 3) ctx.fillText("Design That Endures.", 80, 450);
+  else if (idx === 4) ctx.fillText("The Aero Hypercar.", 80, 450);
+  else ctx.fillText("Accelerating Discovery.", 80, 450);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.font = fonts.body;
+  ctx.fillText("Curated environments crafted with ultimate precision, blending timeless aesthetic", 80, 530);
+  ctx.fillText("principles with next-generation interactive technology.", 80, 570);
+
+  ctx.fillStyle = brandAccent;
+  ctx.fillRect(80, 640, 300, 72);
+  ctx.fillStyle = "#000000";
+  ctx.font = '700 20px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(ctaText, 230, 683);
+
+  ctx.save();
+  ctx.translate(760, 520);
+  ctx.strokeStyle = brandAccent;
+  ctx.lineWidth = 5.0;
+  ctx.shadowColor = brandAccent;
+  ctx.shadowBlur = 32;
+
+  if (idx === 0) {
+    ctx.beginPath();
+    ctx.moveTo(-150, 100); ctx.lineTo(-150, -100); ctx.lineTo(150, -100); ctx.lineTo(150, 100); ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-75, 100); ctx.lineTo(0, -30); ctx.lineTo(75, 100);
+    ctx.stroke();
+  } else if (idx === 1) {
+    ctx.beginPath(); ctx.arc(0, 0, 100, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 60, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+  } else if (idx === 2) {
+    for(let r=30; r<=90; r+=30) {
+      ctx.beginPath();
+      for(let s=0; s<6; s++) {
+        let angle = s * Math.PI / 3;
+        ctx.lineTo(r*Math.cos(angle), r*Math.sin(angle));
+      }
+      ctx.closePath(); ctx.stroke();
+    }
+  } else if (idx === 3) {
+    for(let xVal=-100; xVal<=100; xVal+=40) {
+      ctx.beginPath(); ctx.moveTo(xVal, -80); ctx.lineTo(xVal, 80); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-100, xVal/1.25); ctx.lineTo(100, xVal/1.25); ctx.stroke();
+    }
+  } else if (idx === 4) {
+    ctx.beginPath();
+    ctx.moveTo(-200, 0);
+    ctx.bezierCurveTo(-120, -70, 40, -70, 200, 30);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-160, 30);
+    ctx.bezierCurveTo(-60, -10, 80, -10, 180, 50);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    for(let xVal=-150; xVal<=150; xVal+=10) {
+      let yVal = Math.sin(xVal * 0.05) * 40;
+      ctx.lineTo(xVal, yVal);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.beginPath();
+    for(let xVal=-150; xVal<=150; xVal+=10) {
+      let yVal = -Math.sin(xVal * 0.05) * 40;
+      ctx.lineTo(xVal, yVal);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = '700 44px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("CORE CAPABILITIES", 512, 1200);
+
+  for (let c = 0; c < 3; c++) {
+    let cx = 80 + c * 310;
+    let cy = 1320;
+    let cw = 270;
+    let ch = 440;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+    ctx.fillRect(cx, cy, cw, ch);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.strokeRect(cx, cy, cw, ch);
+
+    ctx.fillStyle = brandAccent;
+    ctx.fillRect(cx + 30, cy + 40, 55, 55);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '700 24px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText("Feature 0" + (c + 1), cx + 30, cy + 150);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.font = '400 18px "Inter", sans-serif';
+    ctx.fillText("Highly detailed mockup", cx + 30, cy + 210);
+    ctx.fillText("of professional services", cx + 30, cy + 245);
+    ctx.fillText("delivering luxury results.", cx + 30, cy + 280);
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = '700 44px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("READY TO BUILD?", 512, 2180);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.font = '400 20px "Inter", sans-serif';
+  ctx.fillText("Partner with our award-winning designers to deploy high-converting interactive showcases.", 512, 2240);
+
+  ctx.fillStyle = brandAccent;
+  ctx.fillRect(362, 2320, 300, 72);
+  ctx.fillStyle = "#000000";
+  ctx.font = '700 20px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("GET STARTED NOW", 512, 2365);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.01)";
+  ctx.fillRect(0, 2750, 1024, 322);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+  ctx.beginPath(); ctx.moveTo(0, 2750); ctx.lineTo(1024, 2750); ctx.stroke();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.font = '400 18px "Inter", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText("© 2026 " + brandName + ". ALL RIGHTS RESERVED.", 80, 2920);
+  ctx.textAlign = 'right';
+  ctx.fillText("PRIVACY POLICY  /  TERMS OF SERVICE", 944, 2920);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.encoding = THREE.sRGBEncoding;
+
+  return { texture, canvas };
+}
+
+function createContactShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
 
   ctx.clearRect(0, 0, 512, 128);
 
-
-
   ctx.save();
-
   ctx.translate(256, 64);
-
   ctx.scale(4.0, 1.0); // stretch radial gradient to fit width
 
-
-
   const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
-
   grad.addColorStop(0, 'rgba(0, 0, 0, 0.95)');
-
   grad.addColorStop(0.2, 'rgba(0, 0, 0, 0.8)');
-
   grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
-
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
   ctx.fillStyle = grad;
 
+  ctx.beginPath();
+  ctx.arc(0, 0, 60, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+function createPathwayFrameTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 2048;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 1024, 2048);
+
+  // 1. Glowing outer border
+  ctx.strokeStyle = 'rgba(255, 205, 110, 0.7)';
+  ctx.lineWidth = 14;
+  ctx.shadowColor = 'rgba(255, 205, 110, 0.55)';
+  ctx.shadowBlur = 24;
+
+  const r = 50;
+  const x = 20;
+  const y = 20;
+  const w = 1024 - 40;
+  const h = 2048 - 40;
 
   ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+  ctx.stroke();
 
-  ctx.arc(0, 0, 60, 0, Math.PI * 2);
+  // 2. Dual central gold guidance ribbons
+  ctx.strokeStyle = 'rgba(255, 205, 110, 0.9)';
+  ctx.lineWidth = 16;
+  ctx.shadowColor = 'rgba(255, 205, 110, 0.75)';
+  ctx.shadowBlur = 32;
+  
+  ctx.beginPath();
+  ctx.moveTo(512 - 80, y + r);
+  ctx.lineTo(512 - 80, y + h - r);
+  ctx.stroke();
 
+  ctx.beginPath();
+  ctx.moveTo(512 + 80, y + r);
+  ctx.lineTo(512 + 80, y + h - r);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // Large readable guidance text: bold, high contrast, extra space (stretched vertically to counteract perspective compression)
+  ctx.save();
+  ctx.scale(1.0, 2.2);
+
+  ctx.shadowColor = 'rgba(255, 215, 130, 0.7)';
+  ctx.shadowBlur = 16;
+  ctx.font = '700 48px "Outfit", "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(255, 215, 130, 0.98)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('S C R O L L   F O R W A R D   T O   E X P L O R E', 512, 1820 / 2.2);
+  ctx.shadowBlur = 0;
+
+  // Circular arrow icon
+  ctx.strokeStyle = 'rgba(255, 215, 130, 0.95)';
+  ctx.lineWidth = 5.0;
+  ctx.beginPath();
+  ctx.arc(512, 1920 / 2.2, 36, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255, 215, 130, 0.98)';
+  ctx.beginPath();
+  ctx.moveTo(512 - 16, 1910 / 2.2);
+  ctx.lineTo(512, 1932 / 2.2);
+  ctx.lineTo(512 + 16, 1910 / 2.2);
+  ctx.closePath();
   ctx.fill();
 
   ctx.restore();
 
-
-
   const texture = new THREE.CanvasTexture(canvas);
-
-  return texture;
-
-}
-
-
-
-function createPathwayFrameTexture() {
-
-  const canvas = document.createElement('canvas');
-
-  canvas.width = 512;
-
-  canvas.height = 2048;
-
-  const ctx = canvas.getContext('2d');
-
-
-
-  ctx.clearRect(0, 0, 512, 2048);
-
-
-
-  // 1. Sleek, thin glowing border with rounded corners for edge lighting
-
-  ctx.strokeStyle = 'rgba(255, 200, 100, 0.6)';
-
-  ctx.lineWidth = 6;
-
-  ctx.shadowColor = 'rgba(255, 200, 100, 0.5)';
-
-  ctx.shadowBlur = 16;
-
-
-
-  const r = 40;
-
-  const x = 12;
-
-  const y = 12;
-
-  const w = 512 - 24;
-
-  const h = 2048 - 24;
-
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(x + r, y);
-
-  ctx.lineTo(x + w - r, y);
-
-  ctx.arcTo(x + w, y, x + w, y + r, r);
-
-  ctx.lineTo(x + w, y + h - r);
-
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-
-  ctx.lineTo(x + r, y + h);
-
-  ctx.arcTo(x, y + h, x, y + h - r, r);
-
-  ctx.lineTo(x, y + r);
-
-  ctx.arcTo(x, y, x + r, y, r);
-
-  ctx.closePath();
-
-  ctx.stroke();
-
-
-
-  // 2. Central gold guidance ribbon
-
-  ctx.strokeStyle = 'rgba(255, 205, 110, 0.9)';
-
-  ctx.lineWidth = 12;
-
-  ctx.shadowColor = 'rgba(255, 205, 110, 0.8)';
-
-  ctx.shadowBlur = 24;
-
-  
-
-  ctx.beginPath();
-
-  ctx.moveTo(256, y + r);
-
-  ctx.lineTo(256, y + h - r);
-
-  ctx.stroke();
-
-
-
-  ctx.shadowBlur = 0;
-
-
-
-  // "Scroll forward to explore" guidance text at the front edge (bottom of canvas = front of platform)
-
-  ctx.shadowColor = 'rgba(255, 210, 125, 0.4)';
-
-  ctx.shadowBlur = 8;
-
-  ctx.font = '500 24px "Inter", sans-serif';
-
-  ctx.fillStyle = 'rgba(255, 210, 125, 0.85)';
-
-  ctx.textAlign = 'center';
-
-  ctx.textBaseline = 'middle';
-
-  ctx.fillText('Scroll forward to explore', 256, 1910);
-
-
-
-  const texture = new THREE.CanvasTexture(canvas);
-
   texture.wrapS = THREE.ClampToEdgeWrapping;
-
   texture.wrapT = THREE.ClampToEdgeWrapping;
-
   return texture;
-
 }
-
-
 
 function createPathwayArrowsTexture() {
-
   const canvas = document.createElement('canvas');
-
   canvas.width = 256;
-
   canvas.height = 512;
-
   const ctx = canvas.getContext('2d');
-
-
 
   ctx.clearRect(0, 0, 256, 512);
 
-
-
-  // Subtle animated chevrons pointing upwards (away from camera, guiding forward)
-
   ctx.fillStyle = 'rgba(255, 210, 125, 0.55)';
-
   for (let cy = 30; cy < 512; cy += 120) {
-
     ctx.beginPath();
-
     ctx.moveTo(128 - 12, cy + 6);
-
     ctx.lineTo(128, cy - 8);
-
     ctx.lineTo(128 + 12, cy + 6);
-
     ctx.lineTo(128 + 12, cy + 10);
-
     ctx.lineTo(128, cy - 4);
-
     ctx.lineTo(128 - 12, cy + 10);
-
     ctx.closePath();
-
     ctx.fill();
-
   }
 
-
-
   const texture = new THREE.CanvasTexture(canvas);
-
   texture.wrapS = THREE.RepeatWrapping;
-
   texture.wrapT = THREE.RepeatWrapping;
-
   return texture;
-
 }
-
-
 
 (function buildWebsites() {
 
-
-
   const slabDefs = [
-
-    // Row 1 (Z = -250): inward 20 degrees
-
-    { x: -12.0, y: 0, z: -250, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-
-    { x: 12.0, y: 0, z: -250, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-
-    // Row 2 (Z = -315): inward 20 degrees
-
-    { x: -12.0, y: 0, z: -315, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-
-    { x: 12.0, y: 0, z: -315, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-
-    // Row 3 (Z = -380): inward 20 degrees
-
-    { x: -12.0, y: 0, z: -380, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
-
-    { x: 12.0, y: 0, z: -380, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
-
+    // Row 1 (Z = -250): inward 20 degrees, shifted to X = ±18.0 to accommodate wider runway
+    { x: -18.0, y: 0, z: -250, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 18.0, y: 0, z: -250, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 2 (Z = -315): inward 20 degrees, shifted to X = ±18.0
+    { x: -18.0, y: 0, z: -315, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 18.0, y: 0, z: -315, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    // Row 3 (Z = -380): inward 20 degrees, shifted to X = ±18.0
+    { x: -18.0, y: 0, z: -380, ry: 0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 },
+    { x: 18.0, y: 0, z: -380, ry: -0.35, w: 20.0, h: 11.0, d: 1.0, poleHeight: 0.0 }
   ];
-
-
 
   const floorClippingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 12);
 
-
-
   const websitesGroup = WebsiteArrivalAnchor;
-
   scene.userData.websitesGroup = websitesGroup;
 
-
-
-  // ── WALKWAY GLOSSY BASE PLANE ──
-
+  // ── WALKWAY GLOSSY BASE PLANE (Widen to 14.0) ──
   const baseMat = new THREE.MeshStandardMaterial({
-
     color: 0x08090d,
-
     roughness: 0.15,
-
     metalness: 0.85,
-
     clippingPlanes: [floorClippingPlane]
-
   });
-
-  const baseMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 260.0), baseMat);
-
+  const baseMesh = new THREE.Mesh(new THREE.PlaneGeometry(14.0, 260.0), baseMat);
   baseMesh.name = 'pathwayBase';
-
-  baseMesh.position.set(0, 0, -130.0); // local relative position (world Y = -11.96, Z = -315.0)
-
+  baseMesh.position.set(0, 0, -130.0);
   baseMesh.rotation.x = -Math.PI / 2;
-
   WalkwayRoot.add(baseMesh);
 
-
-
-  // ── WALKWAY GLOW OVERLAY ──
-
+  // ── WALKWAY GLOW OVERLAY (Widen to 14.0) ──
   const frameTexture = createPathwayFrameTexture();
-
   const arrowsTexture = createPathwayArrowsTexture();
 
-
-
   const pathwayShaderMat = new THREE.ShaderMaterial({
-
     uniforms: {
-
       tFrame: { value: frameTexture },
-
       tArrows: { value: arrowsTexture },
-
       arrowOffset: { value: 0.0 },
-
       opacity: { value: 0.85 }
-
     },
-
     vertexShader: `
-
       varying vec2 vUv;
-
       void main() {
-
         vUv = uv;
-
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
       }
-
     `,
-
     fragmentShader: `
-
       uniform sampler2D tFrame;
-
       uniform sampler2D tArrows;
-
       uniform float arrowOffset;
-
       uniform float opacity;
-
       varying vec2 vUv;
-
       void main() {
-
         vec4 frameColor = texture2D(tFrame, vUv);
-
         
-
-        // Sample animated arrows only inside the inner platform area to avoid bleeding into borders/text
-
+        // Sample animated arrows strictly down the middle channel between the dual gold ribbons (UV X = 0.44 to 0.56)
         vec4 arrowColor = vec4(0.0);
-
-        if (vUv.x > 0.20 && vUv.x < 0.80 && vUv.y > 0.06 && vUv.y < 0.94) {
-
-          vec2 arrowUv = vec2(vUv.x, vUv.y * 48.0 + arrowOffset); // scaled to match 3x longer length
-
+        if (vUv.x > 0.44 && vUv.x < 0.56 && vUv.y > 0.06 && vUv.y < 0.94) {
+          vec2 arrowUv = vec2(vUv.x * 2.0, vUv.y * 48.0 + arrowOffset);
           arrowColor = texture2D(tArrows, arrowUv);
-
         }
-
         
-
         vec3 finalRGB = frameColor.rgb + arrowColor.rgb * 0.75;
-
         float finalAlpha = max(frameColor.a, arrowColor.a * 0.50) * opacity;
-
         gl_FragColor = vec4(finalRGB, finalAlpha);
-
       }
-
     `,
-
     transparent: true,
-
     depthWrite: false,
-
     side: THREE.DoubleSide
-
   });
 
-
-
-  const pathwayGeo = new THREE.PlaneGeometry(5.5, 260.0);
-
+  const pathwayGeo = new THREE.PlaneGeometry(14.0, 260.0);
   const pathwayMesh = new THREE.Mesh(pathwayGeo, pathwayShaderMat);
-
   pathwayMesh.name = 'pathway';
-
-  pathwayMesh.position.set(0, 0.02, -130.0); // local relative position (world Y = -11.94, Z = -315.0)
-
+  pathwayMesh.position.set(0, 0.02, -130.0);
   pathwayMesh.rotation.x = -Math.PI / 2;
-
   ArrowRoot.add(pathwayMesh);
 
-
-
   scene.userData.pathwayTexture = arrowsTexture;
-
   scene.userData.pathwayMat = pathwayShaderMat;
 
-
-
   scene.userData.slabs = [];
-
   scene.userData.billboardSpotlights = [];
-
   scene.userData.beams = [];
-
   scene.userData.lenses = [];
-
   scene.userData.fixtures = [];
 
-
-
   const fixtureBodyMat = new THREE.MeshStandardMaterial({
-
     color: 0x1f2124, roughness: 0.4, metalness: 0.8
-
   });
-
-  const SPOT_COLOR = 0xFFD27D; // Warm luxury light (2700K-3200K)
-
-
+  const SPOT_COLOR = 0xFFD27D;
 
   slabDefs.forEach((d, idx) => {
-
     const group = new THREE.Group();
 
-
-
     // Slab body
-
     const bodyMat = MAT.pageArchitecture.clone();
-
     bodyMat.color.setHex(0x181a1d);
-
     bodyMat.emissive.setHex(0x000000);
-
     bodyMat.emissiveIntensity = 0;
-
     bodyMat.roughness = 0.95;
-
     bodyMat.metalness = 0.05;
-
     bodyMat.clippingPlanes = [floorClippingPlane];
-
     bodyMat.clipShadows = true;
-
     const slab = new THREE.Mesh(
-
       new THREE.BoxGeometry(d.w, d.h, d.d),
-
       bodyMat
-
     );
-
     slab.userData.baseOpacity = bodyMat.opacity;
-
     group.add(slab);
 
-
-
     // Browser chrome bar at top
-
     const chromeMat = new THREE.MeshStandardMaterial({
-
       color: 0x22252a, roughness: 0.9, metalness: 0.1,
-
       clippingPlanes: [floorClippingPlane],
-
       clipShadows: true,
-
       transparent: true,
-
       opacity: 1.0
-
     });
-
     const chrome = new THREE.Mesh(
-
       new THREE.BoxGeometry(d.w * 0.98, 0.6, d.d + 0.05),
-
       chromeMat
-
     );
-
     chrome.userData.baseOpacity = 1.0;
-
     chrome.position.y = d.h / 2 - 0.4;
-
     group.add(chrome);
 
-
-
     // URL bar indicator
-
     const urlBarMat = new THREE.MeshStandardMaterial({
-
       color: 0x131518, roughness: 1.0, metalness: 0.0,
-
       clippingPlanes: [floorClippingPlane],
-
       clipShadows: true,
-
       transparent: true,
-
       opacity: 1.0
-
     });
-
     const urlBar = new THREE.Mesh(
-
       new THREE.BoxGeometry(d.w * 0.55, 0.18, 0.05),
-
       urlBarMat
-
     );
-
     urlBar.userData.baseOpacity = 1.0;
-
     urlBar.position.set(0, d.h / 2 - 0.4, d.d / 2 + 0.04);
-
     group.add(urlBar);
 
-
-
     // Web Page screen - scaled to match plane aspect ratio for 4K quality
-
     const planeW = d.w * 0.96;
-
     const planeH = d.h * 0.92;
 
-
-
-    const img = IMAGES['niche' + ((idx % 3) + 1)];
-
-    const webTexture = new THREE.Texture(img);
-
-    webTexture.minFilter = THREE.LinearFilter;
-
-    webTexture.magFilter = THREE.LinearFilter;
-
-    webTexture.generateMipmaps = false;
-
-    webTexture.wrapS = THREE.ClampToEdgeWrapping;
-
-    webTexture.wrapT = THREE.ClampToEdgeWrapping;
-
-    webTexture.encoding = THREE.sRGBEncoding;
-
-
+    // Generate dynamic website texture
+    const { texture: webTexture, canvas: webCanvas } = generateWebsiteTexture(idx);
 
     const webMat = new THREE.MeshStandardMaterial({
-
       map: webTexture,
-
       emissiveMap: webTexture,
-
       emissive: new THREE.Color(0xffffff),
-
-      emissiveIntensity: 1.0, // High-end premium self-illumination
-
+      emissiveIntensity: 1.0,
       roughness: 0.85,
-
       metalness: 0.05,
-
       clippingPlanes: [floorClippingPlane],
-
       transparent: true,
-
       opacity: 1.0
-
     });
-
-
 
     const webMesh = new THREE.Mesh(
-
       new THREE.PlaneGeometry(planeW, planeH),
-
       webMat
-
     );
-
     webMesh.name = 'screen';
-
     webMesh.userData.baseOpacity = 1.0;
-
     webMesh.position.set(0, -0.3, d.d / 2 + 0.03);
-
     group.add(webMesh);
 
-
-
-    const updateTextureDimensions = () => {
-
-      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-
-        const aspectPlane = planeH / planeW;
-
-        const aspectImg = img.naturalHeight / img.naturalWidth;
-
-        const repeatYVal = aspectPlane / aspectImg;
-
-        webTexture.repeat.set(1.0, repeatYVal);
-
-        webTexture.offset.set(0.0, 1.0 - repeatYVal);
-
-        webTexture.needsUpdate = true;
-
-        group.userData.repeatY = repeatYVal;
-
-      }
-
-    };
-
-
-
-    if (img.complete && img.naturalWidth > 0) {
-
-      setTimeout(updateTextureDimensions, 0);
-
-    } else {
-
-      img.addEventListener('load', updateTextureDimensions);
-
-    }
-
-
+    // Map 3072 long texture height to the plane aspect ratio perfectly
+    const repeatYVal = (planeH / planeW) * (1024.0 / 3072.0);
+    webTexture.repeat.set(1.0, repeatYVal);
+    webTexture.offset.set(0.0, 1.0 - repeatYVal);
 
     // Variable pole system
-
     const colHeight = d.poleHeight;
-
     const colMat = new THREE.MeshStandardMaterial({
-
       color: 0x1a1c1f,
-
       roughness: 0.55,
-
       metalness: 0.6,
-
       clippingPlanes: [floorClippingPlane],
-
       clipShadows: true,
-
       transparent: true,
-
       opacity: 1.0
-
     });
-
-
 
     if (colHeight > 0) {
-
       const colRadius = d.w * 0.05;
-
       const colGeo = new THREE.CylinderGeometry(colRadius, colRadius * 1.15, colHeight, 32);
-
       const column = new THREE.Mesh(colGeo, colMat);
-
       column.userData.baseOpacity = 1.0;
-
       column.position.set(0, -d.h / 2 - colHeight / 2, 0);
-
       group.add(column);
 
-
-
-      // Mounting bracket
-
       const bracketGeo = new THREE.BoxGeometry(d.w * 0.18, 0.25, d.d * 0.6);
-
       const bracket = new THREE.Mesh(bracketGeo, colMat);
-
       bracket.userData.baseOpacity = 1.0;
-
       bracket.position.set(0, -d.h / 2 - 0.12, 0);
-
       group.add(bracket);
-
     }
 
-
-
     // Soft contact shadow beneath the billboard to ground it visually
-
     const shadowGeo = new THREE.PlaneGeometry(d.w * 1.15, d.d * 4.0);
-
     const shadowMat = new THREE.MeshBasicMaterial({
-
       map: createContactShadowTexture(),
-
       transparent: true,
-
       opacity: 0.85,
-
       depthWrite: false,
-
       blending: THREE.NormalBlending
-
     });
-
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-
     shadowMesh.name = 'shadow';
-
     shadowMesh.userData.baseOpacity = 0.85;
-
     shadowMesh.position.set(0, -d.h / 2 - d.poleHeight + 0.02, 0);
-
     shadowMesh.rotation.x = -Math.PI / 2;
-
     group.add(shadowMesh);
-
-
 
     const targetYAbsolute = -12 + d.poleHeight + d.h / 2;
 
-
-
-    group.position.set(d.x, targetYAbsolute + 11.96, d.z + 185.0); // local position relative to anchor (world Y=-11.96, Z=-185.0)
-
+    group.position.set(d.x, targetYAbsolute + 11.96, d.z + 185.0);
     group.rotation.y = d.ry;
 
-
-
     group.userData = {
-
-
-
-
-
       targetY: targetYAbsolute,
-
       d,
-
       idx,
-
       phase: idx * 0.8,
-
       webTexture,
-
-      repeatY: 1.0
-
+      repeatY: repeatYVal
     };
 
-
-
     scene.userData.slabs.push(group);
-
     PlatformRoot.add(group);
-
-
-
-    // Ground Spotlight setup removed per request - hoardings are self-illuminated and do not have dedicated spotlights
-
   });
-
-
 
   // Canyon floor grid
-
   const floorGeo = new THREE.PlaneGeometry(80, 300, 20, 40);
-
   const floorMat = new THREE.MeshStandardMaterial({
-
     color: 0x060810, roughness: 0.85, metalness: 0.10, // matte floor
-
     wireframe: false,
-
     transparent: true, opacity: 0.9,
-
   });
-
   const floor = new THREE.Mesh(floorGeo, floorMat);
-
   floor.rotation.x = -PI / 2;
-
   floor.position.set(0, -0.04, -135.0); // local position relative to anchor (world Y = -12, Z = -320)
-
   PlatformRoot.add(floor);
 
-
-
   const floorWire = new THREE.Mesh(
-
     new THREE.PlaneGeometry(80, 300, 20, 40),
-
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.04 })
-
   );
-
   floorWire.rotation.x = -PI / 2;
-
   floorWire.position.set(0, -0.09, -135.0); // local position relative to anchor (world Y = -12.05, Z = -320)
-
   PlatformRoot.add(floorWire);
 
-
-
   // Platform side skirting / front face to completely hide area beneath y = -12
-
   const frontWallGeo = new THREE.PlaneGeometry(80, 28);
-
   const frontWall = new THREE.Mesh(frontWallGeo, floorMat);
-
   frontWall.position.set(0, -14.04, 15.0); // local position relative to anchor (world Y = -26, Z = -170)
-
   PlatformRoot.add(frontWall);
 
-
-
   const frontWallWire = new THREE.Mesh(
-
     new THREE.PlaneGeometry(80, 28, 12, 6),
-
     new THREE.MeshBasicMaterial({ color: 0x1a3060, wireframe: true, transparent: true, opacity: 0.03 })
-
   );
-
   frontWallWire.position.set(0, -14.04, 15.05);
-
   PlatformRoot.add(frontWallWire);
 
-
-
   // Side walls
-
   const sideWallGeo = new THREE.PlaneGeometry(300, 28);
-
   const leftWall = new THREE.Mesh(sideWallGeo, floorMat);
-
   leftWall.position.set(-40, -14.04, -135.0); // local position relative to anchor (world Y = -26, Z = -320)
-
   leftWall.rotation.y = PI / 2;
-
   PlatformRoot.add(leftWall);
 
-
-
   const leftWallWire = new THREE.Mesh(
-
     new THREE.PlaneGeometry(300, 28, 40, 6),
-
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
-
   );
-
   leftWallWire.position.set(-39.95, -14.04, -135.0);
-
   leftWallWire.rotation.y = PI / 2;
-
   PlatformRoot.add(leftWallWire);
 
-
-
   const rightWall = new THREE.Mesh(sideWallGeo, floorMat);
-
   rightWall.position.set(40, -14.04, -135.0); // local position relative to anchor (world Y = -26, Z = -320)
-
   rightWall.rotation.y = -PI / 2;
-
   PlatformRoot.add(rightWall);
 
-
-
   const rightWallWire = new THREE.Mesh(
-
     new THREE.PlaneGeometry(300, 28, 40, 6),
-
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
-
   );
-
   rightWallWire.position.set(39.95, -14.04, -135.0);
-
   rightWallWire.rotation.y = -PI / 2;
-
   PlatformRoot.add(rightWallWire);
 
-
-
   // Back wall
-
   const backWallGeo = new THREE.PlaneGeometry(80, 28);
-
   const backWall = new THREE.Mesh(backWallGeo, floorMat);
-
   backWall.position.set(0, -14.04, -285.0); // local position relative to anchor (world Y = -26, Z = -470)
-
   backWall.rotation.y = PI;
-
   PlatformRoot.add(backWall);
 
-
-
   const backWallWire = new THREE.Mesh(
-
     new THREE.PlaneGeometry(80, 28, 12, 6),
-
     new THREE.MeshBasicMaterial({ color: 0x1a9e8f, wireframe: true, transparent: true, opacity: 0.02 })
-
   );
-
   backWallWire.position.set(0, -14.04, -284.95);
-
   backWallWire.rotation.y = PI;
-
   PlatformRoot.add(backWallWire);
 
-
-
   // Atmosphere lights in corridor (softened, warm gold)
-
   const canyonLight1 = new THREE.PointLight(0xFFD27D, 0.25, 60);
-
   canyonLight1.position.set(0, 8.04, -65.0);
-
   PlatformRoot.add(canyonLight1);
 
-
-
   const canyonLight2 = new THREE.PointLight(0xFFD27D, 0.25, 60);
-
   canyonLight2.position.set(0, 8.04, -130.0);
-
   PlatformRoot.add(canyonLight2);
 
-
-
   const canyonLight3 = new THREE.PointLight(0xFFD27D, 0.25, 60);
-
   canyonLight3.position.set(0, 8.04, -195.0);
-
   PlatformRoot.add(canyonLight3);
-
-
 
   scene.userData.canyonLights = [canyonLight1, canyonLight2, canyonLight3];
 
-
-
   scene.userData.canyonFloor = floor;
-
   scene.userData.canyonFloorWire = floorWire;
-
   scene.userData.canyonWalls = [
-
     frontWall, frontWallWire,
-
     leftWall, leftWallWire,
-
     rightWall, rightWallWire,
-
     backWall, backWallWire
-
   ];
-
-
-
-
-
-
 
 })();
 
@@ -10084,9 +9838,10 @@ function updateWebsites(t, time, vpOverride) {
 
       // Different start/end trigger bounds for even vs odd index billboards ensures they never synchronize identically
 
-      const startDist = 45 + (idx % 2) * 10;
+      // Completely unique scrolling profiles for all 6 displays (closest scroll most, far scroll subtly)
+      const startDist = 55.0 - idx * 6.0;
 
-      const endDist = -10 - (idx % 2) * 5;
+      const endDist = -15.0 - idx * 4.0;
 
       const relZ = camera.position.z - d.z;
 
